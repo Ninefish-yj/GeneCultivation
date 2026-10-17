@@ -37,6 +37,7 @@ namespace Code.UI
     public sealed class ProtoTreeLayout
     {
         public readonly List<ProtoTreeNode> Nodes = new List<ProtoTreeNode>();
+        public readonly List<QualityEdge> QualityEdges = new List<QualityEdge>();   // v0.19.1 品质进化链（低品叶 → 更高品质上级）
         public Rect Bounds;        // 可见层内容包围盒（根+系+小类，渲染层 Fit 用；异能叶按需展开）
 
         private Dictionary<string, ProtoTreeNode> _byId;
@@ -54,6 +55,13 @@ namespace Code.UI
         }
     }
 
+    /// <summary>品质进化链边（v0.19.1）：LowId（低品质异能）→ HighId（同家族更高品质上级，PrototypeEvolution.GetEvolveTarget）</summary>
+    public sealed class QualityEdge
+    {
+        public string LowId;
+        public string HighId;
+    }
+
     /// <summary>
     /// 异能树辐射布局构建器（单一职责：输入异能全量库 → 输出辐射树布局）
     /// 纯数据计算，无 GUI / 无业务副作用。
@@ -69,10 +77,17 @@ namespace Code.UI
         public const float NODE_ROOT_D = 100f;    // 根（异能）圆直径
         public const float NODE_CAT_D = 72f;     // 大类圆直径
         public const float NODE_SUB_D = 56f;     // 小类圆直径
-        public const float NODE_LEAF_D = 52f;    // 异能叶圆直径
+        public const float NODE_LEAF_D = 52f;    // 异能叶圆直径（基准；品质分层时按档覆盖：高品更大）
         public const float RADIUS_CAT = 400f;    // 大类环半径
         public const float RADIUS_SUB = 800f;    // 小类环半径（按 6.5° 最小中心距留足弧距）
-        public const float RADIUS_LEAF = 980f;   // 异能叶环半径
+        // v0.19.1 异能叶品质分层 3 环：高品(S/SS/SSS)贴近小类中心(内环)，低品(F~D)向外——高品质节点作为传承源头，向外辐射链接更低品质异能
+        public const float RADIUS_LEAF_HIGH = 880f;   // 高品环（tier>=7）
+        public const float RADIUS_LEAF_MID = 960f;    // 中品环（tier 4~6）
+        public const float RADIUS_LEAF_LOW = 1040f;   // 低品环（tier<=3）
+        // 叶直径按品质分级：SS/SSS 大、A/S 中、F~C 小（品质越高视觉权重越大）
+        public const float LEAF_D_HIGH = 58f;
+        public const float LEAF_D_MID = 52f;
+        public const float LEAF_D_LOW = 46f;
         public const float MIN_CAT_SECTOR = 24f; // 系最小扇区角（度，小系兜底）
         public const float MIN_SUB_SECTOR = 6.5f;// 小类最小扇区角（度，46 小类单圈容纳：46×6.5°=299°<360°）
         private const float ARC_SAFETY = 1.15f;  // 弧距安全系数（≥直径×1.15 不重叠）
@@ -207,26 +222,46 @@ namespace Code.UI
                     SetRadialPos(subNode, subCenter, RADIUS_SUB);
                     layout.Nodes.Add(subNode);
 
-                    // 异能叶：以小类中心角为中心、扇区随叶数自适应（叶数×12°，夹 50°~110°）均布
-                    // （环 RADIUS_LEAF；默认折叠由渲染层按展开状态显隐，坐标始终预计算——
-                    //   新增异能自动并入扇区，无需重新设计布局）
+                    // 异能叶：品质分层 3 环（v0.19.1）——同小类异能按品质分 3 组，
+                    // 高品(S/SS/SSS)在内环贴近小类中心、中品(A/B/C)中环、低品(F~D)外环；
+                    // 层内按该层叶数在扇区内均布（高层叶少→集中在小类中心，天然形成"高品质源头"）。
+                    // 同时给每片叶挂品质进化链边：GetEvolveTarget = 同家族更高品质上级（低品→高品），
+                    // 渲染层据此画金色传承链线（高品质节点向外辐射链接低品质异能）。
                     var subList = subs[subName];
                     float leafSpan = Mathf.Clamp(subList.Count * 12f, 50f, 110f);
-                    for (int i = 0; i < subList.Count; i++)
+                    var groups = new List<PrototypeDef>[3];
+                    for (int g = 0; g < 3; g++) groups[g] = new List<PrototypeDef>();
+                    foreach (var def in subList)
                     {
-                        var def = subList[i];
                         if (def == null) continue;
-                        float leafAngle = subCenter - leafSpan / 2f
-                                        + (i + 0.5f) / subList.Count * leafSpan;
-                        var leaf = new ProtoTreeNode
+                        int t = PrototypeEvolution.GetTier(def);
+                        groups[t >= 7 ? 0 : (t >= 4 ? 1 : 2)].Add(def);
+                    }
+                    float[] leafRadii = { RADIUS_LEAF_HIGH, RADIUS_LEAF_MID, RADIUS_LEAF_LOW };
+                    float[] leafDiams = { LEAF_D_HIGH, LEAF_D_MID, LEAF_D_LOW };
+                    for (int g = 0; g < 3; g++)
+                    {
+                        var gl = groups[g];
+                        for (int i = 0; i < gl.Count; i++)
                         {
-                            Id = def.Id, Name = def.NameZh, Level = 2,
-                            ParentId = cat + "::" + subName,
-                            W = NODE_LEAF_D, H = NODE_LEAF_D,
-                            Def = def, Color = GetCategoryColor(cat)
-                        };
-                        SetRadialPos(leaf, leafAngle, RADIUS_LEAF);
-                        layout.Nodes.Add(leaf);
+                            var def = gl[i];
+                            float leafAngle = subCenter - leafSpan / 2f
+                                            + (i + 0.5f) / gl.Count * leafSpan;
+                            var leaf = new ProtoTreeNode
+                            {
+                                Id = def.Id, Name = def.NameZh, Level = 2,
+                                ParentId = cat + "::" + subName,
+                                W = leafDiams[g], H = leafDiams[g],
+                                Def = def, Color = GetCategoryColor(cat)
+                            };
+                            SetRadialPos(leaf, leafAngle, leafRadii[g]);
+                            layout.Nodes.Add(leaf);
+
+                            // 品质进化链（低品叶 → 更高品质上级；SSS/家族顶点无上级）
+                            var evo = PrototypeEvolution.GetEvolveTarget(def);
+                            if (evo != null)
+                                layout.QualityEdges.Add(new QualityEdge { LowId = def.Id, HighId = evo.Id });
+                        }
                     }
                     subAng += subSector;
                 }
@@ -258,6 +293,24 @@ namespace Code.UI
 
         /// <summary>根节点 ID（异能）</summary>
         public const string ROOT_ID = "__root__";
+
+        /// <summary>品质色（v0.19.1，网文异能等级制：F灰 → SSS金橙；渲染层异能叶外圈/进化链用）</summary>
+        public static Color GetQualityColor(int tier)
+        {
+            switch (tier)
+            {
+                case 1: return new Color(0.55f, 0.56f, 0.60f, 1f);   // F 灰
+                case 2: return new Color(0.45f, 0.72f, 0.45f, 1f);   // E 绿
+                case 3: return new Color(0.48f, 0.62f, 0.95f, 1f);   // D 蓝
+                case 4: return new Color(0.45f, 0.80f, 0.80f, 1f);   // C 青
+                case 5: return new Color(0.60f, 0.50f, 0.90f, 1f);   // B 紫
+                case 6: return new Color(0.78f, 0.45f, 0.88f, 1f);   // A 亮紫
+                case 7: return new Color(0.90f, 0.62f, 0.30f, 1f);   // S 橙金
+                case 8: return new Color(0.95f, 0.80f, 0.30f, 1f);   // SS 金
+                case 9: return new Color(1.00f, 0.88f, 0.42f, 1f);   // SSS 金橙
+                default: return new Color(0.60f, 0.60f, 0.60f, 1f);
+            }
+        }
 
         /// <summary>大类主色（元素系红蓝系 / 自然系绿 / 精神系紫 / 时空系青 / 光明金 / 黑暗紫灰 / 生命翠 / 死亡灰绿 / 强化赤橙 / 星辰蓝紫 / 血族血红 / 神话金橙）</summary>
         public static Color GetCategoryColor(string category)

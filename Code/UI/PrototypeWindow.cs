@@ -431,6 +431,9 @@ namespace Code.UI
             // ---- 连线（父 → 子；当前异能父链金色）----
             DrawEdges(area);
 
+            // ---- v0.19.1 品质进化链线（金色传承：低品叶 → 更高品质上级，高品质节点向外辐射链接低品质）----
+            DrawQualityEdges(area);
+
             // ---- 节点（缩放分级渲染）----
             DrawNodes(area);
 
@@ -695,6 +698,41 @@ namespace Code.UI
             }
         }
 
+        /// <summary>v0.19.1 品质进化链线：同家族异能按品质递进串联（低品叶 → 高品上级）。
+        /// 大众认知"进阶/传承"意象=金色；高品端亮、低品端暗，体现品质梯度。
+        /// 仅当链两端异能叶都可见（小类展开）时画，折叠时自动隐藏。</summary>
+        private void DrawQualityEdges(Rect area)
+        {
+            if (_layout.QualityEdges.Count == 0) return;
+            foreach (var edge in _layout.QualityEdges)
+            {
+                if (edge == null || string.IsNullOrEmpty(edge.LowId) || string.IsNullOrEmpty(edge.HighId)) continue;
+                var low = _layout.GetNode(edge.LowId);
+                var high = _layout.GetNode(edge.HighId);
+                if (low == null || high == null) continue;
+                if (!IsNodeVisible(low) || !IsNodeVisible(high)) continue;   // 折叠的异能叶不画
+                if (_pathMode) continue;   // 仅路径模式：只保留层级链路，避免进化链干扰定位
+
+                Rect lr = NodeScreenRect(low, null);
+                Rect hr = NodeScreenRect(high, null);
+                Vector2 fromC = lr.center, toC = hr.center;
+                Vector2 dir = toC - fromC;
+                float len = dir.magnitude;
+                if (len < 0.001f) continue;
+                dir /= len;
+                Vector2 from = fromC + dir * (lr.width * 0.5f);
+                Vector2 to = toC - dir * (hr.width * 0.5f);
+
+                // 低品端暗金 → 高品端亮金（品质梯度）；双色分段绘制
+                Color dim = new Color(0.85f, 0.70f, 0.30f, 0.22f);
+                Color bright = new Color(1.00f, 0.85f, 0.40f, 0.55f);
+                // 靠近低品端 60%：暗金；靠近高品端 40%：亮金（渐变感，单段近似）
+                Vector2 split = from + (to - from) * 0.6f;
+                DrawLine(from, split, dim, 2f);
+                DrawLine(split, to, bright, 2.5f);
+            }
+        }
+
         private bool IsOnActiveChain(ProtoTreeNode node, string activeId)
         {
             if (string.IsNullOrEmpty(activeId)) return false;
@@ -791,7 +829,11 @@ namespace Code.UI
 
                 bool isActive = node.Id == activeId;
                 bool onActiveChain = !isActive && node.Level != -1 && IsOnActiveChain(node, activeId);
-                Color mainColor = isActive ? DSUITheme.AccentGold : node.Color;
+                // v0.19.1 异能叶外圈按品质色（F灰→SSS金橙，品质分层直观可见）；根/系/小类保持大类色
+                Color mainColor = isActive ? DSUITheme.AccentGold
+                    : (node.Level == 2 && node.Def != null
+                        ? ProtoTreeLayoutBuilder.GetQualityColor(PrototypeEvolution.GetTier(node.Def))
+                        : node.Color);
 
                 // ---- v0.18.94 圆形节点：外圈彩环 → 内圆深底 → 居中文字 → (叶)底部标签色点 ----
                 float d = r.width;   // 圆形节点 W=H=直径
