@@ -169,15 +169,15 @@ namespace Code.Realm
                     new OriginalEffectConfig("fx_heal", 1.0f),
                 }},
 
-                // 8阶 能量风暴：火焰+旋风（v0.21.19 放大——大范围风暴主演出）
+                // 8阶 能量风暴：火焰+旋风（v0.21.21 用原版大小，不自己缩放）
                 { "ds_ability_energy_storm", new List<OriginalEffectConfig> {
-                    new OriginalEffectConfig("fx_fire", 3.0f),
-                    new OriginalEffectConfig("fx_storm", 4.0f, delay: 0.1f),
+                    new OriginalEffectConfig("fx_fire", -1f),
+                    new OriginalEffectConfig("fx_storm", -1f, delay: 0.1f),
                 }},
 
-                // 9阶 领域展开：能量场域（v0.21.19 放大——领域法阵主演出）
+                // 9阶 领域展开：能量场域（v0.21.21 用原版大小，不自己缩放）
                 { "ds_ability_domain_expand", new List<OriginalEffectConfig> {
-                    new OriginalEffectConfig("fx_energy_field", 4.0f),
+                    new OriginalEffectConfig("fx_energy_field", -1f),
                 }},
 
                 // 9阶 法则压制：debuff效果
@@ -202,17 +202,17 @@ namespace Code.Realm
                     new OriginalEffectConfig("fx_buff", 1.0f, delay: 0.2f),
                 }},
 
-                // 12阶 维度打击：大爆炸+风暴（v0.21.19 放大——配合原版地震灾难，"天崩地裂"主演出）
+                // 12阶 维度打击：大爆炸+风暴（v0.21.21 用原版大小，不自己缩放）
                 { "ds_ability_dimensional_strike", new List<OriginalEffectConfig> {
-                    new OriginalEffectConfig("fx_explosion", 6.0f),
-                    new OriginalEffectConfig("fx_storm", 5.0f, delay: 0.1f),
+                    new OriginalEffectConfig("fx_explosion", -1f),
+                    new OriginalEffectConfig("fx_storm", -1f, delay: 0.1f),
                 }},
 
-                // 13阶 神罚：超级爆炸+闪电+大爆炸（v0.21.19 放大——全屏天罚主演出）
+                // 13阶 神罚：超级爆炸+闪电+大爆炸（v0.21.21 用原版大小，不自己缩放）
                 { "ds_ability_divine_punishment", new List<OriginalEffectConfig> {
-                    new OriginalEffectConfig("fx_explosion", 6.0f),
-                    new OriginalEffectConfig("fx_lightning", 6.0f, delay: 0.1f),
-                    new OriginalEffectConfig("fx_bigexplosion", 8.0f, delay: 0.2f),
+                    new OriginalEffectConfig("fx_explosion", -1f),
+                    new OriginalEffectConfig("fx_lightning", -1f, delay: 0.1f),
+                    new OriginalEffectConfig("fx_bigexplosion", -1f, delay: 0.2f),
                 }},
             };
 
@@ -434,7 +434,10 @@ namespace Code.Realm
                             // v0.18.91：cfg.Scale 语义=「人类单位宽倍数」，目标世界宽 = Scale×0.25
                             // （人类 actor_scale≈0.25→1 倍单位宽≈0.25 世界单位，与西幻奥术护盾 0.24 对齐；
                             //  原 0.55 基准仍达 2.2 倍单位宽，是"原版 fx 特效偏大"残余根因）
-                            Code.Combat.Fx.CombatFxCore.ScaleFxToWorldWidth(fx, cfg.Scale * 0.25f);
+                            // v0.21.21 用户明确要求"用原版大小"：巨型技能原版特效不再自己缩放，
+                            // Scale<=0 跳过目标宽度换算，保持原版 fx_* 原生尺寸（玩家熟悉的原版观感）
+                            if (cfg.Scale > 0f)
+                                Code.Combat.Fx.CombatFxCore.ScaleFxToWorldWidth(fx, cfg.Scale * 0.25f);
                         }
                     }
                 }
