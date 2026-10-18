@@ -124,38 +124,51 @@ namespace Code.Combat.Moves
             // 凡级以下（tier<6）只做普通节奏——低境界搏杀、高境界毁天灭地的观感梯度
             CinematicBeat(move, by, targetPos, tier);
             // v0.21.5 单位本体动作姿态（纯表现不碰 AI）：先让单位"做出动作"再叠特效
+            // v0.21.22 动作幅度全面强化（像素游戏 0.2s/0.3格位移根本看不见）+
+            //         按异能派系差异化（投射系=后跳拉开距离、近战系=突进贴脸压制）——
+            //         纯视觉位移实现"战斗散开"，零 AI 干预、零崩溃风险
             Vector2 dir = targetPos - pos;
             if (dir.sqrMagnitude < 0.0001f) dir = new Vector2(1f, 0f);
             dir.Normalize();
+            bool rangedStyle = IsRangedStyle(by);   // 异能派系 → 攻击距离意图
             switch (move.Kind)
             {
                 case MoveKind.Lunge:
-                    float d1 = Mathf.Min(0.55f, Vector2.Distance(pos, targetPos) * 0.35f);
-                    CombatMovePose.Dash(by, dir, d1);
+                    // 近战突进：幅度×3、时长加长——"贴脸压制"肉眼可见
+                    float d1 = Mathf.Min(1.6f, Vector2.Distance(pos, targetPos) * 0.7f);
+                    CombatMovePose.Dash(by, dir, d1, 0.34f);
                     if (visible) CombatFxDirector.DashStrike(by, targetPos);
                     break;
                 case MoveKind.Slash:
-                    CombatMovePose.Swing(by, dir);
+                    // 挥击：幅度×2；投射系反向后跳（拉开），近战正向挥砍
+                    if (rangedStyle)
+                        CombatMovePose.Recoil(by, -dir, 0.45f, 0.28f);
+                    else
+                        CombatMovePose.Swing(by, dir, 0.45f, 0.3f);
                     if (visible) CombatFxDirector.SlashArc(by, targetPos);
                     break;
                 case MoveKind.Strike:
-                    float d2 = Mathf.Min(0.4f, Vector2.Distance(pos, targetPos) * 0.28f);
-                    CombatMovePose.Slam(by, dir, d2);
+                    // 下砸：幅度×2.3 + 顿挫
+                    float d2 = Mathf.Min(0.9f, Vector2.Distance(pos, targetPos) * 0.55f);
+                    CombatMovePose.Slam(by, dir, d2, 0.34f);
                     if (visible) CombatFxDirector.GroundSlam(by, targetPos);
                     break;
                 case MoveKind.Chain:
                     if (targetPos.y == pos.y && targetPos.x == pos.x) break;
-                    CombatMovePose.Nudge(by, dir);
+                    // 链式跳跃位移加大（电链/血链的"跳一下"感）
+                    CombatMovePose.Nudge(by, dir, 0.2f);
                     if (visible) CombatFxDirector.ChainArc(by);
                     break;
                 case MoveKind.Domain:
-                    CombatMovePose.Lift(by, 0.3f, 0.5f);            // 腾空展开领域
+                    // 腾空展开领域：更高更长
+                    CombatMovePose.Lift(by, 0.5f, 0.7f);
                     float r = 1.2f + Mathf.Min(4f, tier * 0.25f);
                     if (visible) CombatFxDirector.DomainCircle(targetPos, r, TierColor(tier));
                     break;
                 case MoveKind.Blast:
-                    CombatMovePose.Lift(by, 0.16f, 0.22f);          // 起跳引爆
-                    CombatMovePose.Recoil(by, dir, 0.14f);          // 反向后坐
+                    // 起跳引爆 + 反向后坐：投射系后跳幅度更大（远程施法拉开身位）
+                    CombatMovePose.Lift(by, 0.26f, 0.34f);
+                    CombatMovePose.Recoil(by, -dir, rangedStyle ? 0.55f : 0.28f, 0.3f);
                     if (visible)
                     {
                         CombatFxDirector.Shockwave(targetPos, 3f + tier * 0.8f);
@@ -163,18 +176,19 @@ namespace Code.Combat.Moves
                     }
                     break;
                 case MoveKind.Beam:
-                    CombatMovePose.Recoil(by, dir, 0.2f);           // 光束后坐
+                    // 光束后坐：投射系拉开（施法者保持远程身位）
+                    CombatMovePose.Recoil(by, -dir, rangedStyle ? 0.5f : 0.3f, 0.3f);
                     BeamVisual(by, pos, targetPos, tier);
                     break;
                 case MoveKind.Summon:
-                    CombatMovePose.Lift(by, 0.2f, 0.3f);            // 召唤腾身
+                    CombatMovePose.Lift(by, 0.32f, 0.45f);          // 召唤腾身
                     // 召唤：目标格唤出助战灵兽（复用召唤引擎）
                     TrySummonFor(by, targetPos, tier);
                     if (visible) CombatFxDirector.DomainCircle(targetPos, 1.6f, TierColor(tier));
                     break;
                 case MoveKind.Heal:
                 case MoveKind.Buff:
-                    CombatMovePose.Lift(by, 0.1f, 0.2f);
+                    CombatMovePose.Lift(by, 0.18f, 0.3f);
                     if (visible) CombatFxDirector.SpellBurst(by, pos, tier);
                     break;
             }
@@ -201,6 +215,41 @@ namespace Code.Combat.Moves
             {
                 CombatFxHitStop.Request(targetPos, 0.05f);
                 CombatFxCinema.SlowMo(0.6f, 0.18f);
+            }
+            // v0.21.22 动画语言降门槛：低境界搏杀也有节奏——
+            // 中阶重招（tier>=4）给击停顿挫，所有招式给微击停，普通战斗不再"无声无息"
+            else if (move.Weight == MoveWeight.Heavy && tier >= 4)
+            {
+                CombatFxHitStop.Request(targetPos, 0.04f);
+            }
+            else
+            {
+                CombatFxHitStop.Request(targetPos, 0.02f);
+            }
+        }
+
+        // 投射系标签（异能派系 → 攻击距离意图）：出招后跳拉开身位，战斗散开
+        private static readonly HashSet<string> _rangedTags = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            "Fire","Water","Wind","Thunder","Shadow","Curse","Poison","Frost","Frostbite","Slow",
+            "Light","Sound","Magnetism","Telekinesis","TimeSlow","Fate","Gravity","Vibration",
+            "Illusion","Sleep","Charm","Fear","Aura","Chain","MultiShot","Clone","Buff","Debuff",
+            "ManaDrain","ElementResist","Plasma","Holy","Soul"
+        };
+
+        /// <summary>该单位的异能风格是否投射/远程（按 MainTag+SubTag 命中投射系集合）。</summary>
+        private static bool IsRangedStyle(Actor by)
+        {
+            try
+            {
+                PrototypeDef def = PrototypeRegistry.GetForActor(by);
+                if (def == null) return false;
+                return _rangedTags.Contains(def.MainTag.ToString())
+                    || _rangedTags.Contains(def.SubTag.ToString());
+            }
+            catch (System.Exception)
+            {
+                return false;
             }
         }
 

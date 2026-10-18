@@ -627,6 +627,11 @@ namespace Code.Combat.Fx
         {
             try
             {
+                // v0.21.22 异能语义差异化：seed 派生「尺寸系数 + 爆发风格」——
+                // 同标签异能（20 个火系等）命中爆尺寸/密度不同：业火=狂放猛爆、星火=收敛小爆，
+                // 每个异能攻击瞬间形态可辨，不再"20 个火系一个样"
+                float sizeVar = 0.8f + (seed % 4) * 0.175f;   // 4 档：0.8 / 0.975 / 1.15 / 1.325
+                int style = seed % 3;                        // 0=狂放(碎片多) 1=扩散(环大) 2=锐利(线长)
                 Vector2 center = pos + new Vector2(0f, 0.08f * scale);
                 // ================================================================
                 // v0.21.14 战斗之神式五层命中爆（对齐 Sakuga 打击感层次）：
@@ -644,7 +649,7 @@ namespace Code.Combat.Fx
                 var burst = CombatFxCore.Spawn(CombatFxArt.Burst, center, 1f / 64f, 0.3f, FxLayer.Over, 38);
                 if (burst != null)
                 {
-                    burst.Sized(0.34f * scale, 0.12f * scale);
+                    burst.Sized(0.34f * scale * sizeVar, 0.12f * scale * sizeVar);
                     burst.Spin = ((seed % 2 == 0) ? 1f : -1f) * (2.2f + (seed % 3) * 0.4f);
                     burst.Color(new Color(1f, 1f, 1f, 0.95f),
                                 new Color(tint.r, tint.g, tint.b, 0.6f),
@@ -654,7 +659,7 @@ namespace Code.Combat.Fx
                 var core = CombatFxCore.Spawn(glyph, center, 1f / 64f, 0.45f, FxLayer.Top, 35);
                 if (core != null)
                 {
-                    core.Sized(0.16f * scale, 0.12f * scale);
+                    core.Sized(0.16f * scale * sizeVar, 0.12f * scale * sizeVar);
                     core.Spin = ((seed % 2 == 0) ? 1f : -1f) * (1.4f + (seed % 4) * 0.25f);
                     core.Color(new Color(1f, 1f, 1f, 1f),
                                 new Color(tint.r, tint.g, tint.b, 1f),
@@ -679,11 +684,14 @@ namespace Code.Combat.Fx
                     center, 1f / 64f, 0.32f, FxLayer.Over, 30);
                 if (ring != null)
                 {
-                    ring.Sized(0.28f * scale, 0.75f * scale);
+                    // v0.21.22 扩散型（style 1）：环向外张更大，同标签异能里"领域感"差异
+                    float ringOut = style == 1 ? 1.05f : 0.75f;
+                    ring.Sized(0.28f * scale, ringOut * scale);
                     ring.Color(new Color(1f, 1f, 1f, 0.7f), new Color(tint.r, tint.g, tint.b, 0f));
                 }
                 // ⑥ 碎片溅射：8~10 片同形态小图元向八方飞散（粒子爆主体，加大 0.06→0.08）
-                int shards = 8 + (seed % 3);
+                // v0.21.22 狂放型（style 0）：碎片更多更远（猛爆观感）
+                int shards = (style == 0 ? 12 : 8) + (seed % 3);
                 for (int i = 0; i < shards; i++)
                 {
                     float ang = i * Mathf.PI * 2f / shards + ((seed % 7) * 0.13f);
@@ -704,7 +712,8 @@ namespace Code.Combat.Fx
                     if (ln == null) continue;
                     ln.Vel = new Vector2(Mathf.Cos(ang), Mathf.Sin(ang)) * (0.9f * scale);
                     ln.Spin = ang;
-                    ln.Sized(0.55f * scale, 0.18f * scale);
+                    // v0.21.22 锐利型（style 2）：斩击线更长（锋锐观感）
+                    ln.Sized((style == 2 ? 0.8f : 0.55f) * scale, 0.18f * scale);
                     ln.Color(new Color(1f, 1f, 1f, 0.85f), new Color(tint.r, tint.g, tint.b, 0f));
                 }
             }
