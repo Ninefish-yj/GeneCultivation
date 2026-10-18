@@ -628,17 +628,61 @@ namespace Code.Combat.Fx
             try
             {
                 Vector2 center = pos + new Vector2(0f, 0.08f * scale);
-                // 中心核心：极短闪光（只留"命中闪点"，不构成贴图）
-                var core = CombatFxCore.Spawn(glyph, center, 1f / 64f, 0.4f, FxLayer.Top, 35);
+                // ================================================================
+                // v0.21.14 战斗之神式五层命中爆（对齐 Sakuga 打击感层次）：
+                //   白闪冲击帧 → Burst 爆星 → 异能核心 → 小星飞散 → 冲击环 → 碎片+火花+速度线
+                // 零素材、全程序化；观感密度从 3 层升到 7 层，命中瞬间有"爆开"的力度
+                // ================================================================
+                // ① 白闪冲击帧：命中瞬间全白高亮（0.07s，闪点不构成贴图）
+                var flash = CombatFxCore.Spawn(CombatFxArt.White, center, 1f / 64f, 0.07f, FxLayer.Top, 40);
+                if (flash != null)
+                {
+                    flash.Sized(0.2f * scale, 0.05f * scale);
+                    flash.Color(new Color(1f, 1f, 1f, 0.95f), new Color(1f, 1f, 1f, 0f));
+                }
+                // ② Burst 爆星：战斗之神标志性元素（大而短，白→专属色）
+                var burst = CombatFxCore.Spawn(CombatFxArt.Burst, center, 1f / 64f, 0.3f, FxLayer.Over, 38);
+                if (burst != null)
+                {
+                    burst.Sized(0.34f * scale, 0.12f * scale);
+                    burst.Spin = ((seed % 2 == 0) ? 1f : -1f) * (2.2f + (seed % 3) * 0.4f);
+                    burst.Color(new Color(1f, 1f, 1f, 0.95f),
+                                new Color(tint.r, tint.g, tint.b, 0.6f),
+                                new Color(tint.r, tint.g, tint.b, 0f));
+                }
+                // ③ 异能核心：放大 0.12→0.16，白→专属色→淡出（形态辨识主体）
+                var core = CombatFxCore.Spawn(glyph, center, 1f / 64f, 0.45f, FxLayer.Top, 35);
                 if (core != null)
                 {
-                    core.Sized(0.12f * scale, 0.1f * scale);
-                    // v0.21.7 叠加密度：火花点缀（4 片热感粒子四散，与碎片错开方向/时长）
-                    SpawnHitSparks(center, scale, tint, seed);
+                    core.Sized(0.16f * scale, 0.12f * scale);
                     core.Spin = ((seed % 2 == 0) ? 1f : -1f) * (1.4f + (seed % 4) * 0.25f);
-                    core.Color(new Color(tint.r, tint.g, tint.b, 1f), new Color(tint.r, tint.g, tint.b, 0.5f));
+                    core.Color(new Color(1f, 1f, 1f, 1f),
+                                new Color(tint.r, tint.g, tint.b, 1f),
+                                new Color(tint.r, tint.g, tint.b, 0.25f));
                 }
-                // 碎片溅射：8~10 片同形态小图元向八方飞散（粒子爆主体）
+                // ④ 小星飞散：HitStars 4~6 颗随机方向（短命点缀，同战斗之神 punch stars）
+                int stars = 4 + (seed % 3);
+                for (int i = 0; i < stars; i++)
+                {
+                    float ang = ((seed + i * 13) % 360) * Mathf.Deg2Rad;
+                    float spd = (0.7f + (seed % 4) * 0.12f) * scale;
+                    var st = CombatFxCore.Spawn(CombatFxArt.HitStars[seed % CombatFxArt.HitStars.Length],
+                        center, 1f / 64f, 0.3f, FxLayer.Top, 34);
+                    if (st == null) continue;
+                    st.Vel = new Vector2(Mathf.Cos(ang), Mathf.Sin(ang)) * spd;
+                    st.Spin = ((i % 2 == 0) ? 1f : -1f) * (3f + (seed % 4) * 0.5f);
+                    st.Sized(0.07f * scale, 0.015f * scale);
+                    st.Color(new Color(1f, 1f, 1f, 0.9f), new Color(tint.r, tint.g, tint.b, 0f));
+                }
+                // ⑤ 冲击环：1 环向外扩散（Sized 0.28→0.75×scale，白→专属色淡出）
+                var ring = CombatFxCore.Spawn(CombatFxArt.Rings[seed % CombatFxArt.Rings.Length],
+                    center, 1f / 64f, 0.32f, FxLayer.Over, 30);
+                if (ring != null)
+                {
+                    ring.Sized(0.28f * scale, 0.75f * scale);
+                    ring.Color(new Color(1f, 1f, 1f, 0.7f), new Color(tint.r, tint.g, tint.b, 0f));
+                }
+                // ⑥ 碎片溅射：8~10 片同形态小图元向八方飞散（粒子爆主体，加大 0.06→0.08）
                 int shards = 8 + (seed % 3);
                 for (int i = 0; i < shards; i++)
                 {
@@ -648,8 +692,20 @@ namespace Code.Combat.Fx
                     if (s == null) continue;
                     s.Vel = new Vector2(Mathf.Cos(ang), Mathf.Sin(ang)) * speed;
                     s.Spin = ((i % 2 == 0) ? 1f : -1f) * (1.8f + (seed % 5) * 0.3f);
-                    s.Sized(0.06f * scale, 0.01f * scale);
+                    s.Sized(0.08f * scale, 0.015f * scale);
                     s.Color(new Color(tint.r, tint.g, tint.b, 0.85f), new Color(tint.r, tint.g, tint.b, 0f));
+                }
+                // ⑦ 火花点缀 + 速度线：热感粒子四散；2 条短刃向随机方向拉长（冲击拖尾）
+                SpawnHitSparks(center, scale, tint, seed);
+                for (int li = 0; li < 2; li++)
+                {
+                    float ang = ((seed + 41 + li * 97) % 360) * Mathf.Deg2Rad;
+                    var ln = CombatFxCore.Spawn(CombatFxArt.Slash, center, 1f / 64f, 0.22f, FxLayer.Over, 31);
+                    if (ln == null) continue;
+                    ln.Vel = new Vector2(Mathf.Cos(ang), Mathf.Sin(ang)) * (0.9f * scale);
+                    ln.Spin = ang;
+                    ln.Sized(0.55f * scale, 0.18f * scale);
+                    ln.Color(new Color(1f, 1f, 1f, 0.85f), new Color(tint.r, tint.g, tint.b, 0f));
                 }
             }
             catch (System.Exception dsEx) { Code.Core.DSDebug.Verbose("[AbilityFx] glyph burst: " + dsEx.Message); }

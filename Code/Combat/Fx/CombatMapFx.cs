@@ -167,12 +167,13 @@ namespace Code.Combat.Fx
             var p = CombatFxCore.Spawn(frames, center, px, lifeSec, FxLayer.Behind, 8);
             if (p == null) return;
             p.Loop = true;   // v0.21.9 循环播形态演化帧 = 持续生长-消散的贴地域（不再静态贴图）
-            // 地面域：横向铺展（宽 1.6× 期望尺寸，高压到 0.45×——贴地不遮单位）
-            float s = 0.45f * 1.6f * scale;
+            // 地面域：横向铺展（宽 1.6× 期望尺寸，高压到 0.56×——贴地不遮单位；
+            // v0.21.14 微放大 0.45→0.56、提亮 0.55→0.68，让"地图被异能染上颜色"更明显）
+            float s = 0.56f * 1.6f * scale;
             p.Sized(s, s * 0.45f);
             // 半透明贴地淡出（不挡地图；领域级再降透明度），着色跟随标签基准色
             bool domain = s > 1.2f;
-            p.Color(new Color(tint.r, tint.g, tint.b, domain ? 0.38f : 0.55f),
+            p.Color(new Color(tint.r, tint.g, tint.b, domain ? 0.5f : 0.68f),
                     new Color(tint.r, tint.g, tint.b, 0f));
             // 领域/旋涡类轻微自转（贴地转；火/冰/毒平铺类不自转——帧动画本身是生长-消散循环）
             if (spin) p.Spin = 30f;
