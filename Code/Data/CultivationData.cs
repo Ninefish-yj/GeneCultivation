@@ -270,6 +270,9 @@ namespace Code.Data
             // 境界提升时记录突破统计和历史最高境界（仅提升时，跌落不计）
             if (clamped > old)
             {
+                // v0.21.16 修复跨存档回归池恒空：真神(12)/超神(13)突破瞬间自动入池（AutoEnshrineGod 此前无调用点，
+                // 导致"记住的单位"在神系回归池 UI 不显示、念诵也召不出——真神以上突破即入池，跨存档可召回）
+                if (clamped >= 12) { try { Code.Realm.TrueGodManager.AutoEnshrineGod(actor); } catch (System.Exception dsEx) { Code.Core.DSDebug.Warning("[GeneCultivation] SetRealmTier 入池异常: " + dsEx.Message); } }
                 try { AddBreakthrough(actor); } catch (System.Exception dsEx) { Code.Core.DSDebug.Warning("[GeneCultivation] SetRealmTier 异常: " + dsEx.Message); }
                 try { UpdateHighestTierReached(actor, clamped); } catch (System.Exception dsEx) { Code.Core.DSDebug.Warning("[GeneCultivation] SetRealmTier 异常: " + dsEx.Message); }
                 try { DSGlobalStats.IncrementBreakthroughCount(); } catch (System.Exception dsEx) { Code.Core.DSDebug.Warning("[GeneCultivation] SetRealmTier 异常: " + dsEx.Message); }
