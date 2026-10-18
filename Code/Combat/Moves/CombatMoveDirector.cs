@@ -228,29 +228,11 @@ namespace Code.Combat.Moves
             }
         }
 
-        // 投射系标签（异能派系 → 攻击距离意图）：出招后跳拉开身位，战斗散开
-        private static readonly HashSet<string> _rangedTags = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
-        {
-            "Fire","Water","Wind","Thunder","Shadow","Curse","Poison","Frost","Frostbite","Slow",
-            "Light","Sound","Magnetism","Telekinesis","TimeSlow","Fate","Gravity","Vibration",
-            "Illusion","Sleep","Charm","Fear","Aura","Chain","MultiShot","Clone","Buff","Debuff",
-            "ManaDrain","ElementResist","Plasma","Holy","Soul"
-        };
-
-        /// <summary>该单位的异能风格是否投射/远程（按 MainTag+SubTag 命中投射系集合）。</summary>
+        // v0.21.23 异能战斗风格判定抽到共享 CombatStyle（投射/近战/控制），此处直接复用，
+        // 消除 CombatMoveDirector 与 CombatStanceAI 两处的重复标签集合
         private static bool IsRangedStyle(Actor by)
         {
-            try
-            {
-                PrototypeDef def = PrototypeRegistry.GetForActor(by);
-                if (def == null) return false;
-                return _rangedTags.Contains(def.MainTag.ToString())
-                    || _rangedTags.Contains(def.SubTag.ToString());
-            }
-            catch (System.Exception)
-            {
-                return false;
-            }
+            return Code.Combat.AI.CombatStyle.IsRanged(by);
         }
 
         /// <summary>光束贯穿演出（空间撕裂/圣光审判）：粗刃贯穿 + 两翼光带 + 命中爆闪。</summary>

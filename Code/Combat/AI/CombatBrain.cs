@@ -71,6 +71,7 @@ namespace Code.Combat.AI
                 DecideFor(unit);
             }
             Code.Combat.Fx.CombatAuraFx.Prune();   // 清理已死单位记录（粒子由跟随机制自动回收）
+            CombatStanceAI.Prune();                // 清理已死单位的走位冷却记录
         }
 
         private static void DecideFor(Actor self)
@@ -78,6 +79,9 @@ namespace Code.Combat.AI
             Actor enemy = FindBestEnemy(self, out int enemyCount);
             if (enemy == null) return;
 
+            // v0.21.23 真走位：先按异能风格调整站位（投射拉开/近战贴脸/控制游走），再出招
+            //  —— 走原版 Actor.moveTo 寻路、每单位 2s 冷却、目标格校验、全 try-catch（防崩溃）
+            CombatStanceAI.AdjustStance(self, enemy);
             PrototypeDef def = PrototypeRegistry.GetForActor(self);
             CombatMove move = def != null
                 ? CombatMoveRegistry.PickForAbility(def)
