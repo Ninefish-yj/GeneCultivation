@@ -119,10 +119,13 @@ namespace Code.Combat.Fx
                 _hitCooldown[victim] = Time.unscaledTime;
                 float scale = Mathf.Min(1f, damage / 3000f);
                 // v0.18.91：受击演出对准单位身体中心（大众认知：伤害作用在身体上）
-                pos.y += 0.17f;
+                // v0.21.18：跟随浮空高度——人被击飞抛上天，命中火花/星星打在天上（空中连击的"在天上打"）
+                pos.y += 0.17f + Code.Combat.Moves.CombatImpactPose.AirOffsetY(victim);
                 Color c = new Color(1f, 0.9f, 0.55f);
                 // 命中星（低伤害 1 颗，高伤害 2 颗；px=0.1×帧宽17→1.7×size，目标 0.4→0.18）
+                // v0.21.18 空中连击（浮空对拼）时星星 2→3：连击更狠
                 int stars = scale > 0.4f ? 2 : 1;
+                if (Code.Combat.Moves.CombatImpactPose.IsAirborne(victim)) stars = 3;
                 for (int i = 0; i < stars; i++)
                 {
                     float ang = UnityEngine.Random.Range(0f, Mathf.PI * 2f);

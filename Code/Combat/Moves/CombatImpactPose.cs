@@ -37,6 +37,10 @@ namespace Code.Combat.Moves
         public ImpactLevel Level;
         /// <summary>击飞落地回弹（顿挫）。</summary>
         public bool Bounce;
+        /// <summary>v0.21.18 空中连击段数：滞空期再次受击→空中二段（浮空对拼，不落回地面）。</summary>
+        public int AirChain;
+        /// <summary>v0.21.18 滞空（平顶悬停）时长占比：抛到顶后短暂停留，形成"在天上打"的浮空观感。</summary>
+        public float HangFrac;
     }
 
     public static class CombatImpactPose
@@ -80,8 +84,40 @@ namespace Code.Combat.Moves
             if (dir.sqrMagnitude < 0.0001f) dir = new Vector2(1f, 0f);
             dir.Normalize();
 
+            // v0.21.18 空中连击：目标正处于击飞滞空期（未落地）再次受重击 → 空中二段
+            //   （浮空对拼——"在天上打"的核心：不落回地面，被继续抛得更高）
+            if (level >= ImpactLevel.Stagger && IsAirborne(victim) && _impacts.TryGetValue(victim, out var cur) && cur.Level == ImpactLevel.Launch)
+            {
+                if (cur.AirChain < 2)  // 最多 2 连，杜绝永久浮空
+                {
+                    ApplyAirChain(victim, dir, cur.AirChain + 1);
+                    return;
+                }
+            }
             // 击飞方向：沿攻击方向反向抛离（被击退）
             Apply(victim, -dir, level);
+        }
+
+        /// <summary>v0.21.18 空中二段连击：沿攻击方向横向漂移 + 抛得更高，滞空更久（浮空对拼）。</summary>
+        private static void ApplyAirChain(Actor a, Vector2 hitDir, int chain)
+        {
+            if (CombatMovePose.IsActive(a)) CombatMovePose.Release(a);
+            if (_impacts.ContainsKey(a)) Restore(a);
+            float scale = AbilityFx.UnitScale(a);
+            ImpactState s = new ImpactState();
+            s.OriginX = a.move_jump_offset.x;
+            s.OriginY = a.move_jump_offset.y;
+            s.Level = ImpactLevel.Launch;
+            // 二段更高更远：峰值 y 0.42→0.58，横向沿攻击方向漂移（被连击推向攻击方向）
+            s.PeakX = hitDir.x * (0.35f + 0.12f * chain) * scale;
+            s.PeakY = 0.58f * scale;
+            s.Dur = 0.5f + 0.08f * chain;
+            s.HangFrac = 0.32f;
+            s.Bounce = true;
+            s.AirChain = chain;
+            s.Timer = s.Dur;
+            _impacts[a] = s;
+            a.move_jump_offset = new Vector2(s.OriginX + s.PeakX, s.OriginY + s.PeakY);
         }
 
         /// <summary>显式触发（招式导演在终极演出时给目标格单位补受击反应）。</summary>
@@ -121,7 +157,8 @@ namespace Code.Combat.Moves
                 default: // Launch
                     s.PeakX = away.x * 0.55f * scale;
                     s.PeakY = 0.42f * scale;
-                    s.Dur = 0.38f; s.Bounce = true;
+                    s.Dur = 0.46f; s.Bounce = true;
+                    s.HangFrac = 0.22f;   // v0.21.18 抛到顶后滞空停留（浮空观感）
                     break;
             }
             s.Timer = s.Dur;
@@ -134,6 +171,26 @@ namespace Code.Combat.Moves
             if (_impacts.TryGetValue(a, out var old))
                 a.move_jump_offset = new Vector2(old.OriginX, old.OriginY);
             _impacts.Remove(a);
+        }
+
+        /// <summary>v0.21.18 单位当前表现浮空高度（move_jump_offset.y 的活跃值）。
+        /// 命中特效定位用——人被抛上天，特效跟随打在天上。</summary>
+        public static float AirOffsetY(Actor a)
+        {
+            if (a == null) return 0f;
+            if (_impacts.TryGetValue(a, out var s))
+            {
+                // 用当前即时偏移（Tick 已写 move_jump_offset，直接读表现值）
+                return a.move_jump_offset.y - s.OriginY;
+            }
+            return 0f;
+        }
+
+        /// <summary>v0.21.18 是否处于击飞滞空/空中连击状态（未落地）。</summary>
+        public static bool IsAirborne(Actor a)
+        {
+            if (a == null) return false;
+            return _impacts.TryGetValue(a, out var s) && s.Level == ImpactLevel.Launch && s.Timer > 0f && s.Timer / s.Dur < 1f - s.HangFrac * 0.5f;
         }
 
         /// <summary>每帧驱动：受击姿态衰减 + 击飞落地回弹 + 清除死亡单位（FramePatch 调用）。</summary>
@@ -152,16 +209,36 @@ namespace Code.Combat.Moves
                 }
                 s.Timer -= dt;
                 float t = s.Dur > 0f ? Mathf.Clamp01(s.Timer / s.Dur) : 0f;
-                // 先快后慢：击飞瞬间冲力最猛，末尾缓停
-                float k = 1f - Mathf.Pow(1f - t, 2.2f);
+                // v0.21.18 三段曲线：上升(0→1-2h) → 滞空平顶(1-2h→1-h) → 下落(1-h→1)+落地回弹
+                //   滞空段形成"在天上打"的浮空停留，下落段保留先快后慢的吃招感
+                float k;
+                float h = s.Level == ImpactLevel.Launch ? s.HangFrac : 0f;
+                if (t < 1f - 2f * h)
+                {
+                    // 上升：快速冲顶（ease-out）
+                    float u = t / Mathf.Max(0.001f, 1f - 2f * h);
+                    k = 1f - Mathf.Pow(1f - u, 2.0f);
+                }
+                else if (t < 1f - h)
+                {
+                    // 滞空：平顶悬停（微浮动，浮空对拼窗口）
+                    float u = (t - (1f - 2f * h)) / Mathf.Max(0.001f, h);
+                    k = 1f - 0.06f * Mathf.Sin(u * Mathf.PI);   // 顶点轻微呼吸浮动
+                }
+                else
+                {
+                    // 下落：加速坠地
+                    float u = (t - (1f - h)) / Mathf.Max(0.001f, h);
+                    k = 1f - u * u;
+                }
                 float x = s.OriginX + s.PeakX * k;
                 float y = s.OriginY + s.PeakY * k;
-                if (s.Bounce && t < 0.15f)
+                if (s.Bounce && t >= 1f - 0.12f && h <= 0f)
                 {
-                    // 落地回弹顿挫：触底瞬间反向小弹（踉跄/击飞的"吃招"感）
-                    float bounce = (0.15f - t) / 0.15f;
-                    y -= 0.05f * bounce;
-                    x += s.PeakX * 0.2f * bounce;
+                    // 落地回弹顿挫：触底瞬间反向小弹（踉跄/击飞的"吃招"感；带滞空的击飞下落段已含回弹曲线，不重复叠加）
+                    float bounce = (t - (1f - 0.12f)) / 0.12f;
+                    y -= 0.05f * (1f - bounce);
+                    x += s.PeakX * 0.2f * (1f - bounce);
                 }
                 a.move_jump_offset = new Vector2(x, y);
                 if (s.Timer <= 0f)
