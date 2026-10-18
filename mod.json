@@ -1,9 +1,9 @@
 {
   "name": "基因修炼",
   "author": "阿鱼要吃书",
-  "version": "0.20.0",
+  "version": "0.21.0",
   "GUID": "GeneCultivation",
-  "description": "神形显现程序化自生成（移除原版unit素材依赖）：登神/超神升华的\"神形显现\"虚影改用纯几何自生成的金色神祇剪影图元（art_divinevision：背后放射神光+头顶光环+圆首+长袍+展开光翼），不再加载原版unit_anim boss待机动画；删除打包内69组unit_anim帧序列与effects_unit_anims清单，包体缩减",
+  "description": "大场面战斗补全：招式编排体系（16 个世界观原创招式+缓动动画语言，蓄势→主击→收尾三拍节奏）、地形破坏分级（境界×招式轻重决定破坏力，圆形岩浆坑/直线裂缝/相机震动/脚下保护）、战斗 AI（异能单位自动按标签选招、残血拼大招）；异能库扩至 398 条、14 大类、50 标签真实机制；全部机制与命名原创，仅对齐同类模组体验",
   "homepage": "https://github.com/Ninefish-yj/GeneCultivation",
   "repository": "https://github.com/Ninefish-yj/GeneCultivation.git",
   "tags": [
@@ -11,7 +11,8 @@
     "异能",
     "基因",
     "境界",
-    "登神"
+    "登神",
+    "战斗"
   ],
   "dependencies": [],
   "optionalDependencies": [],
