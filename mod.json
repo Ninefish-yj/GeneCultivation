@@ -1,9 +1,9 @@
 {
   "name": "基因修炼",
   "author": "阿鱼要吃书",
-  "version": "0.19.1",
+  "version": "0.19.2",
   "GUID": "GeneCultivation",
-  "description": "异能树品质分层+进化链可视化：叶按品质分3环（高品内环贴近小类/低品外环）+金色传承链线+品质色",
+  "description": "大众认知异能补全：精神系+4小类13异能（记忆/情绪/梦境/感知），全库317",
   "homepage": "https://github.com/Ninefish-yj/GeneCultivation",
   "repository": "https://github.com/Ninefish-yj/GeneCultivation.git",
   "tags": [

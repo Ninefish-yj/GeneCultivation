@@ -61,6 +61,36 @@ namespace Code.Realm.Prototype
                 PrototypeTag.Invisibility, PrototypeTag.Clone, 4, 6),
             new PrototypeDef("ps_illusion_03", "幻境", "受击反击震慑攻击者，闪避", "精神系", "幻象",
                 PrototypeTag.Sound, PrototypeTag.Illusion, 4, 9),
+            // ---- 记忆（v0.19.2 大众认知补全：记忆操控系）----
+            new PrototypeDef("ps_memory_01", "篡忆", "攻击眩晕定身目标，附加诅咒", "精神系", "记忆",
+                PrototypeTag.Stun, PrototypeTag.Curse, 4, 2),
+            new PrototypeDef("ps_memory_02", "遗忆", "攻击恐惧定身目标，石化易碎", "精神系", "记忆",
+                PrototypeTag.Fear, PrototypeTag.Petrify, 4, 5),
+            new PrototypeDef("ps_memory_03", "织忆", "攻击恐惧眩晕，受击反击震慑攻击者", "精神系", "记忆",
+                PrototypeTag.Fear, PrototypeTag.Sound, 4, 8),
+            // ---- 情绪（v0.19.2 大众认知补全：情绪操控系）----
+            new PrototypeDef("ps_emotion_01", "煽情", "攻击恐惧眩晕目标，制造幻象", "精神系", "情绪",
+                PrototypeTag.Fear, PrototypeTag.Illusion, 5, 3),
+            new PrototypeDef("ps_emotion_02", "狂澜", "攻击狂暴提升，攫取灵魂回复", "精神系", "情绪",
+                PrototypeTag.Berserk, PrototypeTag.Soul, 5, 6),
+            new PrototypeDef("ps_emotion_03", "心潮", "攻击恐惧眩晕，受击反击震慑攻击者", "精神系", "情绪",
+                PrototypeTag.Fear, PrototypeTag.Vibration, 5, 9),
+            // ---- 梦境（v0.19.2 大众认知补全：梦境/梦魇系）----
+            new PrototypeDef("ps_dream_01", "入梦", "攻击沉睡定身目标，扭曲时间减速", "精神系", "梦境",
+                PrototypeTag.Sleep, PrototypeTag.TimeSlow, 4, 3),
+            new PrototypeDef("ps_dream_02", "梦蚀", "攻击沉睡目标，诅咒持续折磨", "精神系", "梦境",
+                PrototypeTag.Sleep, PrototypeTag.Curse, 4, 6),
+            new PrototypeDef("ps_dream_03", "噩梦", "攻击沉睡定身，攫取灵魂回复", "精神系", "梦境",
+                PrototypeTag.Sleep, PrototypeTag.Soul, 4, 9),
+            // ---- 感知（v0.19.2 大众认知补全：痛觉共感与超感官）----
+            new PrototypeDef("ps_sense_01", "共感", "攻击毒蚀折磨目标，吸血回复", "精神系", "感知",
+                PrototypeTag.Poison, PrototypeTag.Lifesteal, 4, 3),
+            new PrototypeDef("ps_sense_02", "剥夺", "攻击眩晕定身目标，削弱虚弱", "精神系", "感知",
+                PrototypeTag.Stun, PrototypeTag.Weakness, 4, 5),
+            new PrototypeDef("ps_sense_03", "过载", "攻击等离子灼烧，受击反击震慑攻击者", "精神系", "感知",
+                PrototypeTag.Plasma, PrototypeTag.Vibration, 4, 7),
+            new PrototypeDef("ps_sense_04", "穿刺", "攻击念力贯穿，攫取灵魂回复", "精神系", "感知",
+                PrototypeTag.Telekinesis, PrototypeTag.Soul, 4, 8),
         };
     }
 }
