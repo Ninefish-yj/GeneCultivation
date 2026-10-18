@@ -50,6 +50,10 @@ namespace Code.Combat.Fx
         /// <summary>木藤（S 形藤蔓带叶片，木系/藤蔓/缠缚）。</summary>
         internal static Sprite WoodVine;
 
+        // ---- v0.19.5 奥术光膜护盾 ----
+        /// <summary>奥术光膜（西幻奥术护盾观感：淡光膜罩全身，替代网格贴图盾）。</summary>
+        internal static Sprite ArcaneShield;
+
         private static bool _ready;
 
         /// <summary>幂等初始化：任意消费方调用均安全，仅首次真正生成。</summary>
@@ -76,6 +80,7 @@ namespace Code.Combat.Fx
                 case "art_crack":     return Crack;
                 case "art_blade":     return Blade;
                 case "art_slash":     return Slash;
+                case "art_arcaneshield": return ArcaneShield;   // v0.19.5 奥术光膜护盾（西幻观感）
                 default:              return null;
             }
         }
@@ -137,6 +142,8 @@ namespace Code.Combat.Fx
                 SoulFlame = Make(31, 41, (x, y) => SoulFlameAt(x, y, 31, 41));
                 WindArc = Make(33, 17, (x, y) => WindArcAt(x, y, 33, 17));
                 WoodVine = Make(21, 35, (x, y) => WoodVineAt(x, y, 21, 35));
+                // v0.19.5 奥术光膜护盾（西幻奥术护盾观感：淡光膜罩全身，替代网格贴图盾）
+                ArcaneShield = Make(49, 49, (x, y) => ArcaneShieldAt(x, y, 49, 49));
             }
             catch (Exception e)
             {
@@ -233,6 +240,21 @@ namespace Code.Combat.Fx
             if (dist < lo) return dist - (lo - 1f);
             if (dist > hi - 1f) return hi - dist;
             return 1f;
+        }
+
+        /// <summary>奥术光膜护盾（v0.19.5，西幻奥术护盾观感）：
+        /// 内部≈0.12 淡光膜（透明不遮人）→ 0.78~1.0 光边渐强到 0.6 → 外缘 1.18 处微晕渐隐。
+        /// 圆形罩全身，替代原网格贴图护盾（shield_* 网格观感不符大众认知）。</summary>
+        private static float ArcaneShieldAt(int x, int y, int w, int h)
+        {
+            float dx = x - (w - 1) * 0.5f;
+            float dy = y - (h - 1) * 0.5f;
+            float dist = Mathf.Sqrt(dx * dx + dy * dy);
+            float nd = dist / ((w - 1) * 0.5f);   // 0 中心 ~ 1 边缘
+            if (nd > 1.18f) return 0f;
+            if (nd < 0.78f) return 0.12f;                                   // 内部淡膜
+            if (nd < 1.0f) return 0.12f + 0.48f * (nd - 0.78f) / 0.22f;    // 光边渐强
+            return 0.60f * (1.18f - nd) / 0.18f;                            // 外缘微晕渐隐
         }
 
         /// <summary>十字闪光：细十字。</summary>

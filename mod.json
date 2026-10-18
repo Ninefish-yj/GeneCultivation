@@ -1,9 +1,9 @@
 {
   "name": "基因修炼",
   "author": "阿鱼要吃书",
-  "version": "0.19.4",
+  "version": "0.19.5",
   "GUID": "GeneCultivation",
-  "description": "特效大小按异能定位分级：领域/结界/威压3.4倍单位宽、大爆2.8倍、星座2.2倍、单体/护盾保持",
+  "description": "护盾改奥术光膜(程序化淡罩替代网格盾)+领域/大爆尺寸回调防遮挡",
   "homepage": "https://github.com/Ninefish-yj/GeneCultivation",
   "repository": "https://github.com/Ninefish-yj/GeneCultivation.git",
   "tags": [

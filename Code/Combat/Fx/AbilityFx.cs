@@ -63,7 +63,7 @@ namespace Code.Combat.Fx
             _tagPool[PrototypeTag.Summon]     = new[] { "vfx_vortex", "bub_mana", "magic_darkbolt" };
 
             // ---- 防守标签池 ----
-            _tagPool[PrototypeTag.Shield]         = new[] { "shield_blue_loop", "shield_green_loop", "shield_bw_loop" };
+            _tagPool[PrototypeTag.Shield]         = new[] { "art_arcaneshield" };   // v0.19.5 奥术光膜（替代网格贴图盾）
             _tagPool[PrototypeTag.Dodge]          = new[] { "art_windarc", "bub_white", "magic_spark2" };
             _tagPool[PrototypeTag.Illusion]       = new[] { "bub_rainbow", "bub_white" };
             _tagPool[PrototypeTag.Invisibility]   = new[] { "bub_white", "bub_rainbow", "bub_mana" };
@@ -75,7 +75,7 @@ namespace Code.Combat.Fx
             _tagPool[PrototypeTag.Vibration]      = new[] { "vfx_smallhit", "vfx_impact" };
             _tagPool[PrototypeTag.Sound]          = new[] { "vfx_explosion", "vfx_powerchords", "bub_white" };
             _tagPool[PrototypeTag.Thorns]         = new[] { "magic_spark", "spx_splatter", "vfx_impact" };
-            _tagPool[PrototypeTag.ElementResist]  = new[] { "shield_green_loop", "shield_blue_loop", "shield_bw_loop" };
+            _tagPool[PrototypeTag.ElementResist]  = new[] { "art_arcaneshield" };   // v0.19.5 奥术光膜（元素抗性=同款淡罩）
             _tagPool[PrototypeTag.Cleanse]        = new[] { "bub_white", "bub_gold" };
 
             // ---- 家族氛围（大类/小类 → 特效）----
@@ -117,7 +117,7 @@ namespace Code.Combat.Fx
             _family["召唤系/圣灵"] = "bub_gold";         _family["召唤系/龙裔"] = "vfx_powerchords";
             _family["召唤系/百鬼"] = "vfx_vortex";
             _family["强化系/力量"] = "vfx_bighit";       _family["强化系/速度"] = "fx_plasma_trail";
-            _family["强化系/防御"] = "shield_blue_loop"; _family["强化系/变形"] = "art_windarc";
+            _family["强化系/防御"] = "art_arcaneshield"; _family["强化系/变形"] = "art_windarc";   // v0.19.5 防御氛围=奥术光膜
         }
 
         // ============================================================
@@ -168,17 +168,18 @@ namespace Code.Combat.Fx
             // 尺寸基准：px=1/帧宽 → 世界宽恒等于 size（size 即期望世界宽）。
             // 人类 actor_scale≈0.25 → 单位视觉宽≈0.22~0.28 世界单位（v0.18.91 反编译复核；
             // 西幻奥术护盾 0.24 世界单位=罩全身的标准）。
-            // v0.19.4 按异能定位分级（大众认知）：
-            //   护盾≈1.1 倍单位宽罩躯干 · 状态泡≈1.4 倍 · 单体命中≈1.5 倍 · 图元≈1.7 倍
-            //   星座≈2.2 倍（念力星图）· 大爆≈2.8 倍（波及周围）· 领域/结界/威压≈3.4 倍（笼罩四方）
+            // v0.19.4 按异能定位分级（大众认知），v0.19.5 回调防遮挡：
+            //   护盾≈1.1 倍单位宽罩全身（奥术光膜）· 状态泡≈1.4 倍 · 单体命中≈1.5 倍 · 图元≈1.7 倍
+            //   星座≈2 倍（念力星图）· 大爆≈2.2 倍（波及周围）· 领域/结界/威压≈2.5 倍（笼罩四方但半透明贴地，不遮地图）
             if (id == null) { size = 0.4f; life = 0.6f; return; }
             if (id.StartsWith("art_"))
             {
-                // v0.18.74 程序化中式图元：魂焰/风痕/木藤≈单位宽，符环≈领域环（v0.19.4 放大到领域级）
-                if (id == "art_rune") { size = 0.85f; life = 0.9f; return; }
+                // 奥术光膜护盾（罩全身≈1.1 倍单位宽，持续环绕）；符环=领域环（v0.19.5 回调 0.62）
+                if (id == "art_arcaneshield") { size = 0.28f; life = 2.0f; return; }
+                if (id == "art_rune") { size = 0.62f; life = 0.8f; return; }
                 size = 0.42f; life = 0.55f; return;
             }
-            if (id.StartsWith("shield_")) { size = 0.28f; life = 2.0f; return; }      // v0.18.75 对齐西幻奥术护盾：半单位宽（0.28/0.55≈51%）只罩躯干
+            if (id.StartsWith("shield_")) { size = 0.28f; life = 2.0f; return; }      // 兼容旧引用（池已切奥术光膜）
             if (id.StartsWith("bub_")) { size = 0.35f; life = 0.55f; return; }
             if (id.StartsWith("spx_") || id.StartsWith("magic_spark") || id == "magic_flash"
                 || id == "magic_dust" || id == "vfx_impact" || id == "vfx_smallhit"
@@ -187,22 +188,22 @@ namespace Code.Combat.Fx
             {
                 size = 0.38f; life = 0.5f; return;
             }
-            // v0.19.4 领域级：结界/领域/威压/巨兽（贴地扩散，笼罩周围≈3.4 倍单位宽）
+            // v0.19.5 领域级：结界/领域/威压/巨兽（贴地扩散，笼罩≈2.5 倍单位宽，回调防遮挡）
             if (id.StartsWith("vfx_") && (id.Contains("tentacles") || id.Contains("vortex")
                 || id.Contains("eldenring") || id.Contains("powerchords")))
             {
-                size = 0.85f; life = 0.9f; return;
+                size = 0.62f; life = 0.8f; return;
             }
-            // v0.19.4 大爆级：爆炸/震地/重击（波及周围≈2.8 倍单位宽）
+            // v0.19.5 大爆级：爆炸/震地/重击（波及≈2.2 倍单位宽）
             if (id.StartsWith("vfx_") && (id.Contains("explosion") || id.Contains("kabooms")
                 || id.Contains("bighit") || id.Contains("charged") || id.Contains("magma")))
             {
-                size = 0.7f; life = 0.75f; return;
+                size = 0.55f; life = 0.7f; return;
             }
-            // 星座：念力星图（介于单体与领域之间≈2.2 倍单位宽）
+            // 星座：念力星图（≈2 倍单位宽）
             if (id.StartsWith("vfx_") && id.Contains("constellation"))
             {
-                size = 0.55f; life = 0.65f; return;
+                size = 0.5f; life = 0.6f; return;
             }
             size = 0.4f; life = 0.6f;
         }
@@ -375,7 +376,7 @@ namespace Code.Combat.Fx
                     // v0.18.69：护盾环绕类特效必须绑定单位跟随——护盾是"套在身上环绕"，
                     // 不是命中贴图。攻击路径也跟随被攻击目标（给目标上盾的视觉），
                     // 防守路径（else 大分支）已 follow:self。
-                    bool shieldFx = mainFx.StartsWith("shield_");
+                    bool shieldFx = mainFx.StartsWith("shield_") || mainFx == "art_arcaneshield";   // v0.19.5 奥术光膜同护盾跟随
                     SpawnFx(mainFx, pos, FxLayer.Top, shieldFx ? 25 : 35, true, scale, 0f,
                         shieldFx ? anchor : null, tint: tint);
                 }
@@ -448,7 +449,7 @@ namespace Code.Combat.Fx
         {
             if (id == null) return 0.08f * scale;
             if (IsGroundFx(id)) return 0.02f * scale;
-            if (id.StartsWith("shield_")) return 0.17f * scale;
+            if (id.StartsWith("shield_") || id == "art_arcaneshield") return 0.17f * scale;   // v0.19.5 奥术光膜罩身体中心
             return 0.08f * scale;
         }
 
@@ -537,9 +538,10 @@ namespace Code.Combat.Fx
             // v0.18.75：对齐西幻奥术护盾 alpha≈0.03 的"淡罩"观感——护盾透明度压到 0.2（淡可见不遮人）
             // v0.18.92：着色跟随异能专属派生色
             Color tc = tint ?? Color.white;
-            if (id.StartsWith("shield_"))
+            if (id.StartsWith("shield_") || id == "art_arcaneshield")
             {
-                p.YRatio = 0.8f;
+                // v0.19.5 奥术光膜护盾：圆形光膜 YRatio=1.0；alpha 0.2 淡罩（西幻奥术护盾观感）
+                p.YRatio = 1f;
                 p.Color(new Color(tc.r, tc.g, tc.b, 0.2f), new Color(tc.r, tc.g, tc.b, 0.05f));
                 return;
             }
