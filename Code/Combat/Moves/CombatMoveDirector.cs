@@ -120,6 +120,9 @@ namespace Code.Combat.Moves
         private static void Strike(CombatMove move, Actor by, Vector2 pos, Vector2 targetPos, int tier)
         {
             bool visible = CanFull(targetPos);
+            // v0.21.11 动画语言分层：重招/终极给击停+慢动作（神战级顿挫节奏）；
+            // 凡级以下（tier<6）只做普通节奏——低境界搏杀、高境界毁天灭地的观感梯度
+            CinematicBeat(move, by, targetPos, tier);
             // v0.21.5 单位本体动作姿态（纯表现不碰 AI）：先让单位"做出动作"再叠特效
             Vector2 dir = targetPos - pos;
             if (dir.sqrMagnitude < 0.0001f) dir = new Vector2(1f, 0f);
@@ -178,6 +181,27 @@ namespace Code.Combat.Moves
 
             // 地形破坏（按招式形态；脚下保护=自身位置）
             ApplyTerrain(move, by, pos, targetPos, tier);
+        }
+
+        /// <summary>
+        /// 节奏分层：终极招=0.08s 击停+0.45×慢动作 0.3s（命中瞬间世界定格）；
+        /// 重招（境界≥8）=0.05s 击停+0.6×慢动作 0.18s；轻招/低境界=不动（保持流畅搏杀）。
+        /// 世界观：登神级对轰才配得上"世界为之停顿"。
+        /// </summary>
+        private static void CinematicBeat(CombatMove move, Actor by, Vector2 targetPos, int tier)
+        {
+            if (by == null || !by.isAlive()) return;
+            if (!CanFull(targetPos)) return;
+            if (move.Weight == MoveWeight.Ultimate)
+            {
+                CombatFxHitStop.Request(targetPos, 0.08f);
+                CombatFxCinema.SlowMo(0.45f, 0.3f);
+            }
+            else if (move.Weight == MoveWeight.Heavy && tier >= 8)
+            {
+                CombatFxHitStop.Request(targetPos, 0.05f);
+                CombatFxCinema.SlowMo(0.6f, 0.18f);
+            }
         }
 
         /// <summary>光束贯穿演出（空间撕裂/圣光审判）：粗刃贯穿 + 两翼光带 + 命中爆闪。</summary>
@@ -254,6 +278,11 @@ namespace Code.Combat.Moves
                     case MoveTerrain.Crater:
                         DSTerrainDestruction.Blast(by, targetPos, 2.2f, scale, keep, fire: false);
                         break;
+                    case MoveTerrain.None:
+                        // v0.21.11 无地形形态的终极招（时间凝滞/再生领域等）仍给一次小震波——领域展开撼动大地
+                        if (move.Weight == MoveWeight.Ultimate)
+                            DSTerrainDestruction.Quake(Mathf.Max(1, DSTerrainDestruction.ForceForTier(tier) - 1), targetPos);
+                        break;
                     case MoveTerrain.Furrow:
                         DSTerrainDestruction.Furrow(by, pos, targetPos, 0.9f, scale, keep);
                         break;
@@ -264,6 +293,9 @@ namespace Code.Combat.Moves
                         DSTerrainDestruction.Blast(by, targetPos, 1.6f, scale, keep, fire: false);
                         break;
                 }
+                // v0.21.11 终极招地形余波：主破坏后再震一次（裂痕沿地面蔓延）
+                if (move.Weight == MoveWeight.Ultimate && move.Terrain != MoveTerrain.None)
+                    DSTerrainDestruction.Quake(Mathf.Max(1, DSTerrainDestruction.ForceForTier(tier) - 1), targetPos);
             }
             catch (Exception e)
             {
