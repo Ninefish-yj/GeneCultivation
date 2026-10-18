@@ -58,5 +58,18 @@ namespace Code.Combat.AI
             float threshold = 2.2f + (ratio > 1.5f ? 1.2f : 0f);
             return dist < threshold;
         }
+
+        /// <summary>
+        /// v0.21.11 残血保命判定：自身 HP&lt;25% 且敌方威胁压倒性（威胁比≥1.6）时，
+        /// 优先再生/护体招（演出上"残血自救回气"，不改原版行为树）。
+        /// </summary>
+        public static bool WantsFlee(Actor self, Actor enemy)
+        {
+            if (self == null || !self.isAlive()) return false;
+            float hpPct = self.data.health / Mathf.Max(1f, self.getMaxHealth());
+            if (hpPct >= 0.25f) return false;
+            if (enemy == null) return false;
+            return Ratio(self, enemy) >= 1.6f;
+        }
     }
 }

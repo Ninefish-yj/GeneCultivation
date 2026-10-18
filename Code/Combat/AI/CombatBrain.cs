@@ -71,7 +71,7 @@ namespace Code.Combat.AI
 
         private static void DecideFor(Actor self)
         {
-            Actor enemy = FindBestEnemy(self);
+            Actor enemy = FindBestEnemy(self, out int enemyCount);
             if (enemy == null) return;
 
             PrototypeDef def = PrototypeRegistry.GetForActor(self);
@@ -83,6 +83,22 @@ namespace Code.Combat.AI
             if (move == null)
                 move = CombatMoveRegistry.DefaultMove(CultivationData.GetRealmTier(self));
             if (move == null) return;
+
+            // v0.21.11 战斗AI补全（纯表现，不碰原版行为树）：
+            //   —— 群战 AOE：被 ≥3 敌人包围时优先领域/爆破招（清场演出，观感"孤身战群"）
+            //   —— 残血保命：HP<25% 且威胁比>2 时优先再生领域/金刚护体（演出上"自救回气"）
+            //   —— 终极判定：残血拼大（原有）保持
+            int tierSelf = CultivationData.GetRealmTier(self);
+            if (enemyCount >= 3)
+            {
+                CombatMove aoe = PickAoEFor(self);
+                if (aoe != null && CombatMoveDirector.CanUse(self, aoe)) move = aoe;
+            }
+            else if (CombatThreat.WantsFlee(self, enemy))
+            {
+                CombatMove heal = PickHealFor(self);
+                if (heal != null && CombatMoveDirector.CanUse(self, heal)) move = heal;
+            }
 
             // 威胁比/残血 → 轻重提升（残血拼大）
             if (CombatThreat.WantsUltimate(self, enemy))
@@ -105,9 +121,36 @@ namespace Code.Combat.AI
             CombatMoveDirector.Execute(move, self, enemy);
         }
 
-        /// <summary>找最近的敌对单位（复用原版 chunk 查询 + 王国敌我判断）。</summary>
-        private static Actor FindBestEnemy(Actor self)
+        /// <summary>群战 AOE 招：领域/爆破/连锁（清场演出）。</summary>
+        private static CombatMove PickAoEFor(Actor self)
         {
+            PrototypeDef def = PrototypeRegistry.GetForActor(self);
+            CombatMove tagged = def != null ? CombatMoveRegistry.PickForAbility(def) : null;
+            if (tagged != null && (tagged.Kind == MoveKind.Domain || tagged.Kind == MoveKind.Blast || tagged.Kind == MoveKind.Chain))
+                return tagged;
+            // 无契合 AOE 标签时兜底：雷劫轰顶（雷系连锁）/精神风暴（领域）——有冷却时返回空
+            int tier = CultivationData.GetRealmTier(self);
+            CombatMove thunder = CombatMoveRegistry.Get("mv_thunder_judge");
+            if (thunder != null && CombatMoveDirector.CanUse(self, thunder)) return thunder;
+            CombatMove mind = CombatMoveRegistry.Get("mv_mind_storm");
+            if (mind != null && CombatMoveDirector.CanUse(self, mind)) return mind;
+            return null;
+        }
+
+        /// <summary>残血保命招：再生领域/金刚护体（演出自救）。</summary>
+        private static CombatMove PickHealFor(Actor self)
+        {
+            CombatMove regen = CombatMoveRegistry.Get("mv_regen_field");
+            if (regen != null && CombatMoveDirector.CanUse(self, regen)) return regen;
+            CombatMove guard = CombatMoveRegistry.Get("mv_steel_guard");
+            if (guard != null && CombatMoveDirector.CanUse(self, guard)) return guard;
+            return null;
+        }
+
+        /// <summary>找最近的敌对单位 + 记敌人数（复用原版 chunk 查询 + 王国敌我判断；群战 AOE 判定用）。</summary>
+        private static Actor FindBestEnemy(Actor self, out int enemyCount)
+        {
+            enemyCount = 0;
             WorldTile selfTile = World.world.GetTileSimple((int)self.current_position.x, (int)self.current_position.y);
             if (selfTile == null) return null;
             var nearby = Finder.getUnitsFromChunk(selfTile, 8, 10f, false);
@@ -118,6 +161,7 @@ namespace Code.Combat.AI
             {
                 if (a == null || !a.isAlive() || a == self) continue;
                 if (!IsEnemy(self, a)) continue;
+                enemyCount++;
                 float d = Vector2.Distance(self.current_position, a.current_position);
                 if (d < bestDist) { bestDist = d; best = a; }
             }
