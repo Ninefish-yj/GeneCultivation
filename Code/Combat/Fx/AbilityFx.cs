@@ -22,6 +22,10 @@ namespace Code.Combat.Fx
 
         private static readonly Dictionary<string, Sprite[]> _cache = new Dictionary<string, Sprite[]>();
 
+        // v0.21.6 每异能独立特效：异能Id → 专属程序化图元（懒生成，首次播放才建，398 上限）
+        private static readonly Dictionary<string, Sprite> _prototypeGlyphs = new Dictionary<string, Sprite>();
+        private static bool _glyphInited;
+
         // 主标签 → 特效池（多个变体；按副标签哈希取用，保证 (主,副) 组合唯一）
         private static readonly Dictionary<PrototypeTag, string[]> _tagPool = new Dictionary<PrototypeTag, string[]>();
         // 家族（大类/小类）→ 氛围特效
@@ -409,8 +413,10 @@ namespace Code.Combat.Fx
                 if (!string.IsNullOrEmpty(mainFx) && IsProjectile(mainFx))
                 {
                     SpawnProjectile(mainFx, self.current_position, pos, scale, tint);
-                    // 命中爆（延迟一段，投射物到点后炸开）
-                    SpawnFx(mainFx, pos, FxLayer.Top, 36, true, scale, delay: 0.13f, follow: null, tint: tint);
+                    // v0.21.6 命中爆：每异能独立专属图元（形态×seed×专属色），不再共用素材命中爆
+                    Sprite glyph = PrototypeGlyphFor(def);
+                    if (glyph != null) SpawnGlyphBurst(glyph, pos, scale, tint);
+                    else SpawnFx(mainFx, pos, FxLayer.Top, 36, true, scale, delay: 0.13f, follow: null, tint: tint);
                 }
                 else if (!string.IsNullOrEmpty(mainFx))
                 {
@@ -420,6 +426,15 @@ namespace Code.Combat.Fx
                     bool shieldFx = mainFx.StartsWith("shield_") || mainFx == "art_arcaneshield";   // v0.19.5 奥术光膜同护盾跟随
                     SpawnFx(mainFx, pos, FxLayer.Top, shieldFx ? 25 : 35, true, scale, 0f,
                         shieldFx ? anchor : null, tint: tint);
+                    // v0.21.6 每异能独立特效：素材主演出之外叠专属图元爆发（形态可辨每异能）
+                    Sprite glyph = PrototypeGlyphFor(def);
+                    if (glyph != null) SpawnGlyphBurst(glyph, pos, scale, tint);
+                }
+                else
+                {
+                    // v0.21.6 无池素材兜底：纯专属图元（新/未入池标签不再"无特效"）
+                    Sprite glyph = PrototypeGlyphFor(def);
+                    if (glyph != null) SpawnGlyphBurst(glyph, pos, scale, tint);
                 }
                 // 命中冲击环（扩张淡出，贴合目标体型，细环不遮视野）
                 var ring = CombatFxCore.Spawn(CombatFxArt.Rings[0], pos, 0.09f, 0.35f, FxLayer.Top, 30);
@@ -444,6 +459,18 @@ namespace Code.Combat.Fx
                 {
                     SpawnFx(mainFx, pos, FxLayer.Over, 25, true, scale, 0f, self, tint: tint);
                 }
+                // v0.21.6 防守印记：弱化专属图元环贴自身（护盾/闪避时异能印记可辨，不遮人）
+                Sprite glyph = PrototypeGlyphFor(def);
+                if (glyph != null)
+                {
+                    var g = CombatFxCore.Spawn(new[] { glyph }, pos + new Vector2(0f, 0.17f * scale),
+                        1f / 64f, 0.28f, FxLayer.Over, 22);
+                    if (g != null)
+                    {
+                        g.Sized(0.34f * scale, 0.34f * scale);
+                        g.Color(new Color(tint.r, tint.g, tint.b, 0.45f), new Color(tint.r, tint.g, tint.b, 0f));
+                    }
+                }
             }
 
             // 家族氛围层（与主特效不同才叠；低透明背景）
@@ -460,6 +487,128 @@ namespace Code.Combat.Fx
         {
             if (a == null || a.asset == null) return 1f;
             return Mathf.Max(0.3f, (float)a.asset.actor_size / 13f);
+        }
+
+        // ================================================================
+        // v0.21.6 每异能独立特效核心：异能专属程序化图元
+        // 主形态 = MainTag 意象，副形态 = SubTag 点缀，seed = 异能Id 稳定哈希，
+        // 颜色 = DeriveTint（标签基准色×Id 哈希）。同标签异能靠 seed 形变+副形态+色区分，
+        // 398 异能每异能唯一。懒生成 + 缓存，首次播放才建纹理（非每帧）。
+        // ================================================================
+
+        /// <summary>取异能专属图元（懒生成+缓存；失败返回 null 走素材兜底）。</summary>
+        private static Sprite PrototypeGlyphFor(PrototypeDef def)
+        {
+            if (def == null || string.IsNullOrEmpty(def.Id)) return null;
+            if (_prototypeGlyphs.TryGetValue(def.Id, out var cached)) return cached;
+            try
+            {
+                CombatFxArt.EnsureInit();
+                int seed = StableSeed(def.Id);
+                int mainIdx = TagGlyphIndex(def.MainTag);
+                int subIdx = def.SubTag == def.MainTag ? -1 : TagGlyphIndex(def.SubTag);   // 副标签同主标签不重复叠加
+                var sprite = CombatFxArt.MakePrototypeGlyph(seed, mainIdx, subIdx, def.Tier);
+                if (sprite == null) return null;
+                if (_prototypeGlyphs.Count > 512) _prototypeGlyphs.Clear();   // 防膨胀（超 512 清重建）
+                _prototypeGlyphs[def.Id] = sprite;
+                return sprite;
+            }
+            catch (System.Exception dsEx)
+            {
+                Code.Core.DSDebug.Verbose("[AbilityFx] glyph " + def.Id + ": " + dsEx.Message);
+                return null;
+            }
+        }
+
+        /// <summary>异能 Id 稳定哈希（与 DeriveTint 同一算法，保证色/形同源）。</summary>
+        private static int StableSeed(string id)
+        {
+            unchecked
+            {
+                int h = 17;
+                foreach (char ch in id) h = h * 31 + ch;
+                return h < 0 ? -h : h;
+            }
+        }
+
+        /// <summary>标签 → 形态库索引（主/副形态分发）。</summary>
+        private static int TagGlyphIndex(PrototypeTag tag)
+        {
+            switch (tag)
+            {
+                case PrototypeTag.Burn:
+                case PrototypeTag.Plasma:
+                case PrototypeTag.Berserk: return 0;    // 火苗
+                case PrototypeTag.Frost:
+                case PrototypeTag.Frostbite:
+                case PrototypeTag.Slow:
+                case PrototypeTag.TimeSlow: return 1;   // 冰晶（时缓同冰蓝，seed 区分）
+                case PrototypeTag.Thunder:
+                case PrototypeTag.Chain:
+                case PrototypeTag.Magnetism:
+                case PrototypeTag.Stun: return 2;       // Z 闪电
+                case PrototypeTag.Wind:
+                case PrototypeTag.MultiShot:
+                case PrototypeTag.Crit: return 3;       // 风刃
+                case PrototypeTag.Water: return 4;      // 波纹
+                case PrototypeTag.Earth:
+                case PrototypeTag.Petrify: return 5;    // 岩
+                case PrototypeTag.Metal:
+                case PrototypeTag.ArmorBreak: return 6; // 冷刃
+                case PrototypeTag.Light:
+                case PrototypeTag.Cleanse:
+                case PrototypeTag.Blessing:
+                case PrototypeTag.Aura: return 7;       // 光芒星
+                case PrototypeTag.Shadow:
+                case PrototypeTag.Curse:
+                case PrototypeTag.Fear:
+                case PrototypeTag.Aging:
+                case PrototypeTag.Weakness: return 8;   // 暗弧瞳
+                case PrototypeTag.Blood:
+                case PrototypeTag.Lifesteal:
+                case PrototypeTag.Drain:
+                case PrototypeTag.ManaDrain: return 9;  // 血滴
+                case PrototypeTag.Execute:
+                case PrototypeTag.Soul: return 10;      // 骨镰
+                case PrototypeTag.Heal:
+                case PrototypeTag.HealAlly:
+                case PrototypeTag.Regeneration: return 11; // 心
+                case PrototypeTag.Telekinesis:
+                case PrototypeTag.Illusion: return 12;  // 眼瞳
+                case PrototypeTag.Summon: return 13;    // 爪印
+                case PrototypeTag.Sleep: return 15;     // 月牙
+                case PrototypeTag.Poison: return 16;    // 毒滴
+                case PrototypeTag.Entangle: return 24;  // 藤蔓
+                case PrototypeTag.Knockback:
+                case PrototypeTag.Gravity:
+                case PrototypeTag.Vibration:
+                case PrototypeTag.Sound: return 22;     // 冲击双环
+                case PrototypeTag.Shield:
+                case PrototypeTag.Reflect:
+                case PrototypeTag.ElementResist: return 23; // 盾
+                case PrototypeTag.Dodge:
+                case PrototypeTag.Invisibility:
+                case PrototypeTag.Clone: return 22;     // 虚影环
+                case PrototypeTag.Teleport:
+                case PrototypeTag.Domain:
+                case PrototypeTag.Mark: return 21;      // 符环
+                case PrototypeTag.Thorns: return 22;    // 反弹环
+                default: return 20;                     // 星芒兜底
+            }
+        }
+
+        /// <summary>专属图元爆发（目标位置贴体：0.34×scale 与命中冲击环同尺寸层级，专属色淡出）。</summary>
+        private static void SpawnGlyphBurst(Sprite glyph, Vector2 pos, float scale, Color tint)
+        {
+            try
+            {
+                var g = CombatFxCore.Spawn(new[] { glyph }, pos + new Vector2(0f, 0.08f * scale),
+                    1f / 64f, 0.32f, FxLayer.Top, 34);
+                if (g == null) return;
+                g.Sized(0.34f * scale, 0.34f * scale);
+                g.Color(new Color(tint.r, tint.g, tint.b, 0.92f), new Color(tint.r, tint.g, tint.b, 0f));
+            }
+            catch (System.Exception dsEx) { Code.Core.DSDebug.Verbose("[AbilityFx] glyph burst: " + dsEx.Message); }
         }
 
         /// <summary>投射类特效（球/弹/泡/星/飞火）：可做飞行弹道。

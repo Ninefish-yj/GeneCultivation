@@ -63,6 +63,34 @@ namespace Code.Combat.Fx
         internal static Sprite HolyLight;    // 圣光（光柱光环）
         internal static Sprite ShadowWave;   // 暗影波（暗波扩散）
 
+        // ---- v0.21.6 异能专属图元形态库（每异能独立特效的主/副形态素材）----
+        internal static Sprite GlyphFlame;        // 火苗（焰尖摆动）
+        internal static Sprite GlyphIceCrystal;   // 六角冰晶
+        internal static Sprite GlyphBolt;         // Z 闪电
+        internal static Sprite GlyphWindEdge;     // 三斜刃（风刃）
+        internal static Sprite GlyphWave;         // 波纹+水滴
+        internal static Sprite GlyphRock;         // 菱形岩
+        internal static Sprite GlyphMetalEdge;    // 冷刃弧
+        internal static Sprite GlyphHolyRay;      // 光芒星
+        internal static Sprite GlyphShadowArc;    // 暗弧+瞳
+        internal static Sprite GlyphBloodDrop;    // 血滴
+        internal static Sprite GlyphBoneScythe;   // 骨镰
+        internal static Sprite GlyphHeart;        // 心
+        internal static Sprite GlyphEye;          // 眼瞳
+        internal static Sprite GlyphClaw;         // 爪印
+        internal static Sprite GlyphHourglass;    // 沙漏（时缓）
+        internal static Sprite GlyphMoon;         // 月牙（睡眠）
+        internal static Sprite GlyphToxic;        // 毒滴+气泡
+        internal static Sprite GlyphVapor;        // 雾团（毒/衰老）
+        internal static Sprite GlyphChain;        // 链环（束缚/连锁）
+        internal static Sprite GlyphWing;         // 光翼（召唤/圣光）
+        internal static Sprite GlyphStar;         // 星芒（暴击/强化）
+        internal static Sprite GlyphSigil;        // 符环（念力/领域）
+        internal static Sprite GlyphRipple;       // 冲击双环（击退/溅射）
+        internal static Sprite GlyphShield;       // 盾形（护盾/反射）
+        internal static Sprite GlyphVine;         // 藤蔓（束缚/自然）
+        internal static Sprite GlyphPrism;        // 结晶（石化/土）
+
         // ---- v0.19.19 程序化神形显现（替代原版 unit_anim boss 待机动画素材）----
         /// <summary>神形显现（v0.19.19 程序化，替代原版 unit_anim 素材，81×81 帧沿用宽归一化）。</summary>
         internal static Sprite DivineVision;
@@ -176,6 +204,33 @@ namespace Code.Combat.Fx
                 ShadowWave   = Make(33, 33, (x, y) => ShadowWaveAt(x, y, 33, 33));
                 // v0.19.19 程序化神形显现（替代原版 unit_anim 素材，81×81 帧沿用 1.5 宽归一化）
                 DivineVision = Make(81, 81, (x, y) => DivineVisionAt(x, y, 81, 81));
+                // ---- v0.21.6 异能专属形态库（64×64，全部按 id 哈希 seed 参数化）----
+                GlyphFlame     = Make(64, 64, (x, y) => GlyphFlameAt(x, y, 64, 64, 7));
+                GlyphIceCrystal= Make(64, 64, (x, y) => GlyphIceCrystalAt(x, y, 64, 64, 11));
+                GlyphBolt      = Make(64, 64, (x, y) => GlyphBoltAt(x, y, 64, 64, 13));
+                GlyphWindEdge  = Make(64, 64, (x, y) => GlyphWindEdgeAt(x, y, 64, 64, 17));
+                GlyphWave      = Make(64, 64, (x, y) => GlyphWaveAt(x, y, 64, 64, 19));
+                GlyphRock      = Make(64, 64, (x, y) => GlyphRockAt(x, y, 64, 64, 23));
+                GlyphMetalEdge = Make(64, 64, (x, y) => GlyphMetalEdgeAt(x, y, 64, 64, 29));
+                GlyphHolyRay   = Make(64, 64, (x, y) => GlyphHolyRayAt(x, y, 64, 64, 31));
+                GlyphShadowArc = Make(64, 64, (x, y) => GlyphShadowArcAt(x, y, 64, 64, 37));
+                GlyphBloodDrop = Make(64, 64, (x, y) => GlyphBloodDropAt(x, y, 64, 64, 41));
+                GlyphBoneScythe= Make(64, 64, (x, y) => GlyphBoneScytheAt(x, y, 64, 64, 43));
+                GlyphHeart     = Make(64, 64, (x, y) => GlyphHeartAt(x, y, 64, 64, 47));
+                GlyphEye       = Make(64, 64, (x, y) => GlyphEyeAt(x, y, 64, 64, 53));
+                GlyphClaw      = Make(64, 64, (x, y) => GlyphClawAt(x, y, 64, 64, 59));
+                GlyphHourglass = Make(64, 64, (x, y) => GlyphHourglassAt(x, y, 64, 64, 61));
+                GlyphMoon      = Make(64, 64, (x, y) => GlyphMoonAt(x, y, 64, 64, 67));
+                GlyphToxic     = Make(64, 64, (x, y) => GlyphToxicAt(x, y, 64, 64, 71));
+                GlyphVapor     = Make(64, 64, (x, y) => GlyphVaporAt(x, y, 64, 64, 73));
+                GlyphChain     = Make(64, 64, (x, y) => GlyphChainAt(x, y, 64, 64, 79));
+                GlyphWing      = Make(64, 64, (x, y) => GlyphWingAt(x, y, 64, 64, 83));
+                GlyphStar      = Make(64, 64, (x, y) => GlyphStarAt(x, y, 64, 64, 89));
+                GlyphSigil     = Make(64, 64, (x, y) => GlyphSigilAt(x, y, 64, 64, 97));
+                GlyphRipple    = Make(64, 64, (x, y) => GlyphRippleAt(x, y, 64, 64, 101));
+                GlyphShield    = Make(64, 64, (x, y) => GlyphShieldAt(x, y, 64, 64, 103));
+                GlyphVine      = Make(64, 64, (x, y) => GlyphVineAt(x, y, 64, 64, 107));
+                GlyphPrism     = Make(64, 64, (x, y) => GlyphPrismAt(x, y, 64, 64, 109));
             }
             catch (Exception e)
             {
@@ -687,6 +742,619 @@ namespace Code.Combat.Fx
             if (dWing2 < wingT) a = Mathf.Max(a, (1f - dWing2 / wingT) * 0.22f);
 
             return Mathf.Clamp01(a);
+        }
+
+        // ================================================================
+        // v0.21.6 异能专属形态库：26 个程序化图元，每个异能 = 主形态（MainTag）
+        // × 副形态（SubTag 点缀）× id 哈希 seed（形变参数）× 专属派生色。
+        // 全部 64×64、白膜 alpha（颜色由 AbilityFx.DeriveTint 运行时叠加）。
+        // seed 只改变形变细节（尖角数/环数/刃数/弯曲度），不改变大众认知意象。
+        // ================================================================
+
+        /// <summary>火苗：下宽上尖焰体，seed 控制焰尖摆动角度。</summary>
+        private static float GlyphFlameAt(int x, int y, int w, int h, int seed)
+        {
+            float cx = (w - 1) * 0.5f, cy = (h - 1) * 0.5f;
+            float bend = ((seed % 5) - 2) * 0.06f;           // 焰尖左右摆
+            float a = 0f;
+            for (int i = -1; i <= 1; i++)
+            {
+                float fx = cx + i * 7f * ((seed + i) % 3 == 0 ? 0.5f : 1f);
+                float tipX = fx + bend * 18f;
+                float tipY = cy - 20f - ((seed + i) % 2) * 4f;
+                float baseY = cy + 14f;
+                float seg = SegDist(x, y, fx, baseY, tipX, tipY);
+                float thick = 5.5f - i * 1.2f;
+                if (seg < thick) a = Mathf.Max(a, (1f - seg / thick) * 0.95f);
+            }
+            return Mathf.Clamp01(a);
+        }
+
+        /// <summary>六角冰晶：主棱×6 + 次级棱，seed 控制次级棱长度。</summary>
+        private static float GlyphIceCrystalAt(int x, int y, int w, int h, int seed)
+        {
+            float cx = (w - 1) * 0.5f, cy = (h - 1) * 0.5f;
+            float a = 0f;
+            float R = 22f + (seed % 3) * 2f;
+            for (int i = 0; i < 6; i++)
+            {
+                float ang = i * Mathf.PI / 3f + ((seed % 2) * 0.05f);
+                float ex = cx + Mathf.Cos(ang) * R, ey = cy + Mathf.Sin(ang) * R;
+                a = Mathf.Max(a, SegGlow(x, y, cx, cy, ex, ey, 2.6f));
+                // 次级棱（v 形分支）
+                float bx = cx + Mathf.Cos(ang) * R * 0.55f, by = cy + Mathf.Sin(ang) * R * 0.55f;
+                float off = ang + Mathf.PI / 2f;
+                float br = R * (0.3f + (seed % 4) * 0.06f);
+                a = Mathf.Max(a, SegGlow(x, y, bx, by, bx + Mathf.Cos(off) * br, by + Mathf.Sin(off) * br, 1.8f));
+                a = Mathf.Max(a, SegGlow(x, y, bx, by, bx - Mathf.Cos(off) * br, by - Mathf.Sin(off) * br, 1.8f));
+            }
+            return Mathf.Clamp01(a);
+        }
+
+        /// <summary>Z 闪电：多段折线，seed 控制折点数量。</summary>
+        private static float GlyphBoltAt(int x, int y, int w, int h, int seed)
+        {
+            float cx = (w - 1) * 0.5f, cy = (h - 1) * 0.5f;
+            int n = 3 + (seed % 3);
+            float a = 0f;
+            float px = cx - 10f, py = cy - 20f;
+            float targetX = cx + 8f * (((seed / 3) % 2) == 0 ? -1f : 1f), targetY = cy + 22f;
+            for (int i = 0; i <= n; i++)
+            {
+                float t = i / (float)n;
+                float nx = px + (targetX - px) * t + (i > 0 && i < n ? Mathf.Sin(i * 9f + seed) * 6f : 0f);
+                float ny = py + (targetY - py) * t;
+                if (i > 0) a = Mathf.Max(a, SegGlow(x, y, px, py, nx, ny, 3.4f));
+                px = nx; py = ny;
+            }
+            // 侧支闪电
+            float sx = cx - 4f, sy = cy;
+            a = Mathf.Max(a, SegGlow(x, y, sx, sy, sx - 12f, sy - 8f, 2.2f));
+            return Mathf.Clamp01(a);
+        }
+
+        /// <summary>三斜刃：三片风刃绕中心，seed 控制刃夹角。</summary>
+        private static float GlyphWindEdgeAt(int x, int y, int w, int h, int seed)
+        {
+            float cx = (w - 1) * 0.5f, cy = (h - 1) * 0.5f;
+            float a = 0f;
+            float baseAng = (seed % 6) * 0.12f;
+            for (int i = 0; i < 3; i++)
+            {
+                float ang = baseAng + i * Mathf.PI * 2f / 3f;
+                float sx = cx + Mathf.Cos(ang) * 6f, sy = cy + Mathf.Sin(ang) * 6f;
+                float ex = cx + Mathf.Cos(ang) * 24f, ey = cy + Mathf.Sin(ang) * 24f;
+                a = Mathf.Max(a, SegGlow(x, y, sx, sy, ex, ey, 4f));
+                // 刃尖三角
+                float txa = ex + Mathf.Cos(ang + 0.5f) * 6f, tya = ey + Mathf.Sin(ang + 0.5f) * 6f;
+                float txb = ex + Mathf.Cos(ang - 0.5f) * 6f, tyb = ey + Mathf.Sin(ang - 0.5f) * 6f;
+                a = Mathf.Max(a, TriGlow(x, y, ex, ey, txa, tya, txb, tyb));
+            }
+            return Mathf.Clamp01(a);
+        }
+
+        /// <summary>波纹+水滴：同心波纹与一滴水珠，seed 控制波数。</summary>
+        private static float GlyphWaveAt(int x, int y, int w, int h, int seed)
+        {
+            float cx = (w - 1) * 0.5f, cy = (h - 1) * 0.5f;
+            float a = 0f;
+            int rings = 2 + (seed % 2);
+            for (int i = 1; i <= rings; i++)
+            {
+                float r = 10f + i * 7f + (seed % 3);
+                float d = Mathf.Sqrt((x - cx) * (x - cx) + (y - cy + 6f) * (y - cy + 6f));
+                float edge = Mathf.Abs(d - r);
+                if (edge < 2.2f) a = Mathf.Max(a, (1f - edge / 2.2f) * 0.8f);
+            }
+            // 水滴（泪形）
+            float dx = cx - 8f + (seed % 3), dy = cy - 14f;
+            float dDrop = Mathf.Sqrt((x - dx) * (x - dx) + (y - dy) * (y - dy));
+            if (dDrop < 6f) a = Mathf.Max(a, 0.9f * (1f - dDrop / 6f * 0.4f));
+            float seg2 = SegDist(x, y, dx, dy + 3f, dx + 4f, dy + 12f);
+            if (seg2 < 3f) a = Mathf.Max(a, (1f - seg2 / 3f) * 0.8f);
+            return Mathf.Clamp01(a);
+        }
+
+        /// <summary>菱形岩：粗棱菱形+内裂，seed 控制棱角。</summary>
+        private static float GlyphRockAt(int x, int y, int w, int h, int seed)
+        {
+            float cx = (w - 1) * 0.5f, cy = (h - 1) * 0.5f;
+            float a = 0f;
+            float skew = ((seed % 5) - 2) * 0.08f;
+            float topX = cx + skew * 10f;
+            float d1 = SegDist(x, y, topX, cy - 22f, cx - 18f, cy + 6f);
+            float d2 = SegDist(x, y, topX, cy - 22f, cx + 18f, cy + 6f);
+            float d3 = SegDist(x, y, cx - 18f, cy + 6f, cx + 8f, cy + 22f);
+            float d4 = SegDist(x, y, cx + 18f, cy + 6f, cx - 8f, cy + 22f);
+            float t = 3.2f;
+            a = Mathf.Max(Mathf.Max(a, 1f - Mathf.Min(d1, d3) / t), 1f - Mathf.Min(d2, d4) / t);
+            // 内裂
+            float cr = ((seed / 5) % 3) * 0.3f + 0.5f;
+            a = Mathf.Max(a, SegGlow(x, y, cx - cr * 8f, cy - cr * 6f, cx + cr * 6f, cy + cr * 4f, 2f));
+            return Mathf.Clamp01(a);
+        }
+
+        /// <summary>冷刃弧：双刃弧形交错，seed 控制弧向。</summary>
+        private static float GlyphMetalEdgeAt(int x, int y, int w, int h, int seed)
+        {
+            float cx = (w - 1) * 0.5f, cy = (h - 1) * 0.5f;
+            float a = 0f;
+            int dir = (seed % 2) == 0 ? 1 : -1;
+            // 两道弧刃（贝塞尔式：用多段折线近似）
+            for (int i = 0; i <= 12; i++)
+            {
+                float t = i / 12f;
+                float ang = -1.1f + t * 2.2f;
+                float px1 = cx + Mathf.Cos(ang) * (14f + 6f * t) * dir, py1 = cy + Mathf.Sin(ang) * 14f - 6f * t;
+                float px2 = cx + Mathf.Cos(-ang) * (14f + 6f * t) * dir, py2 = cy - Mathf.Sin(-ang) * 14f + 6f * t;
+                if (i > 0)
+                {
+                    a = Mathf.Max(a, SegGlow(x, y, prev1x, prev1y, px1, py1, 3f));
+                    a = Mathf.Max(a, SegGlow(x, y, prev2x, prev2y, px2, py2, 3f));
+                }
+                prev1x = px1; prev1y = py1; prev2x = px2; prev2y = py2;
+            }
+            return Mathf.Clamp01(a);
+        }
+        private static float prev1x, prev1y, prev2x, prev2y;   // 弧线折点暂存
+
+        /// <summary>光芒星：核心星芒（8~16 芒），seed 控制芒数。</summary>
+        private static float GlyphHolyRayAt(int x, int y, int w, int h, int seed)
+        {
+            float cx = (w - 1) * 0.5f, cy = (h - 1) * 0.5f;
+            float a = 0f;
+            int rays = 8 + (seed % 9);
+            float R = 26f;
+            float d = Mathf.Sqrt((x - cx) * (x - cx) + (y - cy) * (y - cy));
+            if (d < 7f) a = Mathf.Max(a, 1f - d / 7f);
+            for (int i = 0; i < rays; i++)
+            {
+                float ang = i * Mathf.PI * 2f / rays + ((seed % 4) * 0.07f);
+                float ex = cx + Mathf.Cos(ang) * R, ey = cy + Mathf.Sin(ang) * R;
+                a = Mathf.Max(a, SegGlow(x, y, cx, cy, ex, ey, 2.4f));
+            }
+            return Mathf.Clamp01(a);
+        }
+
+        /// <summary>暗弧+瞳：弧带环抱瞳点，seed 控制瞳位。</summary>
+        private static float GlyphShadowArcAt(int x, int y, int w, int h, int seed)
+        {
+            float cx = (w - 1) * 0.5f, cy = (h - 1) * 0.5f;
+            float a = 0f;
+            for (int i = 0; i <= 20; i++)
+            {
+                float t = i / 20f;
+                float ang = 0.3f + t * (Mathf.PI * 2f - 0.6f);
+                float rx = 20f + (seed % 3) * 2f, ry = 12f + ((seed / 3) % 2) * 3f;
+                float px = cx + Mathf.Cos(ang) * rx, py = cy + Mathf.Sin(ang) * ry;
+                if (i > 0) a = Mathf.Max(a, SegGlow(x, y, prevArcX, prevArcY, px, py, 2.8f));
+                prevArcX = px; prevArcY = py;
+            }
+            // 瞳（中心竖瞳）
+            float dx = cx + ((seed % 5) - 2) * 2f, dy = cy;
+            float dEye = Mathf.Sqrt((x - dx) * (x - dx) + ((y - dy) * 0.45f) * ((y - dy) * 0.45f));
+            if (dEye < 6f) a = Mathf.Max(a, 0.95f * (1f - dEye / 6f * 0.3f));
+            return Mathf.Clamp01(a);
+        }
+        private static float prevArcX, prevArcY;
+
+        /// <summary>血滴：悬垂血滴+溅点，seed 控制滴数。</summary>
+        private static float GlyphBloodDropAt(int x, int y, int w, int h, int seed)
+        {
+            float cx = (w - 1) * 0.5f, cy = (h - 1) * 0.5f;
+            float a = 0f;
+            int drops = 2 + (seed % 2);
+            for (int i = 0; i < drops; i++)
+            {
+                float dx = cx + (i == 0 ? 0f : ((seed % 3) - 1) * 14f);
+                float dy = cy - (i == 0 ? 6f : -6f);
+                float d = Mathf.Sqrt((x - dx) * (x - dx) + (y - dy) * (y - dy));
+                if (d < 8f) a = Mathf.Max(a, 0.9f * (1f - d / 8f * 0.35f));
+                // 滴尾
+                float seg = SegDist(x, y, dx, dy + 2f, dx + 2f, dy + 13f);
+                if (seg < 3f) a = Mathf.Max(a, (1f - seg / 3f) * 0.85f);
+            }
+            return Mathf.Clamp01(a);
+        }
+
+        /// <summary>骨镰：镰刃弧+柄，seed 控制刃弯。</summary>
+        private static float GlyphBoneScytheAt(int x, int y, int w, int h, int seed)
+        {
+            float cx = (w - 1) * 0.5f, cy = (h - 1) * 0.5f;
+            float a = 0f;
+            float bend = 0.15f + (seed % 4) * 0.05f;
+            // 刃弧（上半圆弧）
+            for (int i = 0; i <= 18; i++)
+            {
+                float t = i / 18f;
+                float ang = Mathf.PI * (0.15f + t * 0.7f);
+                float px = cx + Mathf.Cos(ang) * 22f, py = cy - 8f + Mathf.Sin(ang) * 20f;
+                if (i > 0) a = Mathf.Max(a, SegGlow(x, y, prevSx, prevSy, px, py, 3.4f));
+                prevSx = px; prevSy = py;
+            }
+            // 柄
+            float hx1 = cx - 14f, hy1 = cy + 14f, hx2 = cx + 16f, hy2 = cy - 6f;
+            a = Mathf.Max(a, SegGlow(x, y, hx1, hy1, hx2, hy2, 2.8f));
+            return Mathf.Clamp01(a);
+        }
+        private static float prevSx, prevSy;
+
+        /// <summary>心：经典心形，seed 控制比例。</summary>
+        private static float GlyphHeartAt(int x, int y, int w, int h, int seed)
+        {
+            float cx = (w - 1) * 0.5f, cy = (h - 1) * 0.5f;
+            float a = 0f;
+            float k = 0.8f + (seed % 3) * 0.1f;    // 心尖长度
+            float nx = (x - cx) / 24f, ny = (y - cy) / 24f;
+            // 隐式心形曲线 x²+(y-k√|x|)²=1 的近似：到曲面的距离
+            float fx = Mathf.Abs(nx);
+            float yy = ny * 1.15f - k * 0.35f * Mathf.Sqrt(fx);
+            float curve = fx * fx + yy * yy;
+            if (curve < 1.15f)
+            {
+                float inside = 1.15f - curve;
+                if (inside > 0f && inside < 0.25f) a = Mathf.Max(a, inside / 0.25f);
+                else if (inside >= 0.25f) a = Mathf.Max(a, 0.9f);
+            }
+            return Mathf.Clamp01(a);
+        }
+
+        /// <summary>眼瞳：眼型+瞳孔，seed 控制瞳偏移。</summary>
+        private static float GlyphEyeAt(int x, int y, int w, int h, int seed)
+        {
+            float cx = (w - 1) * 0.5f, cy = (h - 1) * 0.5f;
+            float a = 0f;
+            float ex = (x - cx) / 20f, ey = (y - cy) / 12f;
+            float d = ex * ex + ey * ey;
+            if (d < 1f)
+            {
+                float ring = Mathf.Abs(d - 0.72f);
+                if (ring < 0.14f) a = Mathf.Max(a, (0.14f - ring) / 0.14f);
+                else if (d < 0.72f) a = Mathf.Max(a, 0.6f);
+                else a = Mathf.Max(a, 0.15f);
+            }
+            // 瞳孔
+            float pox = cx + ((seed % 5) - 2) * 3f, poy = cy + ((seed / 5) % 3 - 1) * 3f;
+            float pd = Mathf.Sqrt((x - pox) * (x - pox) + (y - poy) * (y - poy));
+            if (pd < 5f) a = Mathf.Max(a, 0.95f * (1f - pd / 5f * 0.2f));
+            return Mathf.Clamp01(a);
+        }
+
+        /// <summary>爪印：三道爪痕，seed 控制间距。</summary>
+        private static float GlyphClawAt(int x, int y, int w, int h, int seed)
+        {
+            float cx = (w - 1) * 0.5f, cy = (h - 1) * 0.5f;
+            float a = 0f;
+            float gap = 6f + (seed % 3) * 1.5f;
+            for (int i = -1; i <= 1; i++)
+            {
+                float bx = cx + i * gap, by = cy + 16f;
+                float ex = bx + (i * 3f) + ((seed % 2) * 2f), ey = cy - 14f - Mathf.Abs(i) * 3f;
+                a = Mathf.Max(a, SegGlow(x, y, bx, by, ex, ey, 4f));
+                // 爪尖三角
+                a = Mathf.Max(a, TriGlow(x, y, ex, ey, ex + 5f, ey + 4f, ex - 3f, ey + 6f));
+            }
+            return Mathf.Clamp01(a);
+        }
+
+        /// <summary>沙漏：双三角+中腰，seed 控制沙量。</summary>
+        private static float GlyphHourglassAt(int x, int y, int w, int h, int seed)
+        {
+            float cx = (w - 1) * 0.5f, cy = (h - 1) * 0.5f;
+            float a = 0f;
+            float topX = cx, topY = cy - 20f, botX = cx, botY = cy + 20f;
+            a = Mathf.Max(a, SegGlow(x, y, topX, topY, cx - 14f, cy, 3f));
+            a = Mathf.Max(a, SegGlow(x, y, topX, topY, cx + 14f, cy, 3f));
+            a = Mathf.Max(a, SegGlow(x, y, cx - 14f, cy, botX, botY, 3f));
+            a = Mathf.Max(a, SegGlow(x, y, cx + 14f, cy, botX, botY, 3f));
+            // 沙（下半填充点）
+            float sandY = cy + 4f + (seed % 4) * 2f;
+            for (int sy = (int)cy + 6; sy < (int)(cy + 18f); sy += 4)
+            {
+                float half = 14f * (sy - cy) / 20f;
+                if (Mathf.Abs(y - sy) < 2f && Mathf.Abs(x - cx) < half) a = Mathf.Max(a, 0.5f);
+            }
+            return Mathf.Clamp01(a);
+        }
+
+        /// <summary>月牙：新月弧，seed 控制弯度。</summary>
+        private static float GlyphMoonAt(int x, int y, int w, int h, int seed)
+        {
+            float cx = (w - 1) * 0.5f, cy = (h - 1) * 0.5f;
+            float a = 0f;
+            float bend = 10f + (seed % 3) * 2f;
+            // 外弧与内弧之间的月牙带
+            float dOut = Mathf.Sqrt((x - cx) * (x - cx) + (y - cy) * (y - cy));
+            float innerCx = cx + bend, innerCy = cy;
+            float dIn = Mathf.Sqrt((x - innerCx) * (x - innerCx) + (y - innerCy) * (y - innerCy));
+            if (dOut < 20f && dIn > 12f)
+            {
+                float band = Mathf.Min(20f - dOut, dIn - 12f);
+                if (band > 0f && band < 4f) a = Mathf.Max(a, band / 4f);
+                else if (band >= 4f) a = Mathf.Max(a, 0.85f);
+            }
+            return Mathf.Clamp01(a);
+        }
+
+        /// <summary>毒滴+气泡：毒液滴与升腾气泡，seed 控制泡数。</summary>
+        private static float GlyphToxicAt(int x, int y, int w, int h, int seed)
+        {
+            float cx = (w - 1) * 0.5f, cy = (h - 1) * 0.5f;
+            float a = 0f;
+            float d = Mathf.Sqrt((x - cx) * (x - cx) + (y - cy) * (y - cy));
+            if (d < 10f) a = Mathf.Max(a, 0.75f * (1f - d / 10f * 0.3f));
+            // 升腾气泡
+            int bubbles = 2 + (seed % 3);
+            for (int i = 0; i < bubbles; i++)
+            {
+                float bx = cx + ((seed + i * 7) % 21) - 10f;
+                float by = cy - 8f - ((seed + i * 13) % 16);
+                float bd = Mathf.Sqrt((x - bx) * (x - bx) + (y - by) * (y - by));
+                if (bd < 3.5f) a = Mathf.Max(a, 0.6f * (1f - bd / 3.5f));
+            }
+            return Mathf.Clamp01(a);
+        }
+
+        /// <summary>雾团：多斑雾云，seed 控制斑点数。</summary>
+        private static float GlyphVaporAt(int x, int y, int w, int h, int seed)
+        {
+            float cx = (w - 1) * 0.5f, cy = (h - 1) * 0.5f;
+            float a = 0f;
+            int blobs = 3 + (seed % 3);
+            for (int i = 0; i < blobs; i++)
+            {
+                float bx = cx + ((seed + i * 11) % 25) - 12f;
+                float by = cy + ((seed + i * 17) % 19) - 9f;
+                float r = 7f + ((seed + i * 3) % 5);
+                float d = Mathf.Sqrt((x - bx) * (x - bx) + (y - by) * (y - by));
+                if (d < r) a = Mathf.Max(a, 0.4f * (1f - d / r));
+            }
+            return Mathf.Clamp01(a);
+        }
+
+        /// <summary>链环：双环相扣，seed 控制环径。</summary>
+        private static float GlyphChainAt(int x, int y, int w, int h, int seed)
+        {
+            float cx = (w - 1) * 0.5f, cy = (h - 1) * 0.5f;
+            float a = 0f;
+            float r = 10f + (seed % 3) * 2f;
+            float d1 = Mathf.Sqrt((x - cx + r * 0.5f) * (x - cx + r * 0.5f) + (y - cy) * (y - cy));
+            float d2 = Mathf.Sqrt((x - cx - r * 0.5f) * (x - cx - r * 0.5f) + (y - cy) * (y - cy));
+            float w1 = Mathf.Abs(d1 - r);
+            float w2 = Mathf.Abs(d2 - r);
+            if (w1 < 2.6f) a = Mathf.Max(a, (1f - w1 / 2.6f) * 0.9f);
+            if (w2 < 2.6f) a = Mathf.Max(a, (1f - w2 / 2.6f) * 0.9f);
+            return Mathf.Clamp01(a);
+        }
+
+        /// <summary>光翼：展翅双翼，seed 控制翼展。</summary>
+        private static float GlyphWingAt(int x, int y, int w, int h, int seed)
+        {
+            float cx = (w - 1) * 0.5f, cy = (h - 1) * 0.5f;
+            float a = 0f;
+            float span = 20f + (seed % 3) * 4f;
+            // 左翼（肩→翼尖，羽状三层）
+            for (int i = 0; i < 3; i++)
+            {
+                float y0 = cy - 6f + i * 6f;
+                float x1 = cx - span, y1 = cy - 12f + i * 8f;
+                a = Mathf.Max(a, SegGlow(x, y, cx - 2f, y0, x1, y1, 3f - i * 0.5f));
+            }
+            for (int i = 0; i < 3; i++)
+            {
+                float y0 = cy - 6f + i * 6f;
+                float x1 = cx + span, y1 = cy - 12f + i * 8f;
+                a = Mathf.Max(a, SegGlow(x, y, cx + 2f, y0, x1, y1, 3f - i * 0.5f));
+            }
+            return Mathf.Clamp01(a);
+        }
+
+        /// <summary>星芒：粗星（五角星形），seed 控制星角。</summary>
+        private static float GlyphStarAt(int x, int y, int w, int h, int seed)
+        {
+            float cx = (w - 1) * 0.5f, cy = (h - 1) * 0.5f;
+            float a = 0f;
+            float r = 22f;
+            int pts = 5 + (seed % 2) * 2;    // 5 或 7 角星
+            float d = Mathf.Sqrt((x - cx) * (x - cx) + (y - cy) * (y - cy));
+            if (d > r) return 0f;
+            float theta = Mathf.Atan2(y - cy, x - cx) + Mathf.PI / 2f;
+            float step = Mathf.PI * 2f / pts;
+            float k = theta / step - Mathf.Floor(theta / step);
+            float inSeg = Mathf.Min(k, 1f - k) * step;   // 0~step/2
+            float halfStep = step * 0.5f;
+            float inR = r * (0.62f + (seed % 4) * 0.03f);
+            float edge = inR + (r - inR) * (inSeg / halfStep);
+            if (d < edge) a = Mathf.Max(a, 0.9f);
+            return Mathf.Clamp01(a);
+        }
+
+        /// <summary>符环：外环+符文短线，seed 控制符数。</summary>
+        private static float GlyphSigilAt(int x, int y, int w, int h, int seed)
+        {
+            float cx = (w - 1) * 0.5f, cy = (h - 1) * 0.5f;
+            float a = 0f;
+            float r = 22f;
+            float d = Mathf.Sqrt((x - cx) * (x - cx) + (y - cy) * (y - cy));
+            float edge = Mathf.Abs(d - r);
+            if (edge < 3f) a = Mathf.Max(a, (1f - edge / 3f) * 0.9f);
+            // 内符短线
+            int glyphs = 4 + (seed % 4);
+            for (int i = 0; i < glyphs; i++)
+            {
+                float ang = i * Mathf.PI * 2f / glyphs + (seed % 7) * 0.09f;
+                float bx = cx + Mathf.Cos(ang) * (r - 7f), by = cy + Mathf.Sin(ang) * (r - 7f);
+                float ex = cx + Mathf.Cos(ang) * (r - 2f), ey = cy + Mathf.Sin(ang) * (r - 2f);
+                a = Mathf.Max(a, SegGlow(x, y, bx, by, ex, ey, 2.2f));
+            }
+            return Mathf.Clamp01(a);
+        }
+
+        /// <summary>冲击双环：两同心环，seed 控制环距。</summary>
+        private static float GlyphRippleAt(int x, int y, int w, int h, int seed)
+        {
+            float cx = (w - 1) * 0.5f, cy = (h - 1) * 0.5f;
+            float a = 0f;
+            float r1 = 15f, r2 = 15f + 8f + (seed % 3);
+            float d = Mathf.Sqrt((x - cx) * (x - cx) + (y - cy) * (y - cy));
+            float e1 = Mathf.Abs(d - r1), e2 = Mathf.Abs(d - r2);
+            if (e1 < 2.6f) a = Mathf.Max(a, (1f - e1 / 2.6f) * 0.9f);
+            if (e2 < 2.6f) a = Mathf.Max(a, (1f - e2 / 2.6f) * 0.7f);
+            return Mathf.Clamp01(a);
+        }
+
+        /// <summary>盾形：圆盾+中脊，seed 控制盾宽。</summary>
+        private static float GlyphShieldAt(int x, int y, int w, int h, int seed)
+        {
+            float cx = (w - 1) * 0.5f, cy = (h - 1) * 0.5f;
+            float a = 0f;
+            // 盾外缘（下半圆+上收）
+            float nx = (x - cx) / 22f, ny = (y - cy) / 24f;
+            float d = nx * nx + ny * ny;
+            if (d < 1.05f)
+            {
+                float band = Mathf.Abs(d - 0.8f);
+                if (band < 0.2f) a = Mathf.Max(a, (0.2f - band) / 0.2f);
+                else if (d < 0.8f) a = Mathf.Max(a, 0.25f);
+            }
+            // 中脊
+            float seg = SegDist(x, y, cx, cy - 20f, cx, cy + 20f);
+            if (seg < 3f) a = Mathf.Max(a, (1f - seg / 3f) * 0.8f);
+            return Mathf.Clamp01(a);
+        }
+
+        /// <summary>藤蔓：卷曲藤枝，seed 控制卷数。</summary>
+        private static float GlyphVineAt(int x, int y, int w, int h, int seed)
+        {
+            float cx = (w - 1) * 0.5f, cy = (h - 1) * 0.5f;
+            float a = 0f;
+            float px = cx - 12f, py = cy + 18f;
+            for (int i = 1; i <= 10; i++)
+            {
+                float t = i / 10f;
+                float nx = cx - 12f + t * 24f + Mathf.Sin(t * 3f + seed) * 6f;
+                float ny = cy + 18f - t * 30f + Mathf.Cos(t * 2f + seed) * 4f;
+                a = Mathf.Max(a, SegGlow(x, y, px, py, nx, ny, 2.6f));
+                px = nx; py = ny;
+            }
+            return Mathf.Clamp01(a);
+        }
+
+        /// <summary>结晶：多面晶体（菱形柱+边），seed 控制切面。</summary>
+        private static float GlyphPrismAt(int x, int y, int w, int h, int seed)
+        {
+            float cx = (w - 1) * 0.5f, cy = (h - 1) * 0.5f;
+            float a = 0f;
+            float skew = ((seed % 5) - 2) * 0.1f;
+            float tx = cx + skew * 8f;
+            a = Mathf.Max(a, SegGlow(x, y, tx, cy - 22f, cx - 14f, cy + 16f, 3.2f));
+            a = Mathf.Max(a, SegGlow(x, y, tx, cy - 22f, cx + 16f, cy + 12f, 3.2f));
+            a = Mathf.Max(a, SegGlow(x, y, cx - 14f, cy + 16f, cx + 6f, cy + 22f, 3f));
+            a = Mathf.Max(a, SegGlow(x, y, cx + 16f, cy + 12f, cx - 6f, cy + 22f, 3f));
+            // 内切面
+            a = Mathf.Max(a, SegGlow(x, y, tx, cy - 22f, cx, cy, 1.8f));
+            return Mathf.Clamp01(a);
+        }
+
+        // ---- 几何助手 ----
+        /// <summary>线段距离（点-线段最近距离）。</summary>
+        private static float SegDist(float x, float y, float x1, float y1, float x2, float y2)
+        {
+            float dx = x2 - x1, dy = y2 - y1;
+            float len2 = dx * dx + dy * dy;
+            float t = len2 < 0.0001f ? 0f : Mathf.Clamp01(((x - x1) * dx + (y - y1) * dy) / len2);
+            float px = x1 + dx * t, py = y1 + dy * t;
+            return Mathf.Sqrt((x - px) * (x - px) + (y - py) * (y - py));
+        }
+
+        /// <summary>线段辉光（带核心亮度）。</summary>
+        private static float SegGlow(float x, float y, float x1, float y1, float x2, float y2, float thick)
+        {
+            float d = SegDist(x, y, x1, y1, x2, y2);
+            if (d > thick) return 0f;
+            return Mathf.Clamp01(1f - d / thick);
+        }
+
+        /// <summary>三角形内亮度（点 P 到三角形三边最近距离衰减）。</summary>
+        private static float TriGlow(float x, float y, float ax, float ay, float bx, float by, float cx2, float cy2)
+        {
+            float d = Mathf.Min(
+                SegDist(x, y, ax, ay, bx, by),
+                Mathf.Min(SegDist(x, y, bx, by, cx2, cy2), SegDist(x, y, cx2, cy2, ax, ay)));
+            float t = 4f;
+            if (d > t) return 0f;
+            return Mathf.Clamp01(1f - d / t);
+        }
+
+        // ================================================================
+        // v0.21.6 异能专属图元组合器：主形态（MainTag）× 副形态（SubTag 点缀）
+        // × seed（Id 哈希）× 品质辉光。运行时懒生成 + 调用方缓存（AbilityFx）。
+        // 398 异能每异能独立可辨识；同标签异能靠 seed 形变 + 副形态 + 专属色区分。
+        // ================================================================
+
+        /// <summary>生成异能专属图元精灵（白膜 alpha，颜色由 AbilityFx.DeriveTint 叠加）。</summary>
+        internal static Sprite MakePrototypeGlyph(int idHash, int mainIdx, int subIdx, int tier)
+        {
+            try
+            {
+                EnsureInit();
+                return Make(64, 64, (x, y) =>
+                {
+                    float a = GlyphMain(x, y, 64, 64, mainIdx, idHash);
+                    if (subIdx >= 0)
+                        a = Mathf.Max(a, GlyphSub(x, y, 64, 64, subIdx, idHash) * 0.55f);
+                    // 品质辉光：高品阶整体提亮（同异能高品阶更"亮"）
+                    if (tier >= 7) a = Mathf.Clamp01(a * 1.15f);
+                    return a;
+                });
+            }
+            catch (Exception e)
+            {
+                Code.Core.DSDebug.Verbose("[CombatFxArt] PrototypeGlyph: " + e.Message);
+                return null;
+            }
+        }
+
+        /// <summary>主形态分发（按 PrototypeFx 主标签索引）。</summary>
+        private static float GlyphMain(int x, int y, int w, int h, int idx, int seed)
+        {
+            switch (idx)
+            {
+                case 0:  return GlyphFlameAt(x, y, w, h, seed);       // 火/狂暴/等离子
+                case 1:  return GlyphIceCrystalAt(x, y, w, h, seed);  // 冰/减速
+                case 2:  return GlyphBoltAt(x, y, w, h, seed);        // 雷/连锁/磁力
+                case 3:  return GlyphWindEdgeAt(x, y, w, h, seed);    // 风/多重
+                case 4:  return GlyphWaveAt(x, y, w, h, seed);        // 水
+                case 5:  return GlyphRockAt(x, y, w, h, seed);        // 土/石化
+                case 6:  return GlyphMetalEdgeAt(x, y, w, h, seed);   // 金/破甲
+                case 7:  return GlyphHolyRayAt(x, y, w, h, seed);     // 光/净化/祝福
+                case 8:  return GlyphShadowArcAt(x, y, w, h, seed);   // 暗/诅咒/恐惧/虚弱
+                case 9:  return GlyphBloodDropAt(x, y, w, h, seed);   // 血/吸血/吸能
+                case 10: return GlyphBoneScytheAt(x, y, w, h, seed);  // 死亡/衰老/致死
+                case 11: return GlyphHeartAt(x, y, w, h, seed);       // 治疗/再生
+                case 12: return GlyphEyeAt(x, y, w, h, seed);         // 灵魂/精神
+                case 13: return GlyphClawAt(x, y, w, h, seed);        // 召唤
+                case 14: return GlyphHourglassAt(x, y, w, h, seed);   // 时缓
+                case 15: return GlyphMoonAt(x, y, w, h, seed);        // 睡眠
+                case 16: return GlyphToxicAt(x, y, w, h, seed);       // 毒
+                case 17: return GlyphVaporAt(x, y, w, h, seed);       // 毒雾/衰老
+                case 18: return GlyphChainAt(x, y, w, h, seed);       // 束缚
+                case 19: return GlyphWingAt(x, y, w, h, seed);        // 神圣翼/降临
+                case 20: return GlyphStarAt(x, y, w, h, seed);        // 暴击/强化
+                case 21: return GlyphSigilAt(x, y, w, h, seed);       // 念力/领域/瞬移
+                case 22: return GlyphRippleAt(x, y, w, h, seed);      // 击退/溅射/重力
+                case 23: return GlyphShieldAt(x, y, w, h, seed);      // 护盾/反射/元素抗
+                case 24: return GlyphVineAt(x, y, w, h, seed);        // 自然/藤蔓
+                case 25: return GlyphPrismAt(x, y, w, h, seed);       // 结晶/土
+                default: return GlyphStarAt(x, y, w, h, seed);
+            }
+        }
+
+        /// <summary>副形态点缀（弱化叠加）。</summary>
+        private static float GlyphSub(int x, int y, int w, int h, int idx, int seed)
+        {
+            // 副形态只取主形态库的一个子集（重复部分弱化即可，避免喧宾夺主）
+            return GlyphMain(x, y, w, h, idx, seed + 31);
         }
     }
 }
