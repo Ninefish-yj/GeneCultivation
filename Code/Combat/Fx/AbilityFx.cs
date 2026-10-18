@@ -446,6 +446,21 @@ namespace Code.Combat.Fx
                     ring.Color(new Color(tint.r, tint.g, tint.b, 0.85f), new Color(tint.r, tint.g, tint.b, 0f))
                         .Sized(0.59f * scale, 0.23f * scale);
                 }
+                // v0.21.7 高品阶大招电影化（登神 11+ / 真神 13+）：短击停 + 慢动作 + 全屏爆炸波
+                // 纯表现层（HitStop/SlowMo/Shock 扩散环），不碰原版 AI；对应"神级对轰撕裂大地"世界观
+                int hitTier = Code.Data.CultivationData.GetRealmTier(self);
+                if (hitTier >= 13)
+                {
+                    CombatFxHitStop.Request(pos, 0.08f);                      // 真神命中：更长击停
+                    CombatFxCinema.SlowMo(0.4f, 0.22f);                       // 慢动作 0.4×
+                    SpawnShockWave(pos, scale * 6f, tint);                    // 全屏爆炸波（掀地级）
+                }
+                else if (hitTier >= 11)
+                {
+                    CombatFxHitStop.Request(pos, 0.05f);
+                    CombatFxCinema.SlowMo(0.55f, 0.14f);
+                    SpawnShockWave(pos, scale * 3.6f, tint);
+                }
                 // v0.21.1 地图融合：攻击命中后按异能标签铺贴地持续域 + 分级地形响应
                 // （不再"所有特效都只是砸过去"；火→地面起火、冰→地面结霜、雷→劈焦大地、
                 //   登神+真实炸坑/岩浆、超神命中"陆地打没"，复用 DSTerrainDestruction 分级破坏）
@@ -619,6 +634,8 @@ namespace Code.Combat.Fx
                 if (core != null)
                 {
                     core.Sized(0.12f * scale, 0.1f * scale);
+                    // v0.21.7 叠加密度：火花点缀（4 片热感粒子四散，与碎片错开方向/时长）
+                    SpawnHitSparks(center, scale, tint, seed);
                     core.Spin = ((seed % 2 == 0) ? 1f : -1f) * (1.4f + (seed % 4) * 0.25f);
                     core.Color(new Color(tint.r, tint.g, tint.b, 1f), new Color(tint.r, tint.g, tint.b, 0.5f));
                 }
@@ -637,6 +654,41 @@ namespace Code.Combat.Fx
                 }
             }
             catch (System.Exception dsEx) { Code.Core.DSDebug.Verbose("[AbilityFx] glyph burst: " + dsEx.Message); }
+        }
+
+        /// <summary>全屏爆炸波：大扩散冲击环（登神+大招电影化）。
+        /// Shocks[0] 帧宽 64，世界宽 = px×64×size；px 取 1/64 → 宽 = size 世界单位。
+        /// 真神 6×scale≈2.6 世界单位、登神 3.6×scale≈1.6，明显大于命中环(0.35)的"掀地"级演出。</summary>
+        private static void SpawnShockWave(Vector2 pos, float worldWidth, Color tint)
+        {
+            if (CombatFxArt.Shocks == null || CombatFxArt.Shocks.Length == 0) return;
+            var w = CombatFxCore.Spawn(new[] { CombatFxArt.Shocks[0] }, pos, 1f / 64f, 0.5f, FxLayer.Top, 40);
+            if (w != null)
+            {
+                w.Sized(0.25f * worldWidth, worldWidth);
+                w.Spin = 0f;
+                w.Color(new Color(tint.r, tint.g, tint.b, 0.9f), new Color(tint.r, tint.g, tint.b, 0f));
+            }
+        }
+
+        /// <summary>火花点缀：4 片热感粒子，径向四散 + 收缩淡出（与碎片错开时长，叠加密度）。</summary>
+        private static void SpawnHitSparks(Vector2 pos, float scale, Color tint, int seed)
+        {
+            if (CombatFxArt.Sparks == null || CombatFxArt.Sparks.Length == 0) return;
+            for (int i = 0; i < 4; i++)
+            {
+                float ang = (i * 90f + (seed % 40) * 2.5f) * Mathf.Deg2Rad;
+                var dir = new Vector2(Mathf.Cos(ang), Mathf.Sin(ang));
+                var sp = CombatFxCore.Spawn(new[] { CombatFxArt.Sparks[seed % CombatFxArt.Sparks.Length] },
+                    pos + dir * 0.05f, 1f / 64f, 0.28f, FxLayer.Top, 34);
+                if (sp != null)
+                {
+                    sp.Sized(0.05f * scale, 0.015f * scale);
+                    sp.Vel = dir * (0.35f + (seed % 3) * 0.12f);
+                    sp.Spin = ((seed + i) % 2 == 0 ? 1f : -1f) * 2.2f;
+                    sp.Color(new Color(tint.r, tint.g, tint.b, 0.9f), new Color(tint.r, tint.g, tint.b, 0f));
+                }
+            }
         }
 
         /// <summary>投射类特效（球/弹/泡/星/飞火）：可做飞行弹道。

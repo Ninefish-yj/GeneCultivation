@@ -53,10 +53,16 @@ namespace Code.Combat.Fx
             if (force <= 0) return;
             if (!CombatFxDirector.CanFull(pos)) return;   // 屏幕内才破坏（离屏不挖地）
 
-            // Light 尺度（克制：异能普攻不按重击破坏）+ extra +1 →
-            //   6~8阶烧焦(force1) · 9~10阶炸坑(force2) · 11~12阶岩浆(force3) · 13阶二次降格"陆地打没"(force4)
-            DSTerrainDestruction.Blast(by, pos, 1.2f, DSTerrainDestruction.DestructionScale.Light,
-                keep: by.current_position, fire: IsFire(mainTag), extra: 1);
+            // v0.21.7 大规模地形破坏升级：登神(11+) 普攻即 Heavy（焚山煮海→真实裂地），
+            // 真神(13+) 普攻即 Ultimate（"陆地打没"大范围重绘）。
+            // 凡/玄/灵/圣维持 Light 克制尺度（异能普攻不按重击破坏）+ extra +1：
+            //   6~8阶烧焦(force1) · 9~10阶炸坑(force2) · 11~12阶岩浆(force3) · 13阶二次降格(force4)
+            var dScale = tier >= 13 ? DSTerrainDestruction.DestructionScale.Ultimate
+                      : tier >= 11 ? DSTerrainDestruction.DestructionScale.Heavy
+                      : DSTerrainDestruction.DestructionScale.Light;
+            DSTerrainDestruction.Blast(by, pos,
+                tier >= 13 ? 1.7f : tier >= 11 ? 1.4f : 1.2f,
+                dScale, keep: by.current_position, fire: IsFire(mainTag), extra: 1);
         }
 
         /// <summary>该标签是否冰系（命中水面时触发封冻域）</summary>
