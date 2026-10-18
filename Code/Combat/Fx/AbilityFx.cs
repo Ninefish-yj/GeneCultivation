@@ -463,6 +463,9 @@ namespace Code.Combat.Fx
         }
 
         /// <summary>投射类特效（球/弹/泡/星/飞火）：可做飞行弹道。
+        /// v0.21.2 白名单扩展：soul_ 十元素（水弹/雷球/金刃/风刃/暗波/土块/木刺/圣光弹/空间弹）
+        /// 与 blood_vfx 血弹、vfx_anima 灵魂火同为"飞行意象"素材——之前不在白名单全被误判
+        /// 成"直接贴目标炸"（用户点名"冰锥类投射物没搞成投射"）。现全部转投射飞行。
         /// 排除窄长条素材（ray/lightning 等）——竖长条旋转 90° 横飞会变成"横着的光条"，观感违和。</summary>
         private static bool IsProjectile(string id)
         {
@@ -474,7 +477,8 @@ namespace Code.Combat.Fx
                 return false;
             }
             return id.StartsWith("magic_") || id.StartsWith("spx_") || id.StartsWith("bub_")
-                || id == "vfx_fastfire" || id == "vfx_ditheredfire";
+                || id.StartsWith("soul_") || id.StartsWith("blood_vfx")
+                || id == "vfx_fastfire" || id == "vfx_ditheredfire" || id == "vfx_anima";
         }
 
         /// <summary>地面类特效：贴地扩散（领域/气象/神兽威压/大爆炸/符环）。
@@ -499,9 +503,10 @@ namespace Code.Combat.Fx
             return 0.08f * scale;
         }
 
-        /// <summary>投射物：自 from 飞向 to（FaceVel 朝向 + 自旋），飞行 0.26s 恰好到点。
+        /// <summary>投射物：自 from 飞向 to（FaceVel 朝向 + 自旋），飞行 0.4s 恰好到点。
         /// v0.18.69：px=1/帧宽归一化（世界尺寸=Size 参数，不再随素材帧宽漂移）；起点从单位身体中部飞出。
-        /// v0.18.92：投射体颜色跟随异能专属派生色。</summary>
+        /// v0.18.92：投射体颜色跟随异能专属派生色。
+        /// v0.21.2：飞行 0.26s→0.4s（近战距离也能看清弹道；原太快"瞬移到目标"被当成贴脸炸）。</summary>
         private static void SpawnProjectile(string id, Vector2 from, Vector2 to, float scale, Color? tint = null)
         {
             var frames = Load(id);
@@ -509,7 +514,7 @@ namespace Code.Combat.Fx
             Vector2 dir = to - from;
             float dist = Mathf.Max(0.5f, dir.magnitude);
             dir /= dist;
-            float fly = 0.26f;
+            float fly = 0.4f;
             float frameW = frames[0].rect.width;
             if (frameW <= 0f) frameW = 128f;
             float px = 1f / frameW;

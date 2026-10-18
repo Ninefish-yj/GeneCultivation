@@ -45,6 +45,9 @@ namespace Code.Combat.Fx
             if (!string.IsNullOrEmpty(groundFx))
                 SpawnGround(groundFx, pos, by, tier);
 
+            // v0.21.2 冰系命中水面：封冻域（视觉持久冰霜 + 尝试降温；不破坏水面 tile）
+            if (IsFrost(mainTag) || IsFrost(subTag)) FreezeWater(pos, by);
+
             // L1/L2：地形响应（境界分级；凡/玄/灵以下不动大地）
             int force = DSTerrainDestruction.ForceForTier(tier);
             if (force <= 0) return;
@@ -54,6 +57,42 @@ namespace Code.Combat.Fx
             //   6~8阶烧焦(force1) · 9~10阶炸坑(force2) · 11~12阶岩浆(force3) · 13阶二次降格"陆地打没"(force4)
             DSTerrainDestruction.Blast(by, pos, 1.2f, DSTerrainDestruction.DestructionScale.Light,
                 keep: by.current_position, fire: IsFire(mainTag), extra: 1);
+        }
+
+        /// <summary>该标签是否冰系（命中水面时触发封冻域）</summary>
+        private static bool IsFrost(PrototypeTag tag)
+        {
+            return tag == PrototypeTag.Frost || tag == PrototypeTag.Frostbite || tag == PrototypeTag.Slow;
+        }
+
+        /// <summary>冰系命中水面 → 封冻域：持久冰霜视觉（2.5s 亮蓝，比普通地面域久）+ 尝试降温。
+        /// WorldBox 无安全的水→冰 tile 替换 API（反编译不可全量获取），不硬换 tile 类型——
+        /// 避免 v0.19.14 那类渲染崩溃；视觉"封冻"+不挖水面（DSTerrainDestruction 本就跳过液体）。</summary>
+        private static void FreezeWater(Vector2 pos, Actor by)
+        {
+            if (World.world == null) return;
+            try
+            {
+                var tile = World.world.GetTileSimple((int)pos.x, (int)pos.y);
+                if (tile == null || tile.Type == null || !tile.Type.liquid) return;
+                // 视觉封冻：持久亮蓝冰霜铺水面
+                var frames = AbilityFx.Load("magic_ice_c");
+                if (frames != null && frames.Length > 0)
+                {
+                    float frameW = frames[0].rect.width;
+                    if (frameW <= 0f) frameW = 128f;
+                    var p = CombatFxCore.Spawn(frames, pos + new Vector2(0f, 0.02f), 1f / frameW, 2.5f, FxLayer.Behind, 8);
+                    if (p != null)
+                    {
+                        float s = 1.6f * AbilityFx.UnitScale(by);
+                        p.Sized(s, s * 0.45f);
+                        p.Color(new Color(0.62f, 0.85f, 1f, 0.6f), new Color(0.62f, 0.85f, 1f, 0f));
+                    }
+                }
+                // 尝试降温（原版 heat 若 clamp 负值则无副作用；try/catch 保护）
+                try { World.world.heat.addTile(tile, -20); } catch { }
+            }
+            catch (System.Exception dsEx) { Code.Core.DSDebug.Verbose("[CombatMapFx] FreezeWater: " + dsEx.Message); }
         }
 
         /// <summary>该标签是否"火系"（决定地形破坏出不出岩浆：火系砸穿=岩浆，冰/雷/暗=纯炸坑）</summary>
