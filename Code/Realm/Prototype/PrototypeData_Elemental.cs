@@ -89,8 +89,9 @@ namespace Code.Realm.Prototype
                 PrototypeTag.Frostbite, PrototypeTag.Slow, 4, 1),
             new PrototypeDef("el_ice_02", "暴风雪", "深度冰冻目标，当次攻击+5%寒霜微伤", "元素系", "冰",
                 PrototypeTag.Frostbite, PrototypeTag.Frost, 4, 5),
-            new PrototypeDef("el_ice_03", "冰甲", "护盾减伤，受击反击震慑攻击者", "元素系", "冰",
-                PrototypeTag.Shield, PrototypeTag.Vibration, 4, 9),
+            new PrototypeDef("el_ice_03", "冰甲", "冰霜护甲减伤，受击霜冻反击冻伤攻击者", "元素系", "冰",
+                // v0.21.20 冰甲语义修复：原 Vibration（振动）错配——冰甲反击应是霜冻冻伤，不是地震振动
+                PrototypeTag.Shield, PrototypeTag.Frostbite, 4, 9),
             new PrototypeDef("el_ice_04", "寒霜", "减速目标，附加寒霜微伤", "元素系", "冰",
                 PrototypeTag.Slow, PrototypeTag.Frost, 4, 2),
             new PrototypeDef("el_ice_05", "冰棱", "寒霜微伤，震退目标", "元素系", "冰",
@@ -123,8 +124,10 @@ namespace Code.Realm.Prototype
             new PrototypeDef("el_earth_09", "山岳", "元素抗性，石化定身", "元素系", "土",
                 PrototypeTag.Earth, PrototypeTag.Petrify, 2, 8),
             // ---- 木 ----
-            new PrototypeDef("wood", "御木", "治疗自身，攻击减速缠绕目标", "元素系", "木",
-                PrototypeTag.Heal, PrototypeTag.Slow, 2, 1),
+            // v0.21.19 御木语义修复：原 Heal+Slow（治疗+冰缓）错配——木系基础异能该有木系特征。
+            // 改为 Entangle+Thorns（攻击缠绕定身+荆棘反弹），特效自动变藤蔓+反弹环（木系意象）
+            new PrototypeDef("wood", "御木", "操控树木：攻击缠绕定身敌人，荆棘反弹伤害", "元素系", "木",
+                PrototypeTag.Entangle, PrototypeTag.Thorns, 2, 1),
             new PrototypeDef("el_wood_02", "森罗", "受击回血，攻击附加中毒", "元素系", "木",
                 PrototypeTag.Regeneration, PrototypeTag.Poison, 2, 5),
             new PrototypeDef("el_wood_03", "缠藤", "攻击眩晕定身，减速目标", "元素系", "木",
