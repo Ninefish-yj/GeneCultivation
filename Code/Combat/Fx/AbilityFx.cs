@@ -415,7 +415,7 @@ namespace Code.Combat.Fx
                     SpawnProjectile(mainFx, self.current_position, pos, scale, tint);
                     // v0.21.6 命中爆：每异能独立专属图元（形态×seed×专属色），不再共用素材命中爆
                     Sprite glyph = PrototypeGlyphFor(def);
-                    if (glyph != null) SpawnGlyphBurst(glyph, pos, scale, tint);
+                    if (glyph != null) SpawnGlyphBurst(glyph, pos, scale, tint, StableSeed(def.Id));
                     else SpawnFx(mainFx, pos, FxLayer.Top, 36, true, scale, delay: 0.13f, follow: null, tint: tint);
                 }
                 else if (!string.IsNullOrEmpty(mainFx))
@@ -428,13 +428,13 @@ namespace Code.Combat.Fx
                         shieldFx ? anchor : null, tint: tint);
                     // v0.21.6 每异能独立特效：素材主演出之外叠专属图元爆发（形态可辨每异能）
                     Sprite glyph = PrototypeGlyphFor(def);
-                    if (glyph != null) SpawnGlyphBurst(glyph, pos, scale, tint);
+                    if (glyph != null) SpawnGlyphBurst(glyph, pos, scale, tint, StableSeed(def.Id));
                 }
                 else
                 {
                     // v0.21.6 无池素材兜底：纯专属图元（新/未入池标签不再"无特效"）
                     Sprite glyph = PrototypeGlyphFor(def);
-                    if (glyph != null) SpawnGlyphBurst(glyph, pos, scale, tint);
+                    if (glyph != null) SpawnGlyphBurst(glyph, pos, scale, tint, StableSeed(def.Id));
                 }
                 // 命中冲击环（扩张淡出，贴合目标体型，细环不遮视野）
                 var ring = CombatFxCore.Spawn(CombatFxArt.Rings[0], pos, 0.09f, 0.35f, FxLayer.Top, 30);
@@ -464,11 +464,12 @@ namespace Code.Combat.Fx
                 if (glyph != null)
                 {
                     var g = CombatFxCore.Spawn(new[] { glyph }, pos + new Vector2(0f, 0.17f * scale),
-                        1f / 64f, 0.28f, FxLayer.Over, 22);
+                        1f / 64f, 0.3f, FxLayer.Over, 22);
                     if (g != null)
                     {
-                        g.Sized(0.34f * scale, 0.34f * scale);
-                        g.Color(new Color(tint.r, tint.g, tint.b, 0.45f), new Color(tint.r, tint.g, tint.b, 0f));
+                        g.Sized(0.3f * scale, 0.42f * scale);          // 微扩散环
+                        g.Spin = ((StableSeed(def.Id) % 2 == 0) ? 1f : -1f) * 0.9f;  // 慢转 51°/s
+                        g.Color(new Color(tint.r, tint.g, tint.b, 0.5f), new Color(tint.r, tint.g, tint.b, 0f));
                     }
                 }
             }
@@ -597,15 +598,19 @@ namespace Code.Combat.Fx
             }
         }
 
-        /// <summary>专属图元爆发（目标位置贴体：0.34×scale 与命中冲击环同尺寸层级，专属色淡出）。</summary>
-        private static void SpawnGlyphBurst(Sprite glyph, Vector2 pos, float scale, Color tint)
+        /// <summary>专属图元爆发（动态特效：中心扩散 + 自旋 + 上抛 + 专属色淡出，非静态贴图）。
+        /// v0.21.6.1 修正"像图标不像特效"：原恒定尺寸+零旋转=静态图淡出，现
+        /// 0.22→0.5 扩散炸开、Spin 自旋（seed 定方向）、Vel 上抛，0.32s 内形、位、色、旋全动。</summary>
+        private static void SpawnGlyphBurst(Sprite glyph, Vector2 pos, float scale, Color tint, int seed)
         {
             try
             {
                 var g = CombatFxCore.Spawn(new[] { glyph }, pos + new Vector2(0f, 0.08f * scale),
-                    1f / 64f, 0.32f, FxLayer.Top, 34);
+                    1f / 64f, 0.34f, FxLayer.Top, 34);
                 if (g == null) return;
-                g.Sized(0.34f * scale, 0.34f * scale);
+                g.Sized(0.22f * scale, 0.5f * scale);                    // 中心扩散炸开
+                g.Spin = ((seed % 2 == 0) ? 1f : -1f) * (0.8f + (seed % 5) * 0.15f); // 60~120°/s 自旋
+                g.Vel = new Vector2(((seed / 2) % 5 - 2) * 0.03f, 0.12f); // 轻微上抛+侧偏
                 g.Color(new Color(tint.r, tint.g, tint.b, 0.92f), new Color(tint.r, tint.g, tint.b, 0f));
             }
             catch (System.Exception dsEx) { Code.Core.DSDebug.Verbose("[AbilityFx] glyph burst: " + dsEx.Message); }
