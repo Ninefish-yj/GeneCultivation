@@ -420,13 +420,10 @@ namespace Code.Combat.Fx
                 }
                 else if (!string.IsNullOrEmpty(mainFx))
                 {
-                    // v0.21.25 命中处 = 原版素材主演出（PickTagFx 按标签组合从原版素材池取变体，
-                    // 冰系→magic_ice_a/b/c、火系→vfx_fastfire/magic_fireball…原版帧动画本就动态，
-                    // 非贴图）。用户原话"调用原版就行了"。
-                    bool shieldFx = mainFx.StartsWith("shield_") || mainFx == "art_arcaneshield";
-                    SpawnFx(mainFx, pos, FxLayer.Top, shieldFx ? 25 : 35, true, scale, 0f,
-                        shieldFx ? anchor : null, tint: tint);
-                    // 命中粒子爆（纯粒子层，无整图——白闪/爆星/小星/冲击环/小碎片/速度线）
+                    // v0.21.26 素材层正式退役：mainFx 素材池 id 来自素材包清单（VFXSource 100 条，
+                    // 打包明确排除、GameResources/effects 不存在）→ Load 静默空 → 本层假死不播。
+                    // 战斗之神 Art.cs 铁证（px.ToSprite 全程序化像素生成，零素材图）确认正路。
+                    // 命中特效 = 异能专属程序化爆唯一主体（每异能形态×色×seed 差异化）。
                     Sprite[] glyph = PrototypeFramesFor(def);
                     if (glyph != null) SpawnGlyphBurst(glyph, pos, scale, tint, StableSeed(def.Id));
                 }
@@ -469,10 +466,20 @@ namespace Code.Combat.Fx
             }
             else
             {
-                // ---- 防守：原版素材绑定单位跟随（调用原版；护盾/再生/祝福/净化环绕）----
-                if (!string.IsNullOrEmpty(mainFx))
+                // ---- 防守：异能专属程序化护盾环（v0.21.26 素材跟随退役，原因同命中）----
+                // 每异能用自身形态帧做贴体环绕环 + 专属派生色 + seed 慢转——防守时异能可辨，
+                // 不再是"冰/火系防守都套同一个大素材"。
+                Sprite[] glyph = PrototypeFramesFor(def);
+                if (glyph != null)
                 {
-                    SpawnFx(mainFx, pos, FxLayer.Over, 25, true, scale, 0f, self, tint: tint);
+                    var g = CombatFxCore.Spawn(glyph, pos + new Vector2(0f, 0.17f * scale),
+                        1f / 64f, 0.35f, FxLayer.Over, 22);
+                    if (g != null)
+                    {
+                        g.Sized(0.2f * scale, 0.26f * scale);         // 微扩散环（0.8~1 倍单位宽）
+                        g.Spin = ((StableSeed(def.Id) % 2 == 0) ? 1f : -1f) * 0.9f;  // 慢转 51°/s
+                        g.Color(new Color(tint.r, tint.g, tint.b, 0.5f), new Color(tint.r, tint.g, tint.b, 0f));
+                    }
                 }
             }
 
@@ -602,6 +609,24 @@ namespace Code.Combat.Fx
                 case PrototypeTag.Thorns: return 22;    // 反弹环
                 default: return 20;                     // 星芒兜底
             }
+        }
+
+        /// <summary>收集本模组引用的全部原版素材 id（供 VanillaFxAudit 存在性自检）。</summary>
+        internal static List<string> ReferencedFxIds()
+        {
+            var set = new System.Collections.Generic.HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            foreach (var pool in _tagPool.Values)
+                if (pool != null)
+                    foreach (var id in pool)
+                        if (!string.IsNullOrEmpty(id)) set.Add(id);
+            foreach (var id in _family.Values)
+                if (!string.IsNullOrEmpty(id)) set.Add(id);
+            set.Add("fx_status_burning_t");   // 状态附着（CombatStatusFx）
+            set.Add("fx_status_frozen_t");
+            set.Add("fx_status_poisoned");
+            var list = new List<string>(set);
+            list.Sort(StringComparer.Ordinal);
+            return list;
         }
 
         /// <summary>小类 → 形态库索引（v0.21.24 语义优先）。
@@ -887,6 +912,9 @@ namespace Code.Combat.Fx
                 catch (System.Exception dsEx) { Code.Core.DSDebug.Verbose("[AbilityFx] 原版特效 " + id + ": " + dsEx.Message); }
                 return;
             }
+            // v0.21.26 素材层退役：Load("effects/"+id) 的资源不在模组包内（素材包不随包分发，
+            // 约定全程序化）→ 通常 frames 为空直接 return。此路径仅作为"资源恰好存在"时的兜底，
+            // 不再是特效主力。主力=程序化图元爆/投射物/护盾环 + fx_* 原版状态。
             var frames = Load(id);
             if (frames == null || frames.Length == 0) return;
             Style(id, out float size, out float life);
