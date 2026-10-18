@@ -421,26 +421,26 @@ namespace Code.Combat.Fx
                     if (kind == 1)
                     {
                         SpawnProjectile(def, self.current_position, pos, scale, tint);
-                        SpawnGlyphBurst(glyph, pos, scale, tint, seed);
+                        SpawnGlyphBurst(glyph, pos, scale, tint, seed, kind);
                     }
                     else if (kind == 2)
                     {
                         SpawnField(glyph, pos, scale, tint, seed);
-                        SpawnGlyphBurst(glyph, pos, scale, tint, seed);
+                        SpawnGlyphBurst(glyph, pos, scale, tint, seed, kind);
                     }
                     else if (kind == 3)
                     {
                         SpawnSummon(glyph, pos, scale, tint, seed);
-                        SpawnGlyphBurst(glyph, pos, scale, tint, seed);
+                        SpawnGlyphBurst(glyph, pos, scale, tint, seed, kind);
                     }
                     else if (kind == 4)
                     {
-                        SpawnGlyphBurst(glyph, pos, scale, tint, seed);
+                        SpawnGlyphBurst(glyph, pos, scale, tint, seed, kind);
                         SpawnAttach(glyph, anchor, scale, tint, seed);
                     }
                     else
                     {
-                        SpawnGlyphBurst(glyph, pos, scale, tint, seed);
+                        SpawnGlyphBurst(glyph, pos, scale, tint, seed, kind);
                     }
                 }
 
@@ -827,7 +827,7 @@ namespace Code.Combat.Fx
         /// 重做为：中心核心闪光（0.14s）+ 8~10 片同形态碎片八方飞散（Vel 径向外抛 +
         /// Spin 高速自旋 + 尺寸收缩 + 专属色淡出）——"异能形态炸开成碎屑"的粒子爆，
         /// 命中处不再存在可辨认的整张图。</summary>
-        private static void SpawnGlyphBurst(Sprite[] glyph, Vector2 pos, float scale, Color tint, int seed)
+        private static void SpawnGlyphBurst(Sprite[] glyph, Vector2 pos, float scale, Color tint, int seed, int kind = 0)
         {
             try
             {
@@ -859,9 +859,27 @@ namespace Code.Combat.Fx
                                 new Color(tint.r, tint.g, tint.b, 0.6f),
                                 new Color(tint.r, tint.g, tint.b, 0f));
                 }
-                // ③ 异能核心整图：v0.21.25 移除——用户原话"为什么还要加贴图"。
-                // 整张异能图元贴命中处 0.45s 就是"贴图感"根源；命中观感由原版素材层+
-                // 纯粒子层承担。④ 小星飞散：HitStars 4~6 颗随机方向（短命点缀，同战斗之神 punch stars）
+                // ③ 异能核心 · 程序化帧动画（v0.21.29 恢复，多帧演化非贴图）
+                //    —— glyph 是多帧数组（5 帧：62%生长→100%峰值→122%爆散→抖动消散），
+                //       CombatFxCore.Spawn(frames) 自动 15fps 逐帧播放 = 真·逐帧动画
+                //       （战斗之神 Art.cs px.ToSprite 同款通道，零素材零额度）。
+                //    —— v0.21.25 移除的是"单帧整图贴 0.45s"（贴图感根源）；多帧动画核心才是
+                //       用户要的"每异能专属帧动画"。尺寸 0.5×scale≈0.45 世界宽（贴合目标体型，
+                //       同原版素材级，不是大冰块）。Kind 差异化节奏：
+                //       0 爆发=标准快散 0.4s；2 领域=慢扩 0.55s 且更淡；4 附着=渗入贴体 0.5s 更小。
+                float coreLife = kind == 2 ? 0.55f : (kind == 4 ? 0.5f : 0.4f);
+                float coreW = (kind == 4 ? 0.42f : 0.5f) * scale * sizeVar;
+                float coreH = coreW;
+                var core = CombatFxCore.Spawn(glyph, center, 1f / 64f, coreLife, FxLayer.Top, 39);
+                if (core != null)
+                {
+                    core.Sized(coreW, coreH);
+                    core.Spin = ((seed % 2 == 0) ? 1f : -1f) * (0.6f + (seed % 3) * 0.25f);  // 缓旋（动画内旋）
+                    float coreAlpha = kind == 2 ? 0.5f : 0.9f;
+                    core.Color(new Color(tint.r, tint.g, tint.b, coreAlpha),
+                               new Color(tint.r, tint.g, tint.b, 0f));
+                }
+                // ④ 小星飞散：HitStars 4~6 颗随机方向（短命点缀，同战斗之神 punch stars）
                 int stars = 4 + (seed % 3);
                 for (int i = 0; i < stars; i++)
                 {
