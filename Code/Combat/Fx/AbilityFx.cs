@@ -84,7 +84,7 @@ namespace Code.Combat.Fx
             _tagPool[PrototypeTag.Vibration]      = new[] { "vfx_smallhit", "vfx_impact" };
             _tagPool[PrototypeTag.Sound]          = new[] { "vfx_powerchords", "vfx_impact", "magic_spark2" };   // v0.19.8 声波=音爆波纹，不是爆炸
             _tagPool[PrototypeTag.Thorns]         = new[] { "magic_spark", "spx_splatter", "vfx_impact" };
-            _tagPool[PrototypeTag.ElementResist]  = new[] { "art_arcaneshield", "shield_bw_loop", "shield_blue_loop" };   // 元素抗性=同款淡罩
+            _tagPool[PrototypeTag.ElementResist]  = new[] { "art_arcaneshield", "shield_bw_loop", "shield_blue_loop" };   // 元素抗性=同款淡罩/网格盾（0.28 罩全身）
             _tagPool[PrototypeTag.Cleanse]        = new[] { "magic_spark4", "vfx_puffstars" };
 
             // ---- 家族氛围（大类/小类 → 特效）----
@@ -149,7 +149,7 @@ namespace Code.Combat.Fx
                         _cache[effectId] = new[] { art };
                         return _cache[effectId];
                     }
-                    // v0.19.12 程序化意象图元（art_glyph_*：标签专属，参考 unit_gifs 自生成路线）
+                    // 素材缺失兜底（v0.19.13 起主池全素材，仅异常路径触发）
                     var glyph = CombatFxGlyphs.Get(effectId);
                     if (glyph != null)
                     {
@@ -207,7 +207,7 @@ namespace Code.Combat.Fx
                 // 奥术光膜护盾（罩全身≈1.1 倍单位宽，持续环绕）；符环=领域环（v0.19.5 回调 0.62）
                 if (id == "art_arcaneshield") { size = 0.28f; life = 2.0f; return; }
                 if (id == "art_rune") { size = 0.62f; life = 0.8f; return; }
-                // v0.19.12 程序化意象图元尺寸分级（对齐原版特效：64px 帧 / 命中贴体）
+                // 程序化图元兜底尺寸（主池已全素材，仅异常路径）
                 if (id.StartsWith("art_glyph_"))
                 {
                     if (id == "art_glyph_shield") { size = 0.28f; life = 2.0f; return; }        // 持续护罩

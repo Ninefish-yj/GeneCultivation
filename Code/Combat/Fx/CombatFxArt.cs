@@ -51,7 +51,7 @@ namespace Code.Combat.Fx
         internal static Sprite WoodVine;
 
         // ---- v0.19.5 奥术光膜护盾 ----
-        /// <summary>奥术光膜（西幻奥术护盾观感：淡光膜罩全身，替代网格贴图盾）。</summary>
+        /// <summary>奥术光膜（西幻奥术护盾观感：淡光膜罩全身，护盾池变体之一）。</summary>
         internal static Sprite ArcaneShield;
 
         // ---- v0.19.8 元素细分图元 ----
@@ -159,7 +159,7 @@ namespace Code.Combat.Fx
                 SoulFlame = Make(31, 41, (x, y) => SoulFlameAt(x, y, 31, 41));
                 WindArc = Make(33, 17, (x, y) => WindArcAt(x, y, 33, 17));
                 WoodVine = Make(21, 35, (x, y) => WoodVineAt(x, y, 21, 35));
-                // v0.19.5 奥术光膜护盾（西幻奥术护盾观感：淡光膜罩全身，替代网格贴图盾）
+                // 奥术光膜护盾（淡光膜罩全身，护盾池变体之一）
                 ArcaneShield = Make(49, 49, (x, y) => ArcaneShieldAt(x, y, 49, 49));
                 // v0.19.8 元素细分图元（水/风/雷/土/金/光/暗 专属意象）
                 WaterWave    = Make(33, 33, (x, y) => WaterWaveAt(x, y, 33, 33));
