@@ -44,6 +44,7 @@ namespace Code.Combat.Fx
                     : Mathf.Min(Time.deltaTime, 0.05f) * CombatFxCinema.Rate;
                 CombatFxCore.Update(dt, CombatFxCinema.Dt);
                 CombatFxDirector.Tick();
+                Code.Combat.Moves.CombatMovePose.Tick(dt);      // v0.21.5 招式动作姿态衰减
                 Code.Realm.Prototype.SummonEngine.Tick(dt);   // v0.18.99 召唤物生命周期（与演出同节奏）
                 Code.Combat.Moves.CombatMoveDirector.Tick(dt);  // v0.21.0 招式冷却
                 Code.Combat.AI.CombatBrain.Tick(dt);            // v0.21.0 战斗AI决策（节流）
@@ -53,6 +54,7 @@ namespace Code.Combat.Fx
                     CombatFxDirector.ClearAll();
                     Code.Realm.Prototype.SummonEngine.ClearAll();
                     Code.Combat.Moves.CombatMoveDirector.ClearAll();
+                    Code.Combat.Moves.CombatMovePose.ClearAll();   // v0.21.5
                 }
             }
             catch (Exception e)

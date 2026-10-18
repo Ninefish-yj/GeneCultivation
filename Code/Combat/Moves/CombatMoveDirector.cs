@@ -116,30 +116,43 @@ namespace Code.Combat.Moves
                 .Sized(chargeSize, chargeSize * 0.38f);
         }
 
-        /// <summary>主击：按动作类型分派到现有动作 + 地形破坏。</summary>
+        /// <summary>主击：动作姿态 + 按动作类型分派到现有动作 + 地形破坏。</summary>
         private static void Strike(CombatMove move, Actor by, Vector2 pos, Vector2 targetPos, int tier)
         {
             bool visible = CanFull(targetPos);
+            // v0.21.5 单位本体动作姿态（纯表现不碰 AI）：先让单位"做出动作"再叠特效
+            Vector2 dir = targetPos - pos;
+            if (dir.sqrMagnitude < 0.0001f) dir = new Vector2(1f, 0f);
+            dir.Normalize();
             switch (move.Kind)
             {
                 case MoveKind.Lunge:
+                    float d1 = Mathf.Min(0.55f, Vector2.Distance(pos, targetPos) * 0.35f);
+                    CombatMovePose.Dash(by, dir, d1);
                     if (visible) CombatFxDirector.DashStrike(by, targetPos);
                     break;
                 case MoveKind.Slash:
+                    CombatMovePose.Swing(by, dir);
                     if (visible) CombatFxDirector.SlashArc(by, targetPos);
                     break;
                 case MoveKind.Strike:
+                    float d2 = Mathf.Min(0.4f, Vector2.Distance(pos, targetPos) * 0.28f);
+                    CombatMovePose.Slam(by, dir, d2);
                     if (visible) CombatFxDirector.GroundSlam(by, targetPos);
                     break;
                 case MoveKind.Chain:
                     if (targetPos.y == pos.y && targetPos.x == pos.x) break;
+                    CombatMovePose.Nudge(by, dir);
                     if (visible) CombatFxDirector.ChainArc(by);
                     break;
                 case MoveKind.Domain:
+                    CombatMovePose.Lift(by, 0.3f, 0.5f);            // 腾空展开领域
                     float r = 1.2f + Mathf.Min(4f, tier * 0.25f);
                     if (visible) CombatFxDirector.DomainCircle(targetPos, r, TierColor(tier));
                     break;
                 case MoveKind.Blast:
+                    CombatMovePose.Lift(by, 0.16f, 0.22f);          // 起跳引爆
+                    CombatMovePose.Recoil(by, dir, 0.14f);          // 反向后坐
                     if (visible)
                     {
                         CombatFxDirector.Shockwave(targetPos, 3f + tier * 0.8f);
@@ -147,15 +160,18 @@ namespace Code.Combat.Moves
                     }
                     break;
                 case MoveKind.Beam:
+                    CombatMovePose.Recoil(by, dir, 0.2f);           // 光束后坐
                     BeamVisual(by, pos, targetPos, tier);
                     break;
                 case MoveKind.Summon:
+                    CombatMovePose.Lift(by, 0.2f, 0.3f);            // 召唤腾身
                     // 召唤：目标格唤出助战灵兽（复用召唤引擎）
                     TrySummonFor(by, targetPos, tier);
                     if (visible) CombatFxDirector.DomainCircle(targetPos, 1.6f, TierColor(tier));
                     break;
                 case MoveKind.Heal:
                 case MoveKind.Buff:
+                    CombatMovePose.Lift(by, 0.1f, 0.2f);
                     if (visible) CombatFxDirector.SpellBurst(by, pos, tier);
                     break;
             }

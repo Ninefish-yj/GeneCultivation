@@ -632,7 +632,9 @@ namespace Code.Combat.Fx
             float W = (w - 1), H = (h - 1);
             float a = 0f;
 
-            // 背后放射神光：中心 (cx, cy+0.16H) 向外 10 条细射线（神性光晕，弱）
+            // v0.21.5 弱化"人形贴图"感：头/袍/翼主体降为 50% 半透明光体，
+            // 放射神光与光环提亮——整体观感从"人形剪影"转向"神性光晕"（登神时的光之化身，而非单位贴图）。
+            // 背后放射神光：中心 (cx, cy+0.16H) 向外 10 条细射线（神性光晕，提亮）
             float rx = cx, ry = cy + 0.16f * H;
             float dRay = Mathf.Sqrt((x - rx) * (x - rx) + (y - ry) * (y - ry));
             float rayR = 0.44f * H;
@@ -643,7 +645,7 @@ namespace Code.Combat.Fx
                 float k = ang / step - Mathf.Floor(ang / step);
                 float spread = Mathf.Min(k, 1f - k) * step;
                 if (spread < 0.09f)
-                    a = Mathf.Max(a, 0.30f * (1f - dRay / rayR));
+                    a = Mathf.Max(a, 0.48f * (1f - dRay / rayR));
             }
 
             // 头顶光环（神性光轮）：圆心 (cx, cy-0.36H)，环带 0.82r~r，贴头上缘不压头
@@ -653,16 +655,16 @@ namespace Code.Combat.Fx
             if (dHalo > haloR * 0.82f && dHalo < haloR)
             {
                 float edge = Mathf.Min(dHalo - haloR * 0.82f, haloR - dHalo);
-                a = Mathf.Max(a, Mathf.Clamp01(edge / 1.5f) * 0.9f);
+                a = Mathf.Max(a, Mathf.Clamp01(edge / 1.5f) * 0.8f);
             }
 
-            // 头：圆 (cx, cy-0.17H) 半径 0.115H
+            // 头：圆 (cx, cy-0.17H) 半径 0.115H（半透明光感，非实心人形）
             float headY = cy - 0.17f * H;
             float headR = 0.115f * H;
             float dHead = Mathf.Sqrt((x - cx) * (x - cx) + (y - headY) * (y - headY));
-            if (dHead < headR) a = Mathf.Max(a, 0.58f * (1f - dHead / headR * 0.35f));
+            if (dHead < headR) a = Mathf.Max(a, 0.30f * (1f - dHead / headR * 0.35f));
 
-            // 长袍剪影：梯形（肩 y=+0.07H 半宽 0.18W → 下摆 y=+0.34H 半宽 0.26W），喇叭形
+            // 长袍剪影：梯形（肩 y=+0.07H 半宽 0.18W → 下摆 y=+0.34H 半宽 0.26W），喇叭形（半透明光衣）
             float ty = (y - cy) / H;
             if (ty > 0.07f && ty < 0.34f)
             {
@@ -671,18 +673,18 @@ namespace Code.Combat.Fx
                 if (Mathf.Abs(x - cx) < halfW)
                 {
                     float edge = halfW - Mathf.Abs(x - cx);
-                    a = Mathf.Max(a, Mathf.Clamp01(edge / 2f) * 0.52f);
+                    a = Mathf.Max(a, Mathf.Clamp01(edge / 2f) * 0.26f);
                 }
             }
 
-            // 展开光翼（双臂）：两条斜光带 (cx±0.20W, cy+0.10H)→(cx±0.42W, cy+0.30H)，线宽 0.055W
+            // 展开光翼（双臂）：两条斜光带 (cx±0.20W, cy+0.10H)→(cx±0.42W, cy+0.30H)，线宽 0.055W（降透明度）
             float wx1 = cx - 0.20f * W, wy1 = cy + 0.10f * H;
             float wx2 = cx - 0.42f * W, wy2 = cy + 0.30f * H;
             float dWing1 = SegDist(x, y, wx1, wy1, wx2, wy2);
             float dWing2 = SegDist(x, y, cx + 0.20f * W, cy + 0.10f * H, cx + 0.42f * W, cy + 0.30f * H);
             float wingT = 0.055f * W;
-            if (dWing1 < wingT) a = Mathf.Max(a, (1f - dWing1 / wingT) * 0.42f);
-            if (dWing2 < wingT) a = Mathf.Max(a, (1f - dWing2 / wingT) * 0.42f);
+            if (dWing1 < wingT) a = Mathf.Max(a, (1f - dWing1 / wingT) * 0.22f);
+            if (dWing2 < wingT) a = Mathf.Max(a, (1f - dWing2 / wingT) * 0.22f);
 
             return Mathf.Clamp01(a);
         }

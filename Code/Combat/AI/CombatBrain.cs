@@ -25,8 +25,10 @@ namespace Code.Combat.AI
         /// <summary>最近决策时间。</summary>
         private static float _lastDecision;
 
-        /// <summary>参与战斗决策的最低境界（灵/使徒 6 阶以上才用得上大招观感）。</summary>
-        private const int MinFightTier = 6;
+        /// <summary>参与战斗决策的最低境界（v0.21.5 放宽：凡/玄 2 阶以上异能单位也会用异能招式）。
+        /// 世界观：凡人觉醒异能后战斗即会显化异能，不必等到 6 阶灵级——轻重随境界分级，
+        /// 低阶只有轻招（Nudge/Slash/Chain），高阶才上重招与大招。</summary>
+        private const int MinFightTier = 2;
 
         /// <summary>每帧驱动（FramePatch Postfix 调用；dt=0 时跳过=击停/冻结中不决策）。</summary>
         public static void Tick(float dt)
@@ -76,6 +78,10 @@ namespace Code.Combat.AI
             CombatMove move = def != null
                 ? CombatMoveRegistry.PickForAbility(def)
                 : CombatMoveRegistry.DefaultMove(CultivationData.GetRealmTier(self));
+            // v0.21.5：异能品质 F（def.Tier=1）会被招式 MinTier 全过滤 → 选不到就兜底默认招，
+            // 保证凡级异能单位也能显化招式（不再"看不见非原版动作"）。
+            if (move == null)
+                move = CombatMoveRegistry.DefaultMove(CultivationData.GetRealmTier(self));
             if (move == null) return;
 
             // 威胁比/残血 → 轻重提升（残血拼大）
