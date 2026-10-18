@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using Code.Core;
 using Code.Data;
 using Code.Realm;
+using Code.Combat.Moves;
 
 namespace Code.Combat
 {
@@ -45,6 +46,21 @@ namespace Code.Combat
                     RealmAbilities.AddRage(from, 5f);
                 if (__instance != null && CultivationData.IsAscended(__instance))
                     RealmAbilities.AddRage(__instance, 3f);
+
+                // v0.21.11 受击反应（动画语言）：被异能/登神体系攻击命中的单位做身体演出
+                //   （微颤/踉跄/击飞按伤害占比与境界差定档）。仅异能战斗触发——普通单位
+                //   之间的原版伤害不做演出，防止"路人缘"问题（不干扰原版观感）。
+                if (from != null && __instance != null &&
+                    (CultivationData.IsAscended(from) || Code.Realm.Prototype.PrototypeRegistry.HasPrototype(from)) &&
+                    (CultivationData.IsAscended(__instance) || Code.Realm.Prototype.PrototypeRegistry.HasPrototype(__instance)))
+                {
+                    try
+                    {
+                        CombatImpactPose.OnHit(__instance, from, damage,
+                            __instance.getMaxHealth());
+                    }
+                    catch (System.Exception dsEx2) { Code.Core.DSDebug.Verbose("[Impact] " + dsEx2.Message); }
+                }
 
                 if (from != null && CultivationData.IsAscended(from))
                     TryAutoCastAbilityInCombat(from);

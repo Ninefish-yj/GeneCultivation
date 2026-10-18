@@ -146,6 +146,21 @@ namespace Code.Combat.Moves
             });
         }
 
+        /// <summary>该单位是否正在攻击姿态中（受击反应互斥用）。</summary>
+        public static bool IsActive(Actor a)
+        {
+            return a != null && _poses.ContainsKey(a);
+        }
+
+        /// <summary>强制释放该单位的攻击姿态（受击优先：被打飞时不再维持攻击动作）。</summary>
+        public static void Release(Actor a)
+        {
+            if (a == null) return;
+            if (_poses.TryGetValue(a, out var old))
+                a.move_jump_offset = new Vector2(old.OriginX, old.OriginY);
+            _poses.Remove(a);
+        }
+
         // ------------------------------------------------------ 内部 --
 
         private static void Apply(Actor a, PoseState s)
