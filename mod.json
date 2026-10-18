@@ -3,7 +3,7 @@
   "author": "阿鱼要吃书",
   "version": "0.21.0",
   "GUID": "GeneCultivation",
-  "description": "大场面战斗补全：招式编排体系（16 个世界观原创招式+缓动动画语言，蓄势→主击→收尾三拍节奏）、地形破坏分级（境界×招式轻重决定破坏力，圆形岩浆坑/直线裂缝/相机震动/脚下保护）、战斗 AI（异能单位自动按标签选招、残血拼大招）；异能库扩至 398 条、14 大类、50 标签真实机制；全部机制与命名原创，仅对齐同类模组体验",
+  "description": "修仙+异能：凡人觉醒398种异能（火冰雷土风、光暗、血肉、机械、命运时空），从F级一路修炼到超神；登神得神名，圣所可跨存档降临；16式原创招式，神级对轰撕裂大地、熔出岩浆",
   "homepage": "https://github.com/Ninefish-yj/GeneCultivation",
   "repository": "https://github.com/Ninefish-yj/GeneCultivation.git",
   "tags": [
