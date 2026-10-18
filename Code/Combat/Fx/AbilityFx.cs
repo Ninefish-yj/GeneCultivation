@@ -192,7 +192,7 @@ namespace Code.Combat.Fx
         // ============================================================
         // 特效样式（按 id 前缀分组：大/中/小/护盾/气泡）
         // ============================================================
-        private static void Style(string id, out float size, out float life)
+        internal static void Style(string id, out float size, out float life)
         {
             // 尺寸基准：px=1/帧宽 → 世界宽恒等于 size（size 即期望世界宽）。
             // 人类 actor_scale≈0.25 → 单位视觉宽≈0.22~0.28 世界单位（v0.18.91 反编译复核；
@@ -431,6 +431,11 @@ namespace Code.Combat.Fx
                     ring.Color(new Color(tint.r, tint.g, tint.b, 0.85f), new Color(tint.r, tint.g, tint.b, 0f))
                         .Sized(0.59f * scale, 0.23f * scale);
                 }
+                // v0.21.1 地图融合：攻击命中后按异能标签铺贴地持续域 + 分级地形响应
+                // （不再"所有特效都只是砸过去"；火→地面起火、冰→地面结霜、雷→劈焦大地、
+                //   登神+真实炸坑/岩浆、超神命中"陆地打没"，复用 DSTerrainDestruction 分级破坏）
+                try { if (def != null) CombatMapFx.OnHit(self, pos, def.MainTag, def.SubTag); }
+                catch (System.Exception dsEx) { Code.Core.DSDebug.Verbose("[CombatMapFx] " + dsEx.Message); }
             }
             else
             {
@@ -451,7 +456,7 @@ namespace Code.Combat.Fx
         }
 
         /// <summary>单位体型缩放系数（ActorSize 0-17 / 13，Human=1.0，下限 0.3 防虫级过小）</summary>
-        private static float UnitScale(Actor a)
+        internal static float UnitScale(Actor a)
         {
             if (a == null || a.asset == null) return 1f;
             return Mathf.Max(0.3f, (float)a.asset.actor_size / 13f);
