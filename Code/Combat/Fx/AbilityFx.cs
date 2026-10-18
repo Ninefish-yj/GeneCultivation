@@ -209,57 +209,57 @@ namespace Code.Combat.Fx
             if (id.StartsWith("soul_"))
             {
                 if (id == "soul_kong" || id == "soul_yang") { size = 0.5f; life = 0.6f; return; }
-                size = 0.34f; life = 0.55f; return;
+                size = 0.2f; life = 0.5f; return;
             }
             // v0.19.13 Magic Packs 投射弹/魔法分级
-            if (id == "magic_bolt" || id == "magic_darkbolt") { size = 0.4f; life = 0.6f; return; }
-            if (id == "magic_fireball" || id == "magic_firebomb") { size = 0.42f; life = 0.6f; return; }
-            if (id == "magic_lightning") { size = 0.45f; life = 0.5f; return; }
-            if (id.StartsWith("magic_ice")) { size = 0.32f; life = 0.5f; return; }
-            if (id == "magic_smoke") { size = 0.4f; life = 0.7f; return; }
-            if (id == "magic_splash") { size = 0.32f; life = 0.5f; return; }
+            if (id == "magic_bolt" || id == "magic_darkbolt") { size = 0.2f; life = 0.5f; return; }
+            if (id == "magic_fireball" || id == "magic_firebomb") { size = 0.22f; life = 0.55f; return; }
+            if (id == "magic_lightning") { size = 0.25f; life = 0.5f; return; }
+            if (id.StartsWith("magic_ice")) { size = 0.2f; life = 0.5f; return; }
+            if (id == "magic_smoke") { size = 0.25f; life = 0.7f; return; }
+            if (id == "magic_splash") { size = 0.2f; life = 0.5f; return; }
             if (id.StartsWith("art_"))
             {
                 // 奥术光膜护盾（罩全身≈1.1 倍单位宽，持续环绕）；符环=领域环（v0.19.5 回调 0.62）
                 if (id == "art_arcaneshield") { size = 0.28f; life = 2.0f; return; }
-                if (id == "art_rune") { size = 0.62f; life = 0.8f; return; }
+                if (id == "art_rune") { size = 0.45f; life = 0.8f; return; }
                 // 程序化图元兜底尺寸（主池已全素材，仅异常路径）
                 if (id.StartsWith("art_glyph_"))
                 {
                     if (id == "art_glyph_shield") { size = 0.28f; life = 2.0f; return; }        // 持续护罩
                     if (id == "art_glyph_ghost") { size = 0.32f; life = 0.5f; return; }         // 虚影瞬闪
                     if (id == "art_glyph_pulse") { size = 0.62f; life = 0.8f; return; }         // 领域脉冲
-                    size = 0.34f; life = 0.55f; return;                                        // 命中意象贴体（1.4 倍单位宽）
+                    size = 0.22f; life = 0.55f; return;                                        // 命中意象贴体（≈0.9 倍单位宽，原版命中 0.1~0.25）
                 }
-                size = 0.38f; life = 0.55f; return;                                     // v0.19.7 图元回调：1.5 倍单位宽贴体
+                size = 0.26f; life = 0.55f; return;                                     // v0.21.6.2 定标：≈单位 scale（原版施法特效=stats["scale"]0.25）
             }
             if (id.StartsWith("shield_")) { size = 0.28f; life = 2.0f; return; }      // 兼容旧引用（池已切奥术光膜）
-            if (id.StartsWith("bub_")) { size = 0.08f; life = 0.55f; return; }        // v0.19.11 状态泡回调：0.32 倍单位宽（粒子级小光点，贴身不显眼）
+            if (id.StartsWith("bub_")) { size = 0.1f; life = 0.55f; return; }        // v0.19.11 状态泡回调：0.32 倍单位宽（粒子级小光点，贴身不显眼）
             if (id.StartsWith("spx_") || id.StartsWith("magic_spark") || id == "magic_flash"
                 || id == "magic_dust" || id == "vfx_impact" || id == "vfx_smallhit"
                 || id == "vfx_ditheredfire" || id == "vfx_fastfire" || id == "vfx_bloodimpact"
                 || id == "vfx_puffstars" || id == "vfx_elecshield" || id == "vfx_anima")
             {
-                size = 0.32f; life = 0.5f; return;                                    // v0.19.7 单体命中回调：1.3 倍单位宽贴体
+                size = 0.22f; life = 0.5f; return;                                    // v0.21.6.2 定标：≈0.9 倍单位宽（原版命中 0.1~0.25）
             }
             // v0.19.5 领域级：结界/领域/威压/巨兽（贴地扩散，笼罩≈2.5 倍单位宽，回调防遮挡）
             if (id.StartsWith("vfx_") && (id.Contains("tentacles") || id.Contains("vortex")
                 || id.Contains("eldenring") || id.Contains("powerchords")))
             {
-                size = 0.62f; life = 0.8f; return;
+                size = 0.45f; life = 0.8f; return;
             }
             // v0.19.5 大爆级：爆炸/震地/重击（波及≈2.2 倍单位宽）
             if (id.StartsWith("vfx_") && (id.Contains("explosion") || id.Contains("kabooms")
                 || id.Contains("bighit") || id.Contains("charged") || id.Contains("magma")))
             {
-                size = 0.55f; life = 0.7f; return;
+                size = 0.4f; life = 0.7f; return;
             }
             // 星座：念力星图（≈2 倍单位宽）
             if (id.StartsWith("vfx_") && id.Contains("constellation"))
             {
-                size = 0.5f; life = 0.6f; return;
+                size = 0.35f; life = 0.6f; return;
             }
-            size = 0.4f; life = 0.6f;
+            size = 0.25f; life = 0.6f;
         }
 
         // ============================================================
@@ -467,7 +467,7 @@ namespace Code.Combat.Fx
                         1f / 64f, 0.3f, FxLayer.Over, 22);
                     if (g != null)
                     {
-                        g.Sized(0.3f * scale, 0.42f * scale);          // 微扩散环
+                        g.Sized(0.2f * scale, 0.26f * scale);         // 微扩散环（0.8~1 倍单位宽）
                         g.Spin = ((StableSeed(def.Id) % 2 == 0) ? 1f : -1f) * 0.9f;  // 慢转 51°/s
                         g.Color(new Color(tint.r, tint.g, tint.b, 0.5f), new Color(tint.r, tint.g, tint.b, 0f));
                     }
@@ -612,7 +612,7 @@ namespace Code.Combat.Fx
                 var core = CombatFxCore.Spawn(new[] { glyph }, center, 1f / 64f, 0.13f, FxLayer.Top, 35);
                 if (core != null)
                 {
-                    core.Sized(0.24f * scale, 0.3f * scale);
+                    core.Sized(0.12f * scale, 0.16f * scale);
                     core.Spin = ((seed % 2 == 0) ? 1f : -1f) * (1.4f + (seed % 4) * 0.25f);
                     core.Color(new Color(tint.r, tint.g, tint.b, 1f), new Color(tint.r, tint.g, tint.b, 0.5f));
                 }
@@ -626,7 +626,7 @@ namespace Code.Combat.Fx
                     if (s == null) continue;
                     s.Vel = new Vector2(Mathf.Cos(ang), Mathf.Sin(ang)) * speed;
                     s.Spin = ((i % 2 == 0) ? 1f : -1f) * (1.8f + (seed % 5) * 0.3f);
-                    s.Sized(0.11f * scale, 0.02f * scale);
+                    s.Sized(0.06f * scale, 0.01f * scale);
                     s.Color(new Color(tint.r, tint.g, tint.b, 0.85f), new Color(tint.r, tint.g, tint.b, 0f));
                 }
             }
@@ -693,11 +693,11 @@ namespace Code.Combat.Fx
             var p = CombatFxCore.Spawn(frames, from + new Vector2(0f, 0.17f * scale), px, fly, FxLayer.Top, 34);
             if (p == null) return;
             Color tc = tint ?? Color.white;
-            // v0.21.4 尺寸对齐原版投射物（反编译 0.51.x 定标）：
-            //   原版魔法弹 scale_target=0.2、施法/命中特效 scale=stats["scale"]（人类 0.25）
-            //   → 投射物 = 0.8× 施法特效（0.2/0.25），且投射物应比命中特效略小。
-            //   v0.21.2 误用 0.45（比命中特效 0.42 还大，违反原版比例）→ 修正 0.34（贴体命中同级的 0.8）。
-            p.Sized(0.34f * scale, 0.22f * scale)
+            // v0.21.6.2 尺寸定标（反编译 ProjectileAsset/ProjectileLibrary 实锤）：
+            //   原版投射物 scale_target=0.075~0.2（弹丸级）、scale_start=0.035~0.1，
+            //   飞行从小变大。此前 0.34→0.22 = 1.4 倍单位宽（比原版大 2~4 倍）且方向相反。
+            //   修正 0.1→0.16（命中时≈0.64 倍单位宽，弹丸级）。
+            p.Sized(0.1f * scale, 0.16f * scale)
              .Color(new Color(tc.r, tc.g, tc.b, 0.7f), new Color(tc.r, tc.g, tc.b, 0f))
              .Moving(dir * (dist / fly), 0f, 0.5f, 0f);
             p.FaceVel = true;
