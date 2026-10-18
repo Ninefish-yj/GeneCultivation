@@ -97,6 +97,78 @@ namespace Code.Combat.Moves
                 MoveTerrain.None, 2, 3f,
                 "藤蔓长鞭连抽，缚缠横扫（自然系轻击）。", "Thorns", "Entangle", "Water"));
 
+            // ---- v0.21.28 觉醒衔击：挑空 / 追击 / 擒拿 / 反震（世界观原创命名）----
+            // 挑空系：命中后把目标送入腾空（Launched）
+            Register(new CombatMove("mv_wind_uppercut", "风镰上挑", MoveWeight.Light, MoveKind.Slash,
+                MoveTerrain.None, 2, 4f,
+                "风镰自下而上挑飞目标，腾空暴露破绽（风系挑空）。", "Wind", "Crit"));
+            CombatMove cmWindUp = Get("mv_wind_uppercut");
+            if (cmWindUp != null) cmWindUp.LinkOut = LinkState.Launched;
+            Register(new CombatMove("mv_soul_lift", "灵魂升割", MoveWeight.Heavy, MoveKind.Slash,
+                MoveTerrain.Crater, 6, 10f,
+                "镰刀自地面升割，灵魂被抛向空中（死亡系挑空）。", "Soul", "Execute"));
+            CombatMove cmSoulLift = Get("mv_soul_lift");
+            if (cmSoulLift != null) cmSoulLift.LinkOut = LinkState.Launched;
+            // 追击系：目标处于失衡状态才可衔接（衔击 ×1.5）
+            Register(new CombatMove("mv_blade_downfall", "坠星斩", MoveWeight.Ultimate, MoveKind.Strike,
+                MoveTerrain.Crater, 9, 22f,
+                "跃至九霄斩落腾空之敌，坠星般砸入大地（时空系追击）。", "Execute", "Teleport", "Space"));
+            CombatMove cmBladeDown = Get("mv_blade_downfall");
+            if (cmBladeDown != null) cmBladeDown.LinkIn = LinkState.Launched;
+            Register(new CombatMove("mv_earth_dent", "地陷碎压", MoveWeight.Heavy, MoveKind.Strike,
+                MoveTerrain.Crater, 5, 8f,
+                "将失衡目标砸入地陷，碎压成坑（土系追击）。", "Earth", "Gravity", "Knockback"));
+            CombatMove cmEarthDent = Get("mv_earth_dent");
+            if (cmEarthDent != null) cmEarthDent.LinkIn = LinkState.Down;
+            // 擒拿系：抓取目标摔投（控制衔接）
+            Register(new CombatMove("mv_thorn_grapple", "荆棘擒拿", MoveWeight.Heavy, MoveKind.Chain,
+                MoveTerrain.None, 4, 9f,
+                "荆棘缠住目标拽至身前，摔投入地（自然系擒拿）。", "Thorns", "Entangle"));
+            CombatMove cmThornGrab = Get("mv_thorn_grapple");
+            if (cmThornGrab != null) cmThornGrab.IsGrapple = true;
+            Register(new CombatMove("mv_psychic_grip", "念力擒拿", MoveWeight.Heavy, MoveKind.Chain,
+                MoveTerrain.None, 6, 10f,
+                "念力无形攥住目标拉近抛掷（精神系擒拿）。", "Telekinesis", "Illusion"));
+            CombatMove cmPsychicGrip = Get("mv_psychic_grip");
+            if (cmPsychicGrip != null) cmPsychicGrip.IsGrapple = true;
+            // 反震系：防御异能受击时弹开攻击并反伤
+            Register(new CombatMove("mv_light_reflect", "圣光反震", MoveWeight.Heavy, MoveKind.Buff,
+                MoveTerrain.None, 7, 11f,
+                "圣光护体，受击反震弹开攻击（光明系反震）。", "Light", "Shield", "Buff"));
+            CombatMove cmLightReflect = Get("mv_light_reflect");
+            if (cmLightReflect != null) cmLightReflect.IsCounter = true;
+            Register(new CombatMove("mv_gravity_warp", "引力扭曲", MoveWeight.Heavy, MoveKind.Buff,
+                MoveTerrain.None, 8, 12f,
+                "引力场扭曲护体，弹回来袭之势（时空系反震）。", "Gravity", "Teleport", "Shield"));
+            CombatMove cmGravityWarp = Get("mv_gravity_warp");
+            if (cmGravityWarp != null) cmGravityWarp.IsCounter = true;
+
+            // ---- v0.21.28 已有招式补失衡属性（原招式保持，只加衔击语义）----
+            // 大地崩裂：掀地 → 腾空起手
+            CombatMove cmEarth = Get("mv_earth_rend");
+            if (cmEarth != null) cmEarth.LinkOut = LinkState.Launched;
+            // 冰霜新星：冻结 → 震慑
+            CombatMove cmIce = Get("mv_ice_nova");
+            if (cmIce != null) cmIce.LinkOut = LinkState.Stunned;
+            // 雷劫轰顶：劈腾空目标 → 震慑（追击腾空）
+            CombatMove cmThunder = Get("mv_thunder_judge");
+            if (cmThunder != null) { cmThunder.LinkOut = LinkState.Stunned; cmThunder.LinkIn = LinkState.Launched; }
+            // 狂兽冲撞：撞倒 → 失衡倒地
+            CombatMove cmBeast = Get("mv_beast_frenzy");
+            if (cmBeast != null) cmBeast.LinkOut = LinkState.Down;
+            // 血月斩：倒地追斩
+            CombatMove cmBlood = Get("mv_blood_moon");
+            if (cmBlood != null) cmBlood.LinkIn = LinkState.Down;
+            // 空间撕裂：撕裂腾空目标
+            CombatMove cmSpace = Get("mv_space_tear");
+            if (cmSpace != null) cmSpace.LinkIn = LinkState.Launched;
+            // 机械风暴：震慑追击
+            CombatMove cmMetal = Get("mv_metal_storm");
+            if (cmMetal != null) cmMetal.LinkIn = LinkState.Stunned;
+            // 命运裁决：倒地追斩
+            CombatMove cmFate = Get("mv_fate_verdict");
+            if (cmFate != null) cmFate.LinkIn = LinkState.Down;
+
             // ---- 标签 → 招式映射（标签优先，多个标签取权重最大的招）----
             _tagToMove["Plasma"] = "mv_fire_blast";
             _tagToMove["Burn"] = "mv_fire_blast";
@@ -186,6 +258,47 @@ namespace Code.Combat.Moves
         public static CombatMove DefaultMove(int tier)
         {
             return tier >= 9 ? Get("mv_space_tear") : Get("mv_wind_reap");
+        }
+
+        // ================= v0.21.28 觉醒衔击查询 =================
+        /// <summary>挑空起手：可把目标送入腾空的招式（目标未失衡时开启衔击链）。</summary>
+        public static CombatMove LauncherFor(int tier)
+        {
+            CombatMove best = null;
+            for (int i = 0; i < _all.Count; i++)
+            {
+                CombatMove m = _all[i];
+                if (tier < m.MinTier || m.LinkOut != LinkState.Launched) continue;
+                if (best == null || (int)m.Weight > (int)best.Weight) best = m;
+            }
+            return best;
+        }
+
+        /// <summary>衔击追击：目标处于指定失衡状态时的追击招式（取最重）。</summary>
+        public static CombatMove LinkFinisherFor(LinkState state, int tier)
+        {
+            if (state == LinkState.None) return null;
+            CombatMove best = null;
+            for (int i = 0; i < _all.Count; i++)
+            {
+                CombatMove m = _all[i];
+                if (tier < m.MinTier || m.LinkIn != state) continue;
+                if (best == null || (int)m.Weight > (int)best.Weight) best = m;
+            }
+            return best;
+        }
+
+        /// <summary>擒拿技（控制衔接，目标未失衡时使用）。</summary>
+        public static CombatMove GrappleFor(int tier)
+        {
+            CombatMove best = null;
+            for (int i = 0; i < _all.Count; i++)
+            {
+                CombatMove m = _all[i];
+                if (tier < m.MinTier || !m.IsGrapple) continue;
+                if (best == null || (int)m.Weight > (int)best.Weight) best = m;
+            }
+            return best;
         }
     }
 }

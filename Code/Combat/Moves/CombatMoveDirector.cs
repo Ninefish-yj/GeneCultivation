@@ -58,6 +58,18 @@ namespace Code.Combat.Moves
             return map.TryGetValue(moveId, out float v) && v > 0f;
         }
 
+        // ================= v0.21.28 觉醒衔击 =================
+        /// <summary>每个单位最近执行的招式（供 getHit 查衔击加成/反震归属）。</summary>
+        private static readonly Dictionary<Actor, CombatMove> _lastMove = new Dictionary<Actor, CombatMove>();
+
+        /// <summary>单位最近一次使用的招式（无则 null）。</summary>
+        public static CombatMove LastMoveOf(Actor by)
+        {
+            if (by == null) return null;
+            CombatMove m;
+            return _lastMove.TryGetValue(by, out m) ? m : null;
+        }
+
         /// <summary>
         /// 执行招式（编排：蓄势光效 → 主击动作+地形破坏 → 收尾/冷却）。
         /// 全部包 try，演出失败不影响战斗逻辑。
@@ -72,7 +84,7 @@ namespace Code.Combat.Moves
                 Vector2 targetPos = target != null && target.isAlive()
                     ? target.current_position
                     : pos + new Vector2(1f, 0f);
-                Execute(move, by, pos, targetPos);
+                Execute(move, by, pos, targetPos, target);
                 return true;
             }
             catch (Exception e)
@@ -83,16 +95,18 @@ namespace Code.Combat.Moves
         }
 
         /// <summary>执行招式（显式坐标版本，AI 用目标格、事件用技能格）。</summary>
-        public static void Execute(CombatMove move, Actor by, Vector2 pos, Vector2 targetPos)
+        public static void Execute(CombatMove move, Actor by, Vector2 pos, Vector2 targetPos, Actor target = null)
         {
             try
             {
                 if (move == null || by == null || !by.isAlive()) return;
                 int tier = CultivationData.GetRealmTier(by);
+                // v0.21.28 记录最近招式（衔击伤害放大/反震归属查询）
+                if (move.Id != null) _lastMove[by] = move;
                 // 蓄势：中心光斑（不同轻重不同强度）
                 Charge(move, by, pos, tier);
                 // 主击：动作 + 地形破坏
-                Strike(move, by, pos, targetPos, tier);
+                Strike(move, by, pos, targetPos, tier, target);
                 // 收尾：冷却登记
                 PutOnCooldown(by, move.Id, move.Cooldown);
             }
@@ -117,7 +131,7 @@ namespace Code.Combat.Moves
         }
 
         /// <summary>主击：动作姿态 + 按动作类型分派到现有动作 + 地形破坏。</summary>
-        private static void Strike(CombatMove move, Actor by, Vector2 pos, Vector2 targetPos, int tier)
+        private static void Strike(CombatMove move, Actor by, Vector2 pos, Vector2 targetPos, int tier, Actor target = null)
         {
             bool visible = CanFull(targetPos);
             // v0.21.11 动画语言分层：重招/终极给击停+慢动作（神战级顿挫节奏）；
@@ -195,6 +209,43 @@ namespace Code.Combat.Moves
 
             // 地形破坏（按招式形态；脚下保护=自身位置）
             ApplyTerrain(move, by, pos, targetPos, tier);
+
+            // ================= v0.21.28 觉醒衔击 =================
+            // 擒拿演出：抓取目标拉近 → 短暂持有 → 摔投（纯表现位移，不碰原版 AI）
+            if (move.IsGrapple && target != null && target.isAlive())
+            {
+                try { GrappleShow(move, by, target, pos, tier); }
+                catch (System.Exception dsEx) { Code.Core.DSDebug.Verbose("[MoveDirector] grapple: " + dsEx.Message); }
+            }
+            // 命中后把目标送入失衡状态（腾空/失衡/震慑），供 AI 衔击追击
+            if (move.LinkOut != LinkState.None && target != null)
+            {
+                CombatLink.Apply(target, move.LinkOut, tier);
+            }
+        }
+
+        /// <summary>擒拿演出：目标被拉到攻击者身前 → 短暂持有（失衡=擒拿）→ 摔投抛出。</summary>
+        private static void GrappleShow(CombatMove move, Actor by, Actor target, Vector2 pos, int tier)
+        {
+            Vector2 toTarget = target.current_position - pos;
+            if (toTarget.sqrMagnitude < 0.0001f) toTarget = new Vector2(1f, 0f);
+            float grabDist = Mathf.Max(0.4f, toTarget.magnitude - 0.55f);   // 拉近到贴身
+            Vector2 grabDir = toTarget.normalized;
+            // 1) 目标被拽到攻击者身前（表现位移）
+            try { CombatMovePose.GrabPull(target, grabDir, grabDist, 0.22f); }
+            catch (System.Exception dsEx) { Code.Core.DSDebug.Verbose("[MoveDirector] grab pull: " + dsEx.Message); }
+            // 2) 目标进入擒拿状态（1.2s 窗口：持有/摔投衔接）
+            CombatLink.Apply(target, LinkState.Grabbed, tier);
+            // 3) 摔投抛出（背向抛离 + 砸地光效）
+            if (target != null && target.isAlive())
+            {
+                CombatMovePose.ThrowAway(target, -grabDir, 0.9f, 0.5f);
+                if (CanFull(target.current_position))
+                {
+                    Vector2 land = target.current_position + (-grabDir) * 0.9f;
+                    CombatFxDirector.GroundSlam(by, land);
+                }
+            }
         }
 
         /// <summary>
@@ -360,6 +411,9 @@ namespace Code.Combat.Moves
         /// <summary>每帧驱动：冷却递减 + 清死单位（FramePatch Postfix 调用）。</summary>
         public static void Tick(float dt)
         {
+            // v0.21.28 失衡窗口衰减（衔击追击计时）
+            try { CombatLink.Tick(dt); }
+            catch (System.Exception dsEx) { Code.Core.DSDebug.Verbose("[CombatLink] tick: " + dsEx.Message); }
             if (_cooldowns.Count == 0) return;
             var dead = new List<Actor>();
             foreach (var kv in _cooldowns)

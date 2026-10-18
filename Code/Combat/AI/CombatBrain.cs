@@ -92,11 +92,43 @@ namespace Code.Combat.AI
                 move = CombatMoveRegistry.DefaultMove(CultivationData.GetRealmTier(self));
             if (move == null) return;
 
+            // ================= v0.21.28 觉醒衔击 =================
+            // 世界观：每次得手都是下次攻击的起点——
+            //   目标处于失衡（腾空/倒地/震慑）→ 优先衔接追击招（衔击 ×1.5 伤害）
+            //   目标未失衡且贴身 → 概率用挑空起手/擒拿开启衔击链
+            int tierSelf = CultivationData.GetRealmTier(self);
+            LinkState enemyLink = CombatLink.Get(enemy);
+            if (enemyLink != LinkState.None)
+            {
+                CombatMove finisher = CombatMoveRegistry.LinkFinisherFor(enemyLink, tierSelf);
+                if (finisher != null && CombatMoveDirector.CanUse(self, finisher))
+                {
+                    // 衔击追击（残血/群战保命仍可覆盖：处决优先但给保命让路）
+                    bool fleeWants = CombatThreat.WantsFlee(self, enemy);
+                    move = finisher;
+                    if (!fleeWants) goto DistanceCheck;
+                }
+            }
+            else if (enemyCount < 3 && UnityEngine.Random.value < 0.22f)
+            {
+                // 起手：贴身时挑空/擒拿开启衔击链（22% 触发，不喧宾夺主）
+                float d = Vector2.Distance(self.current_position, enemy.current_position);
+                if (d < 2.6f)
+                {
+                    CombatMove grapple = CombatMoveRegistry.GrappleFor(tierSelf);
+                    if (grapple != null && CombatMoveDirector.CanUse(self, grapple)) move = grapple;
+                    else
+                    {
+                        CombatMove launcher = CombatMoveRegistry.LauncherFor(tierSelf);
+                        if (launcher != null && CombatMoveDirector.CanUse(self, launcher)) move = launcher;
+                    }
+                }
+            }
+
             // v0.21.11 战斗AI补全（纯表现，不碰原版行为树）：
             //   —— 群战 AOE：被 ≥3 敌人包围时优先领域/爆破招（清场演出，观感"孤身战群"）
             //   —— 残血保命：HP<25% 且威胁比>2 时优先再生领域/金刚护体（演出上"自救回气"）
             //   —— 终极判定：残血拼大（原有）保持
-            int tierSelf = CultivationData.GetRealmTier(self);
             if (enemyCount >= 3)
             {
                 CombatMove aoe = PickAoEFor(self);
@@ -117,6 +149,7 @@ namespace Code.Combat.AI
 
             if (!CombatMoveDirector.CanUse(self, move)) return;
 
+        DistanceCheck:
             // 距离克制：近战招式只在贴脸时用；远程招式拉开才用
             float dist = Vector2.Distance(self.current_position, enemy.current_position);
             if (move.Kind == MoveKind.Slash || move.Kind == MoveKind.Strike || move.Kind == MoveKind.Lunge)

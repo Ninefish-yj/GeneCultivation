@@ -9,6 +9,7 @@ using Code.Core;
 using Code.Data;
 using Code.Realm;
 using Code.Combat.Moves;
+using Code.Combat.Fx;
 
 namespace Code.Combat
 {
@@ -60,6 +61,53 @@ namespace Code.Combat
                             __instance.getMaxHealth());
                     }
                     catch (System.Exception dsEx2) { Code.Core.DSDebug.Verbose("[Impact] " + dsEx2.Message); }
+                }
+
+                // ================= v0.21.28 觉醒衔击 =================
+                // 1) 衔击伤害放大：攻击者最近招式是追击招（LinkIn）且目标正处失衡 → ×1.5
+                //    （世界观：趁失衡之势补刀，战斗本能抓住破绽）
+                if (from != null && damage > 0f && pDamage > 0f)
+                {
+                    try
+                    {
+                        CombatMove lastMove = CombatMoveDirector.LastMoveOf(from);
+                        if (lastMove != null && lastMove.LinkIn != LinkState.None
+                            && CombatLink.Is(__instance, lastMove.LinkIn))
+                        {
+                            pDamage *= 1.5f;
+                        }
+                    }
+                    catch (System.Exception dsExL) { Code.Core.DSDebug.Verbose("[LinkBonus] " + dsExL.Message); }
+                }
+
+                // 2) 反震：受击方最近用过反震技（圣光反震/引力扭曲）→ 概率弹开攻击者并反伤
+                //    （世界观：护体异能受击时反震——金刚护体弹开刀兵、引力扭曲弹回来袭之势）
+                if (from != null && from.isAlive())
+                {
+                    try
+                    {
+                        CombatMove guardMove = CombatMoveDirector.LastMoveOf(__instance);
+                        if (guardMove != null && guardMove.IsCounter)
+                        {
+                            float reflectChance = CultivationData.IsAscended(__instance) ? 0.4f : 0.25f;
+                            if (UnityEngine.Random.value < reflectChance)
+                            {
+                                // 弹开攻击者（表现位移）+ 反伤（伤害回弹）
+                                Code.Combat.Moves.CombatMovePose.Recoil(from,
+                                    from.current_position - __instance.current_position, 0.5f, 0.2f);
+                                float reflectDmg = damage * 0.25f;
+                                if (reflectDmg > 1f)
+                                {
+                                    try { from.getHit(reflectDmg, false, AttackType.Other,
+                                        __instance, false, false, false); }
+                                    catch (System.Exception dsExR) { Code.Core.DSDebug.Verbose("[Reflect] " + dsExR.Message); }
+                                }
+                                CombatFxDirector.SpellBurst(__instance, __instance.current_position,
+                                    CultivationData.GetRealmTier(__instance));
+                            }
+                        }
+                    }
+                    catch (System.Exception dsExG) { Code.Core.DSDebug.Verbose("[Guard] " + dsExG.Message); }
                 }
 
                 if (from != null && CultivationData.IsAscended(from))

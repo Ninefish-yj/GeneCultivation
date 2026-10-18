@@ -77,6 +77,20 @@ namespace Code.Combat.Moves
         /// <summary>招式描述（世界观一句话）。</summary>
         public string Desc;
 
+        // ================= v0.21.28 觉醒衔击 =================
+        // 世界观：觉醒者战斗本能——每次得手都是下一次攻击的起点。
+        /// <summary>命中后把目标送入的失衡状态（腾空/失衡倒地/震慑），None=不送入。</summary>
+        public LinkState LinkOut;
+
+        /// <summary>追击条件：目标处于此失衡状态才可衔接（衔击 ×1.5 伤害），None=任意。</summary>
+        public LinkState LinkIn;
+
+        /// <summary>擒拿技：命中后抓取目标并摔投（藤蔓擒拿/念力擒拿/引力牵引）。</summary>
+        public bool IsGrapple;
+
+        /// <summary>反震技：防御系异能受击时概率弹开攻击者并反伤（圣光反震/引力扭曲）。</summary>
+        public bool IsCounter;
+
         public CombatMove(string id, string name, MoveWeight weight, MoveKind kind,
             MoveTerrain terrain, int minTier, float cooldown, string desc, params string[] tags)
         {

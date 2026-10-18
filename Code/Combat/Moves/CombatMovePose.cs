@@ -146,6 +146,41 @@ namespace Code.Combat.Moves
             });
         }
 
+        /// <summary>v0.21.28 擒拿拉拽：目标被异能拽向攻击者（藤蔓缠拉/念力抓取）。
+        /// dir=朝向攻击者方向，dist=拉近距离（纯表现位移）。</summary>
+        public static void GrabPull(Actor a, Vector2 dir, float dist, float dur = 0.22f)
+        {
+            if (a == null || dir.sqrMagnitude < 0.0001f) return;
+            Vector2 n = dir.normalized;
+            Apply(a, new PoseState
+            {
+                OriginX = a.move_jump_offset.x,
+                OriginY = a.move_jump_offset.y,
+                PeakX = n.x * Mathf.Min(dist, 1.4f),
+                PeakY = 0.18f,          // 被拽起一点（脱离地面感）
+                Timer = dur,
+                Dur = dur,
+                Curve = 1
+            });
+        }
+
+        /// <summary>v0.21.28 摔投抛出：目标被背向抛离（擒拿收尾，砸向远处）。</summary>
+        public static void ThrowAway(Actor a, Vector2 dir, float dist, float dur = 0.5f)
+        {
+            if (a == null || dir.sqrMagnitude < 0.0001f) return;
+            Vector2 n = dir.normalized;
+            Apply(a, new PoseState
+            {
+                OriginX = a.move_jump_offset.x,
+                OriginY = a.move_jump_offset.y,
+                PeakX = n.x * Mathf.Min(dist, 2.2f),
+                PeakY = 0.55f,          // 抛高（抛物线感的峰值）
+                Timer = dur,
+                Dur = dur,
+                Curve = 0
+            });
+        }
+
         /// <summary>该单位是否正在攻击姿态中（受击反应互斥用）。</summary>
         public static bool IsActive(Actor a)
         {
