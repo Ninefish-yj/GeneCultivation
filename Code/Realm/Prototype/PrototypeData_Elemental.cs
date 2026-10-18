@@ -20,8 +20,8 @@ namespace Code.Realm.Prototype
                 PrototypeTag.Plasma, PrototypeTag.Burn, 6, 2),
             new PrototypeDef("el_fire_03", "业火", "狂暴当次攻击+25%，附加灼烧", "元素系", "火",
                 PrototypeTag.Berserk, PrototypeTag.Burn, 6, 5),
-            new PrototypeDef("el_fire_04", "火衣", "受击概率自愈，攻击附加灼烧", "元素系", "火",
-                PrototypeTag.Regeneration, PrototypeTag.Burn, 6, 8),
+            new PrototypeDef("el_fire_04", "火衣", "火焰护衣：受击减伤，攻击附加灼烧", "元素系", "火",
+                PrototypeTag.Shield, PrototypeTag.Burn, 6, 8),
             new PrototypeDef("el_fire_05", "焚世", "等离子灼烧，低血量直接焚灭", "元素系", "火",
                 PrototypeTag.Plasma, PrototypeTag.Execute, 6, 9),
             // ---- 水 ----

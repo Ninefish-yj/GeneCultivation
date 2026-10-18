@@ -41,8 +41,8 @@ namespace Code.Combat.Fx
             float alpha;
             switch (statusId)
             {
-                case "burning": fxId = "fx_status_burning_t"; alpha = 0.55f; break;  // 原版火焰帧（单位身上持续冒火）
-                case "frozen":  fxId = "fx_status_frozen_t";  alpha = 0.7f;  break;  // 原版冻结贴图（单位被冰晶覆盖定身）
+                case "burning": fxId = "fx_status_burning_t"; alpha = 0.4f; break;   // v0.21.24 压小贴体（小火苗，不再大火焰裹身）
+                case "frozen":  fxId = "fx_status_frozen_t";  alpha = 0.5f;  break;   // v0.21.24 压小贴体（薄冰晶，不再大冰块裹身）
                 case "poisoned": fxId = "__proto_poison";   alpha = 0.3f;  break;  // 原版 poisoned 无贴图 → 程序化毒雾（v0.21.9 全程序化）
                 default: return;   // stunned/slowness 等短状态不挂，防刷屏
             }
@@ -124,7 +124,9 @@ namespace Code.Combat.Fx
             //   人类 current_scale.y≈0.25、frozen/burning 的 asset.scale=1 → 附着≈1.0×单位视觉宽
             //   （≈0.25 世界单位，与我方护盾 0.28"罩全身"同级别）。
             //   v0.21.3 误用 0.45（≈1.8 倍单位宽，比原版大 80%）→ 修正 0.26。
-            float s = 0.26f * scale;
+            //   v0.21.24 用户点名"老子不要大冰块和大火焰"——状态附着压到 0.55 倍单位宽贴体，
+            //   观感=小火苗/薄冰晶（状态机制不变，视觉不再裹全身）
+            float s = 0.14f * scale;
             p.Sized(s, s * 0.9f);
             p.Color(new Color(1f, 1f, 1f, alpha), new Color(1f, 1f, 1f, alpha * 0.5f));
         }

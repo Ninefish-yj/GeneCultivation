@@ -420,13 +420,16 @@ namespace Code.Combat.Fx
                 }
                 else if (!string.IsNullOrEmpty(mainFx))
                 {
-                    // v0.18.69：护盾环绕类特效必须绑定单位跟随——护盾是"套在身上环绕"，
-                    // 不是命中贴图。攻击路径也跟随被攻击目标（给目标上盾的视觉），
-                    // 防守路径（else 大分支）已 follow:self。
-                    bool shieldFx = mainFx.StartsWith("shield_") || mainFx == "art_arcaneshield";   // v0.19.5 奥术光膜同护盾跟随
-                    SpawnFx(mainFx, pos, FxLayer.Top, shieldFx ? 25 : 35, true, scale, 0f,
-                        shieldFx ? anchor : null, tint: tint);
-                    // v0.21.6 每异能独立特效：素材主演出之外叠专属图元爆发（形态可辨每异能）
+                    // v0.21.24 命中处不再播原版素材层（magic_ice_a/vfx_fastfire 等=用户点名的
+                    // "大冰块/大火焰"千篇一律来源）——专属图元命中爆做唯一主体：
+                    // 每异能独立形态×专属色×seed 变体，20 个冰系=20 种冰晶爆，不再共用冰块素材。
+                    // 仅护盾类素材保留（盾=套身环绕语义，非命中贴图）。
+                    bool shieldFx = mainFx.StartsWith("shield_") || mainFx == "art_arcaneshield";
+                    if (shieldFx)
+                    {
+                        SpawnFx(mainFx, pos, FxLayer.Top, 25, true, scale, 0f, anchor, tint: tint);
+                    }
+                    // v0.21.6 每异能独立特效：专属图元爆发（形态可辨每异能）
                     Sprite[] glyph = PrototypeFramesFor(def);
                     if (glyph != null) SpawnGlyphBurst(glyph, pos, scale, tint, StableSeed(def.Id));
                 }
@@ -469,8 +472,12 @@ namespace Code.Combat.Fx
             }
             else
             {
-                // ---- 防守：特效绑定单位跟随（护盾/再生/祝福/净化环绕）----
-                if (!string.IsNullOrEmpty(mainFx))
+                // ---- 防守：特效绑定单位跟随 ----
+                // v0.21.24 素材跟随仅保留护盾类（奥术光膜=套身环绕语义）；
+                // 冰/火/其他系防守不再把 magic_ice_a/vfx_fastfire 等原版素材挂单位身上
+                // （"大冰块/大火焰附着单位"来源），统一只留下方异能专属图元弱环。
+                if (!string.IsNullOrEmpty(mainFx) &&
+                    (mainFx.StartsWith("shield_") || mainFx == "art_arcaneshield"))
                 {
                     SpawnFx(mainFx, pos, FxLayer.Over, 25, true, scale, 0f, self, tint: tint);
                 }
@@ -489,13 +496,9 @@ namespace Code.Combat.Fx
                 }
             }
 
-            // 家族氛围层（与主特效不同才叠；低透明背景）
-            // 攻击时不叠——避免战斗时每下都有背景光效堆叠成"一片条纹"；仅防守/强效演出叠
-            string famFx = PickFamilyFx(def.Category, def.SubCategory);
-            if (!string.IsNullOrEmpty(famFx) && famFx != mainFx && (!attack || force))
-            {
-                SpawnFx(famFx, pos, FxLayer.Behind, 5, false, scale * 0.8f, 0f, attack ? null : self, tint: tint);
-            }
+            // 家族氛围层：v0.21.24 停用（元素系/冰=magic_ice_a、火=vfx_fastfire 等家族素材
+            // 让"好多异能都用大冰块大火焰"——同系异能防守时叠同一个大素材。
+            // 防守观感统一由异能专属图元弱环承担，不再叠家族大素材。）
         }
 
         /// <summary>单位体型缩放系数（ActorSize 0-17 / 13，Human=1.0，下限 0.3 防虫级过小）</summary>
@@ -525,7 +528,10 @@ namespace Code.Combat.Fx
             {
                 CombatFxArt.EnsureInit();
                 int seed = StableSeed(def.Id);
-                int mainIdx = TagGlyphIndex(def.MainTag);
+                // v0.21.24 小类语义优先定形态（火衣出火苗/冰封出冰晶/死亡宣告出骨镰），
+                // 小类未命中（抽象小类）回退主标签索引
+                int mainIdx = SubCategoryGlyphIndex(def.SubCategory);
+                if (mainIdx < 0) mainIdx = TagGlyphIndex(def.MainTag);
                 int subIdx = def.SubTag == def.MainTag ? -1 : TagGlyphIndex(def.SubTag);   // 副标签同主标签不重复叠加
                 // v0.21.8 形态演化帧（生长→峰值→爆散→有序消散），对齐战斗之神程序化多帧形态动画
                 var frames = CombatFxArt.MakePrototypeFrames(seed, mainIdx, subIdx, def.Tier);
@@ -615,6 +621,48 @@ namespace Code.Combat.Fx
                 case PrototypeTag.Mark: return 21;      // 符环
                 case PrototypeTag.Thorns: return 22;    // 反弹环
                 default: return 20;                     // 星芒兜底
+            }
+        }
+
+        /// <summary>小类 → 形态库索引（v0.21.24 语义优先）。
+        /// 修复系统性根因：原形态跟主标签走——火衣(主=Regeneration)命中爆出心形、
+        /// 冰封(主=Stun)出闪电、死亡宣告(主=Telekinesis)出眼瞳，观感与名字语义不符。
+        /// 现按小类（火/冰/雷/…）优先定形态：火衣出火苗、冰封出冰晶、死亡宣告出骨镰；
+        /// 小类未命中（如"体魄/意志"等抽象小类）回退主标签索引。</summary>
+        internal static int SubCategoryGlyphIndex(string sub)
+        {
+            if (string.IsNullOrEmpty(sub)) return -1;
+            switch (sub)
+            {
+                case "火": case "炎": case "焚":                     return 0;   // 火苗
+                case "冰": case "霜": case "寒": case "雪": case "冻": return 1;   // 冰晶
+                case "雷": case "电": case "霆": case "电磁":          return 2;   // Z 闪电
+                case "风": case "疾": case "飓": case "气象":          return 3;   // 风刃
+                case "水": case "潮": case "海": case "洪":           return 4;   // 波纹
+                case "土": case "岩": case "山": case "石": case "地": return 5;   // 岩
+                case "金": case "钢铁": case "金属": case "刃":        return 6;   // 冷刃
+                case "光": case "圣光": case "晨曦": case "净化":
+                case "光刃":                                          return 7;   // 光芒星
+                case "暗": case "暗影": case "夜幕": case "影":
+                case "幻影":                                          return 8;   // 暗弧瞳
+                case "血": case "血咒": case "嗜血": case "血缚":
+                case "血蚀":                                          return 9;   // 血滴
+                case "死亡": case "亡灵": case "凋零": case "腐化":
+                case "灾厄": case "百鬼": case "恶魔":                 return 10;  // 骨镰
+                case "治愈": case "生命": case "再生": case "祝福":
+                case "圣灵":                                          return 11;  // 心
+                case "心灵": case "念力": case "精神": case "操控":
+                case "记忆": case "情绪":                              return 12;  // 眼瞳
+                case "召唤": case "猛兽": case "神兽": case "野兽":
+                case "飞禽": case "爬行": case "虫豸": case "动物":
+                case "兽灵": case "巨兽": case "龙裔": case "虫潮":     return 13;  // 爪印
+                case "时间": case "时空": case "空间": case "次元":
+                case "引力": case "速度":                              return 14;  // 沙漏
+                case "睡眠": case "梦境": case "催眠":                 return 15;  // 月牙
+                case "毒": case "腐蚀":                                return 16;  // 毒滴
+                case "木": case "藤蔓": case "植物": case "生长":       return 24;  // 藤蔓
+                case "命运": case "因果": case "气运": case "预知":     return 21;  // 符环（命运符文）
+                default:                                              return -1;  // 未命中→回退主标签
             }
         }
 
