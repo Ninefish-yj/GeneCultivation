@@ -1,9 +1,9 @@
 {
   "name": "基因修炼",
   "author": "阿鱼要吃书",
-  "version": "0.19.12",
+  "version": "0.19.13",
   "GUID": "GeneCultivation",
-  "description": "异能审查：光明/黑暗/元素主标签全量归位48处+重名去重；targetGameBuild 725 兼容0.51.4；程序化异能图标64px",
+  "description": "素材特效全面回接：12个特效压缩包图检确认后接入全部标签池/防守池/家族氛围池；新增FX_CONTENT_MAP对照表；程序化图元撤出主池；soul十元素+magic投射弹尺寸分级",
   "homepage": "https://github.com/Ninefish-yj/GeneCultivation",
   "repository": "https://github.com/Ninefish-yj/GeneCultivation.git",
   "tags": [

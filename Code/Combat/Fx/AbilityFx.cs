@@ -29,56 +29,56 @@ namespace Code.Combat.Fx
 
         static AbilityFx()
         {
-            // ---- 攻击标签池（v0.19.12 程序化意象图元：每个标签有符合大众认知的专属自生成特效）----
-            _tagPool[PrototypeTag.Burn]       = new[] { "art_glyph_fire", "vfx_fastfire", "magic_fireball" };
-            _tagPool[PrototypeTag.Plasma]     = new[] { "art_glyph_fire", "spx_explosion", "vfx_explosion2" };
-            _tagPool[PrototypeTag.Frost]      = new[] { "art_glyph_ice", "magic_ice_b", "magic_ice_a" };
-            _tagPool[PrototypeTag.Frostbite]  = new[] { "art_glyph_ice", "magic_ice_c", "magic_ice_b" };
-            _tagPool[PrototypeTag.TimeSlow]   = new[] { "art_glyph_hourglass", "magic_spark4", "art_burst" };
-            _tagPool[PrototypeTag.Stun]       = new[] { "art_glyph_lightning", "vfx_impact", "magic_spark" };
-            _tagPool[PrototypeTag.Crit]       = new[] { "art_glyph_star", "magic_spark4", "vfx_impact" };   // v0.19.8 暴击=重击闪光，不是爆炸
-            _tagPool[PrototypeTag.Telekinesis]= new[] { "art_glyph_rings", "vfx_constellation", "magic_spark4" };
-            _tagPool[PrototypeTag.Poison]     = new[] { "art_glyph_poison", "bub_toxic", "magic_dust" };
-            _tagPool[PrototypeTag.Curse]      = new[] { "art_glyph_shadow", "magic_darkbolt", "vfx_vortex" };
-            _tagPool[PrototypeTag.Fear]       = new[] { "art_glyph_shadow", "vfx_vortex", "magic_darkbolt" };
-            _tagPool[PrototypeTag.Slow]       = new[] { "art_glyph_water", "magic_ice_a", "bub_ice" };
-            _tagPool[PrototypeTag.Lifesteal]  = new[] { "art_glyph_blood", "blood_vfx1", "bub_blood" };
-            _tagPool[PrototypeTag.Drain]      = new[] { "art_glyph_blood", "blood_vfx2", "blood_vfx3" };
-            _tagPool[PrototypeTag.Blood]      = new[] { "art_glyph_blood", "blood_vfx1", "blood_vfx3" };
-            _tagPool[PrototypeTag.Soul]       = new[] { "art_glyph_eye", "art_soulflame", "magic_darkbolt" };
-            _tagPool[PrototypeTag.Heal]       = new[] { "art_glyph_heart", "vfx_puffstars", "magic_spark4" };
-            _tagPool[PrototypeTag.Chain]      = new[] { "art_glyph_rings", "magic_lightning", "magic_bolt" };
-            _tagPool[PrototypeTag.Knockback]  = new[] { "art_glyph_rings", "vfx_smallhit", "magic_spark" };
-            _tagPool[PrototypeTag.Gravity]    = new[] { "art_glyph_rings", "vfx_vortex", "magic_dust" };
-            _tagPool[PrototypeTag.Berserk]    = new[] { "art_glyph_fire", "vfx_magma", "vfx_fastfire" };
-            _tagPool[PrototypeTag.Entangle]   = new[] { "art_glyph_vine", "art_woodvine", "vfx_tentacles" };
-            _tagPool[PrototypeTag.Petrify]    = new[] { "art_glyph_earth", "magic_dust", "magic_smoke" };
-            _tagPool[PrototypeTag.Aging]      = new[] { "art_glyph_bone", "magic_darkbolt", "vfx_vortex" };
-            _tagPool[PrototypeTag.Weakness]   = new[] { "art_glyph_bone", "magic_darkbolt", "bub_purple" };
-            _tagPool[PrototypeTag.ArmorBreak] = new[] { "art_glyph_metal", "magic_spark", "magic_spark4" };
-            _tagPool[PrototypeTag.Execute]    = new[] { "art_glyph_scythe", "vfx_explosion2", "blood_vfx1" };   // v0.19.7 剔除KABOOM美漫文字
-            _tagPool[PrototypeTag.Sleep]      = new[] { "art_glyph_moon", "magic_spark4", "magic_spark2" };
-            _tagPool[PrototypeTag.MultiShot]  = new[] { "art_glyph_star", "magic_spark2", "spx_splatter" };
-            _tagPool[PrototypeTag.HealAlly]   = new[] { "art_glyph_heart", "vfx_puffstars", "bub_green2" };
-            _tagPool[PrototypeTag.Summon]     = new[] { "art_glyph_claw", "vfx_vortex", "art_burst" };
-            // ---- 元素细分标签池（v0.19.8 专属程序化图元 + v0.19.12 意象图元）----
-            _tagPool[PrototypeTag.Water]      = new[] { "art_glyph_water", "art_waterwave", "bub_water1" };
-            _tagPool[PrototypeTag.Wind]       = new[] { "art_glyph_wind", "art_windblade", "art_windarc" };
-            _tagPool[PrototypeTag.Thunder]    = new[] { "art_glyph_lightning", "art_thunderbolt", "magic_lightning" };
-            _tagPool[PrototypeTag.Earth]      = new[] { "art_glyph_earth", "art_earthrock", "magic_dust" };
-            _tagPool[PrototypeTag.Metal]      = new[] { "art_glyph_metal", "art_metalslash", "magic_spark4" };
-            _tagPool[PrototypeTag.Light]      = new[] { "art_glyph_holy", "art_holylight", "vfx_puffstars" };
-            _tagPool[PrototypeTag.Shadow]     = new[] { "art_glyph_shadow", "art_shadowwave", "magic_darkbolt" };
+            // ---- 攻击标签池（v0.19.13 素材全面回接：12 素材包图检确认接入，意象对位见 VFXSource/FX_CONTENT_MAP.md）----
+            _tagPool[PrototypeTag.Burn]       = new[] { "vfx_fastfire", "vfx_ditheredfire", "magic_fireball" };
+            _tagPool[PrototypeTag.Plasma]     = new[] { "magic_firebomb", "vfx_explosion2", "spx_explosion" };
+            _tagPool[PrototypeTag.Frost]      = new[] { "magic_ice_a", "magic_ice_b", "magic_ice_c" };
+            _tagPool[PrototypeTag.Frostbite]  = new[] { "magic_ice_c", "magic_ice_b", "magic_ice_a" };
+            _tagPool[PrototypeTag.TimeSlow]   = new[] { "vfx_eldenring", "soul_kong", "magic_spark4" };   // 时间环意象
+            _tagPool[PrototypeTag.Stun]       = new[] { "magic_lightning", "vfx_impact", "magic_spark" };
+            _tagPool[PrototypeTag.Crit]       = new[] { "vfx_bighit", "magic_spark4", "vfx_smallhit" };   // 暴击=重击大闪（v0.19.8 定，非爆炸）
+            _tagPool[PrototypeTag.Telekinesis]= new[] { "soul_kong", "magic_bolt", "vfx_constellation" };
+            _tagPool[PrototypeTag.Poison]     = new[] { "bub_toxic", "magic_smoke", "magic_dust" };
+            _tagPool[PrototypeTag.Curse]      = new[] { "soul_yin", "magic_darkbolt", "vfx_vortex" };
+            _tagPool[PrototypeTag.Fear]       = new[] { "vfx_vortex", "soul_yin", "magic_darkbolt" };
+            _tagPool[PrototypeTag.Slow]       = new[] { "magic_ice_b", "magic_ice_a", "bub_ice" };
+            _tagPool[PrototypeTag.Lifesteal]  = new[] { "blood_vfx1", "blood_vfx3", "bub_blood" };
+            _tagPool[PrototypeTag.Drain]      = new[] { "blood_vfx2", "blood_vfx1", "blood_vfx3" };
+            _tagPool[PrototypeTag.Blood]      = new[] { "blood_vfx3", "blood_vfx1", "bub_blood" };
+            _tagPool[PrototypeTag.Soul]       = new[] { "vfx_anima", "soul_yang", "magic_darkbolt" };
+            _tagPool[PrototypeTag.Heal]       = new[] { "vfx_puffstars", "magic_flash", "bub_green2" };
+            _tagPool[PrototypeTag.Chain]      = new[] { "magic_lightning", "magic_bolt", "vfx_elecshield" };
+            _tagPool[PrototypeTag.Knockback]  = new[] { "vfx_smallhit", "magic_spark", "vfx_impact" };
+            _tagPool[PrototypeTag.Gravity]    = new[] { "vfx_vortex", "soul_kong", "magic_dust" };
+            _tagPool[PrototypeTag.Berserk]    = new[] { "vfx_magma", "vfx_fastfire", "spx_explosion" };
+            _tagPool[PrototypeTag.Entangle]   = new[] { "vfx_tentacles", "soul_wood", "bub_green1" };
+            _tagPool[PrototypeTag.Petrify]    = new[] { "soul_earth", "magic_dust", "vfx_impact" };
+            _tagPool[PrototypeTag.Aging]      = new[] { "soul_yin", "magic_darkbolt", "bub_purple" };
+            _tagPool[PrototypeTag.Weakness]   = new[] { "magic_darkbolt", "soul_yin", "bub_purple2" };
+            _tagPool[PrototypeTag.ArmorBreak] = new[] { "magic_spark", "magic_spark4", "vfx_smallhit" };
+            _tagPool[PrototypeTag.Execute]    = new[] { "vfx_explosion2", "spx_explosion", "blood_vfx1" };   // v0.19.7 剔除KABOOM
+            _tagPool[PrototypeTag.Sleep]      = new[] { "soul_yin", "magic_spark4", "magic_darkbolt" };
+            _tagPool[PrototypeTag.MultiShot]  = new[] { "magic_spark2", "magic_spark4", "spx_splatter" };
+            _tagPool[PrototypeTag.HealAlly]   = new[] { "vfx_puffstars", "bub_green1", "magic_flash" };
+            _tagPool[PrototypeTag.Summon]     = new[] { "vfx_vortex", "magic_flash", "soul_jin" };
+            // ---- 元素细分标签池（v0.19.13：Souls 包十元素专属素材）----
+            _tagPool[PrototypeTag.Water]      = new[] { "soul_water", "magic_splash", "bub_water1" };
+            _tagPool[PrototypeTag.Wind]       = new[] { "soul_wind", "magic_spark2", "vfx_anima" };
+            _tagPool[PrototypeTag.Thunder]    = new[] { "soul_thunder", "magic_lightning", "magic_bolt" };
+            _tagPool[PrototypeTag.Earth]      = new[] { "soul_earth", "magic_dust", "vfx_impact" };
+            _tagPool[PrototypeTag.Metal]      = new[] { "soul_jin", "magic_spark4", "magic_spark" };
+            _tagPool[PrototypeTag.Light]      = new[] { "soul_yang", "magic_flash", "vfx_eldenring" };
+            _tagPool[PrototypeTag.Shadow]     = new[] { "soul_yin", "magic_darkbolt", "vfx_vortex" };
 
-            // ---- 防守标签池 ----
+            // ---- 防守标签池（v0.19.13 全素材，剔除 art_windarc/art_burst/art_holylight/art_woodvine 程序化残留）----
             _tagPool[PrototypeTag.Shield]         = new[] { "art_arcaneshield" };   // v0.19.5 奥术光膜（替代网格贴图盾）
-            _tagPool[PrototypeTag.Dodge]          = new[] { "art_windarc", "magic_spark2" };
-            _tagPool[PrototypeTag.Illusion]       = new[] { "magic_spark4", "art_windarc" };
-            _tagPool[PrototypeTag.Invisibility]   = new[] { "magic_spark2", "art_windarc" };
-            _tagPool[PrototypeTag.Teleport]       = new[] { "art_burst", "vfx_vortex" };
-            _tagPool[PrototypeTag.Clone]          = new[] { "vfx_elecshield", "art_windarc" };
-            _tagPool[PrototypeTag.Blessing]       = new[] { "vfx_puffstars", "art_holylight" };
-            _tagPool[PrototypeTag.Regeneration]   = new[] { "vfx_puffstars", "art_woodvine" };
+            _tagPool[PrototypeTag.Dodge]          = new[] { "soul_wind", "magic_spark2" };
+            _tagPool[PrototypeTag.Illusion]       = new[] { "magic_spark4", "soul_wind" };
+            _tagPool[PrototypeTag.Invisibility]   = new[] { "magic_spark2", "soul_yin" };
+            _tagPool[PrototypeTag.Teleport]       = new[] { "soul_kong", "vfx_vortex" };
+            _tagPool[PrototypeTag.Clone]          = new[] { "vfx_elecshield", "soul_wind" };
+            _tagPool[PrototypeTag.Blessing]       = new[] { "vfx_puffstars", "soul_yang" };
+            _tagPool[PrototypeTag.Regeneration]   = new[] { "vfx_puffstars", "soul_wood" };
             _tagPool[PrototypeTag.Magnetism]      = new[] { "vfx_elecshield", "magic_bolt", "magic_spark4" };
             _tagPool[PrototypeTag.Vibration]      = new[] { "vfx_smallhit", "vfx_impact" };
             _tagPool[PrototypeTag.Sound]          = new[] { "vfx_powerchords", "vfx_impact", "magic_spark2" };   // v0.19.8 声波=音爆波纹，不是爆炸
@@ -87,45 +87,46 @@ namespace Code.Combat.Fx
             _tagPool[PrototypeTag.Cleanse]        = new[] { "magic_spark4", "vfx_puffstars" };
 
             // ---- 家族氛围（大类/小类 → 特效）----
+            // ---- 家族氛围（v0.19.13 全素材，剔除 art_* 程序化残留）----
             _family["元素系/火"] = "vfx_fastfire";     _family["元素系/水"] = "magic_splash";
-            _family["元素系/风"] = "art_windarc";      _family["元素系/雷"] = "magic_lightning";
+            _family["元素系/风"] = "soul_wind";        _family["元素系/雷"] = "magic_lightning";
             _family["元素系/冰"] = "magic_ice_a";      _family["元素系/土"] = "magic_dust";
-            _family["元素系/木"] = "art_woodvine";     _family["元素系/金属"] = "vfx_impact";
-            _family["元素系/光"] = "art_rune";         _family["元素系/暗"] = "vfx_vortex";
-            _family["光明系/圣光"] = "art_rune";        _family["光明系/光刃"] = "spx_shock";
-            _family["光明系/净化"] = "magic_spark4";    _family["光明系/晨曦"] = "art_rune";
-            _family["黑暗系/暗影"] = "vfx_vortex";      _family["黑暗系/腐蚀"] = "magic_smoke";
-            _family["黑暗系/诅咒"] = "art_shadowwave";  _family["黑暗系/夜幕"] = "art_shadowwave";
-            _family["生命系/生命"] = "art_soulflame";   _family["生命系/治愈"] = "vfx_puffstars";
-            _family["生命系/再生"] = "vfx_puffstars";   _family["生命系/生长"] = "art_woodvine";
-            _family["生命系/祝福"] = "art_holylight";
+            _family["元素系/木"] = "soul_wood";        _family["元素系/金属"] = "soul_jin";
+            _family["元素系/光"] = "soul_yang";        _family["元素系/暗"] = "soul_yin";
+            _family["光明系/圣光"] = "soul_yang";       _family["光明系/光刃"] = "spx_shock";
+            _family["光明系/净化"] = "magic_spark4";    _family["光明系/晨曦"] = "magic_flash";
+            _family["黑暗系/暗影"] = "soul_yin";        _family["黑暗系/腐蚀"] = "magic_smoke";
+            _family["黑暗系/诅咒"] = "magic_darkbolt";  _family["黑暗系/夜幕"] = "soul_yin";
+            _family["生命系/生命"] = "vfx_anima";       _family["生命系/治愈"] = "vfx_puffstars";
+            _family["生命系/再生"] = "vfx_puffstars";   _family["生命系/生长"] = "soul_wood";
+            _family["生命系/祝福"] = "soul_yang";
             _family["死亡系/亡灵"] = "vfx_bloodimpact"; _family["死亡系/凋零"] = "bub_black";
-            _family["死亡系/死亡"] = "art_soulflame";   _family["死亡系/灵魂"] = "art_soulflame";
-            _family["死亡系/腐化"] = "art_soulflame";
-            _family["精神系/催眠"] = "magic_spark4";    _family["精神系/幻象"] = "art_windarc";
+            _family["死亡系/死亡"] = "vfx_anima";       _family["死亡系/灵魂"] = "vfx_anima";
+            _family["死亡系/腐化"] = "soul_yin";
+            _family["精神系/催眠"] = "magic_spark4";    _family["精神系/幻象"] = "soul_wind";
             _family["精神系/心灵"] = "vfx_constellation"; _family["精神系/念力"] = "vfx_constellation";
-            _family["精神系/意志"] = "art_rune";         _family["精神系/操控"] = "vfx_constellation";
+            _family["精神系/意志"] = "vfx_eldenring";   _family["精神系/操控"] = "vfx_constellation";
             _family["精神系/预知"] = "vfx_constellation";
-            _family["时空系/时间"] = "magic_spark4";    _family["时空系/空间"] = "art_burst";
+            _family["时空系/时间"] = "magic_spark4";    _family["时空系/空间"] = "soul_kong";
             _family["时空系/次元"] = "vfx_vortex";      _family["时空系/引力"] = "vfx_vortex";
             _family["时空系/速度"] = "magic_spark2";    // v0.19.8 剔除原版等离子尾迹(可能持续残留)
-            _family["自然系/动物"] = "vfx_puffstars";   _family["自然系/植物"] = "art_woodvine";
+            _family["自然系/动物"] = "vfx_puffstars";   _family["自然系/植物"] = "soul_wood";
             _family["自然系/毒"] = "bub_toxic";         _family["自然系/气象"] = "vfx_elecshield";
-            _family["自然系/藤蔓"] = "art_woodvine";    _family["自然系/野兽"] = "spx_shock";
-            _family["强化系/体魄"] = "art_burst";       _family["强化系/能量"] = "art_burst";
+            _family["自然系/藤蔓"] = "vfx_tentacles";   _family["自然系/野兽"] = "spx_shock";
+            _family["强化系/体魄"] = "vfx_impact";      _family["强化系/能量"] = "vfx_anima";
             // ---- v0.18.99 新体系家族氛围 ----
-            _family["兽化系/猛兽"] = "vfx_puffstars";    _family["兽化系/飞禽"] = "art_windarc";
-            _family["兽化系/爬行"] = "art_woodvine";    _family["兽化系/虫豸"] = "spx_shock";
+            _family["兽化系/猛兽"] = "vfx_puffstars";    _family["兽化系/飞禽"] = "soul_wind";
+            _family["兽化系/爬行"] = "soul_wood";       _family["兽化系/虫豸"] = "spx_shock";
             _family["兽化系/神兽"] = "vfx_powerchords";
             _family["命运系/命运"] = "vfx_constellation"; _family["命运系/因果"] = "vfx_constellation";
             _family["命运系/气运"] = "vfx_puffstars";    _family["命运系/灾厄"] = "vfx_vortex";
             _family["召唤系/兽灵"] = "vfx_puffstars";    _family["召唤系/元素"] = "magic_lightning";
-            _family["召唤系/亡灵"] = "art_soulflame";    _family["召唤系/幻影"] = "art_windarc";
+            _family["召唤系/亡灵"] = "vfx_anima";        _family["召唤系/幻影"] = "soul_wind";
             _family["召唤系/虫潮"] = "spx_shock";        _family["召唤系/巨兽"] = "vfx_tentacles";
-            _family["召唤系/圣灵"] = "art_holylight";    _family["召唤系/龙裔"] = "vfx_powerchords";
+            _family["召唤系/圣灵"] = "soul_yang";        _family["召唤系/龙裔"] = "vfx_powerchords";
             _family["召唤系/百鬼"] = "vfx_vortex";
-            _family["强化系/力量"] = "art_burst";       _family["强化系/速度"] = "magic_spark2";   // v0.19.8 剔除原版等离子尾迹(可能持续残留)
-            _family["强化系/防御"] = "art_arcaneshield"; _family["强化系/变形"] = "art_windarc";   // v0.19.5 防御氛围=奥术光膜
+            _family["强化系/力量"] = "vfx_impact";       _family["强化系/速度"] = "magic_spark2";   // v0.19.8 剔除原版等离子尾迹(可能持续残留)
+            _family["强化系/防御"] = "art_arcaneshield"; _family["强化系/变形"] = "soul_wind";   // v0.19.5 防御氛围=奥术光膜
         }
 
         // ============================================================
@@ -187,6 +188,19 @@ namespace Code.Combat.Fx
             //   护盾≈1.1 倍单位宽罩全身（奥术光膜）· 状态泡≈0.8 倍（小泡贴体）· 单体命中≈1.3 倍 · 图元≈1.5 倍
             //   星座≈2 倍（念力星图）· 大爆≈2.2 倍（波及周围）· 领域/结界/威压≈2.5 倍（笼罩四方但半透明贴地，不遮地图）
             if (id == null) { size = 0.4f; life = 0.6f; return; }
+            // v0.19.13 Souls 十元素：命中贴体；空间/阳=爆发级
+            if (id.StartsWith("soul_"))
+            {
+                if (id == "soul_kong" || id == "soul_yang") { size = 0.5f; life = 0.6f; return; }
+                size = 0.34f; life = 0.55f; return;
+            }
+            // v0.19.13 Magic Packs 投射弹/魔法分级
+            if (id == "magic_bolt" || id == "magic_darkbolt") { size = 0.4f; life = 0.6f; return; }
+            if (id == "magic_fireball" || id == "magic_firebomb") { size = 0.42f; life = 0.6f; return; }
+            if (id == "magic_lightning") { size = 0.45f; life = 0.5f; return; }
+            if (id.StartsWith("magic_ice")) { size = 0.32f; life = 0.5f; return; }
+            if (id == "magic_smoke") { size = 0.4f; life = 0.7f; return; }
+            if (id == "magic_splash") { size = 0.32f; life = 0.5f; return; }
             if (id.StartsWith("art_"))
             {
                 // 奥术光膜护盾（罩全身≈1.1 倍单位宽，持续环绕）；符环=领域环（v0.19.5 回调 0.62）
