@@ -1,16 +1,17 @@
 // ============================================================
-// 异能树 · 数据与布局层（v0.18.94 辐射式 · 圆形节点）
+// 异能树 · 数据与布局层（v0.19.15 径向辐条式重排）
 // 职责（单一职责）：
-//   1. 从 PrototypeRegistry（异能全量库）构建树节点模型：异能体系 → 9 大类 → 小类 → 异能
-//   2. 辐射树布局：根"异能"居中，大类按系内异能数占比分配圆周扇区向四周辐射，
-//      小类在其系扇区内按异能数细分角，异能叶以所属小类为中心、扇区随叶数自适应均布。
-//   3. 防重叠设计（v0.18.94）：
-//      · 节点为圆形（直径 D），弧长=半径×角距 ≥ 直径×1.15 才不挤叠；
-//      · 系扇区最小保底 24°、小类扇区最小保底 14°（小系/密集系不再挤成一团）；
-//      · 半径按最密处留足弧距（R1 按最小系扇区自适应，R2/R3 常量已含裕量）。
-//   4. 输出可见层包围盒（根+系+小类，异能叶默认折叠由渲染层展开），供 Fit 聚焦
+//   1. 从 PrototypeRegistry（异能全量库）构建树节点模型：异能体系 → 大类 → 小类 → 异能
+//   2. 辐射树布局（参考流放之路天赋树）：
+//      · 根"异能"居中；
+//      · 大类按系内小类数加权分配圆周扇区（容纳密度差异，花瓣对称）；
+//      · 小类在其大类扇区内等角距均分（不再按叶数加权，杜绝同系内疏密不均）；
+//      · 异能叶以小类中心角为基准，同品质环内 ±LEAF_ANGLE_STEP 微调排开——
+//        叶节点沿径向辐条分布（高品在内、低品在外），不挤成大弧线，展开后整齐。
+//   3. 防重叠：节点为圆形，弧长=半径×角距 ≥ 直径×1.15；半径按最密处自适应。
+//   4. 输出可见层包围盒（根+大类+小类，异能叶默认折叠由渲染层展开），供 Fit 聚焦。
 // 纯数据，不含任何 GUI 调用（UI 与业务/数据逻辑分离）。
-// 自适应：大类顺序动态枚举（新增大类自动追加扇区），异能增减只改变所属扇区角度，
+// 自适应：大类顺序动态枚举（新增大类自动追加扇区），小类/异能增减只改变所属扇区角度，
 //         无需重新设计布局——拓展异能不用改树。
 // ============================================================
 
@@ -68,28 +69,32 @@ namespace Code.UI
     /// </summary>
     public static class ProtoTreeLayoutBuilder
     {
-        // ---- 辐射布局常量（v0.18.94 圆形节点 + 最小扇区保底，杜绝重叠）----
+        // ---- 辐射布局常量（v0.19.15 径向辐条式 · 圆形节点）----
         // 节点为圆形：W=H=直径。防重叠数学：弧长 = 半径×角距 ≥ 直径×1.15。
-        // · 系扇区 = max(叶占比×360, 系内小类数×MIN_SUB_SECTOR+6°)：保证系内小类铺得开；
-        // · 小类扇区 = max(叶占比×系扇区, MIN_SUB_SECTOR=6.5°)：46 小类单圈最小需 299°<360°，
-        //   归一化后最密相邻中心距 ≥6.5° → 在 R2=800 处弧距 91px ≥ 56×1.15=64 ✓ 不重叠；
-        // · 异能叶展开扇区随叶数自适应（50°~110°），最密 11 叶 → 角距 10° → R3=980 弧距 171px ✓。
+        // · 大类扇区 = max(小类数×MIN_SUB_SECTOR+6°, 叶占比×360, MIN_CAT_SECTOR) 归一化：
+        //   小类多的系（精神系11小类）扇区大，容纳密度差异，整体花瓣对称；
+        // · 小类扇区 = 大类扇区 / 小类数（等角距均分，不再按叶数加权——杜绝同系内疏密不均）；
+        // · 异能叶 = 以小类中心角为基准，同品质环内 ±LEAF_ANGLE_STEP 微调排开：
+        //   叶沿径向辐条分布（高品在内、低品在外），不挤成大弧线，展开后整齐。
         public const float NODE_ROOT_D = 100f;    // 根（异能）圆直径
         public const float NODE_CAT_D = 72f;     // 大类圆直径
         public const float NODE_SUB_D = 56f;     // 小类圆直径
         public const float NODE_LEAF_D = 52f;    // 异能叶圆直径（基准；品质分层时按档覆盖：高品更大）
         public const float RADIUS_CAT = 400f;    // 大类环半径
-        public const float RADIUS_SUB = 800f;    // 小类环半径（按 6.5° 最小中心距留足弧距）
+        public const float RADIUS_SUB = 850f;    // 小类环半径（最密系11小类扇区4.4°→弧距65px≥64 ✓）
         // v0.19.1 异能叶品质分层 3 环：高品(S/SS/SSS)贴近小类中心(内环)，低品(F~D)向外——高品质节点作为传承源头，向外辐射链接更低品质异能
-        public const float RADIUS_LEAF_HIGH = 880f;   // 高品环（tier>=7）
-        public const float RADIUS_LEAF_MID = 960f;    // 中品环（tier 4~6）
-        public const float RADIUS_LEAF_LOW = 1040f;   // 低品环（tier<=3）
+        // v0.19.15 半径按最密小类自适应：兽化系/神兽5叶全高品、小类扇区4.8°→step=0.97°，
+        // 高品需 R≥58×1.15/0.97°(rad)≈3950，故高品环取 4000；中品/低品递增留足径向间距
+        public const float RADIUS_LEAF_HIGH = 4000f;  // 高品环（tier>=7）
+        public const float RADIUS_LEAF_MID = 4600f;   // 中品环（tier 4~6）
+        public const float RADIUS_LEAF_LOW = 5200f;   // 低品环（tier<=3）
         // 叶直径按品质分级：SS/SSS 大、A/S 中、F~C 小（品质越高视觉权重越大）
         public const float LEAF_D_HIGH = 58f;
         public const float LEAF_D_MID = 52f;
         public const float LEAF_D_LOW = 46f;
         public const float MIN_CAT_SECTOR = 24f; // 系最小扇区角（度，小系兜底）
-        public const float MIN_SUB_SECTOR = 6.5f;// 小类最小扇区角（度，46 小类单圈容纳：46×6.5°=299°<360°）
+        public const float MIN_SUB_SECTOR = 6.5f;// 小类最小扇区角（度，用于大类扇区保底计算）
+        public const float LEAF_ANGLE_STEP = 5f; // 同品质环内相邻叶角距（度，R=1000时弧距87px≥58×1.15=67 ✓）
         private const float ARC_SAFETY = 1.15f;  // 弧距安全系数（≥直径×1.15 不重叠）
 
         // 大类固定展示顺序（Categories 字典无序，用顺序数组保证树 UI 稳定；大众认知 9 系）。
@@ -194,22 +199,18 @@ namespace Code.UI
                 SetRadialPos(catNode, catCenter, catR);
                 layout.Nodes.Add(catNode);
 
-                // 系内小类：raw = max(叶占比×系扇区, MIN_SUB_SECTOR)，归一化 Σ=系扇区
+                // 系内小类：等角距均分大类扇区（v0.19.15，不再按叶数加权——杜绝同系内疏密不均）
                 var subNames = new List<string>();
-                var subRaw = new List<float>();
                 foreach (var kv in subs)
                 {
                     if (kv.Value == null || kv.Value.Count == 0) continue;
                     subNames.Add(kv.Key);
-                    subRaw.Add(Mathf.Max(kv.Value.Count / (float)catLeaves * catSec, MIN_SUB_SECTOR));
                 }
-                float subRawSum = 0f;
-                foreach (float s in subRaw) subRawSum += s;
+                float subSector = catSec / Mathf.Max(1, subNames.Count);
                 float subAng = ang;
                 for (int si = 0; si < subNames.Count; si++)
                 {
                     string subName = subNames[si];
-                    float subSector = subRaw[si] / subRawSum * catSec;
                     float subCenter = subAng + subSector / 2f;
 
                     // 小类节点（环 RADIUS_SUB，圆形）
@@ -222,13 +223,11 @@ namespace Code.UI
                     SetRadialPos(subNode, subCenter, RADIUS_SUB);
                     layout.Nodes.Add(subNode);
 
-                    // 异能叶：品质分层 3 环（v0.19.1）——同小类异能按品质分 3 组，
+                    // 异能叶：以小类中心角为基准，同品质环内 ±leafStep 微调排开（v0.19.15 径向辐条式）
                     // 高品(S/SS/SSS)在内环贴近小类中心、中品(A/B/C)中环、低品(F~D)外环；
-                    // 层内按该层叶数在扇区内均布（高层叶少→集中在小类中心，天然形成"高品质源头"）。
-                    // 同时给每片叶挂品质进化链边：GetEvolveTarget = 同家族更高品质上级（低品→高品），
-                    // 渲染层据此画金色传承链线（高品质节点向外辐射链接低品质异能）。
+                    // 环内 k 个叶以 subCenter 为中心对称排开，叶沿径向辐条分布，不挤成大弧线。
+                    // leafStep 自适应：不超过 LEAF_ANGLE_STEP，且不超过 subSector/maxRing（避免溢出到相邻小类）。
                     var subList = subs[subName];
-                    float leafSpan = Mathf.Clamp(subList.Count * 12f, 50f, 110f);
                     var groups = new List<PrototypeDef>[3];
                     for (int g = 0; g < 3; g++) groups[g] = new List<PrototypeDef>();
                     foreach (var def in subList)
@@ -237,16 +236,19 @@ namespace Code.UI
                         int t = PrototypeEvolution.GetTier(def);
                         groups[t >= 7 ? 0 : (t >= 4 ? 1 : 2)].Add(def);
                     }
+                    int maxRing = Mathf.Max(groups[0].Count, Mathf.Max(groups[1].Count, groups[2].Count));
+                    float leafStep = Mathf.Min(LEAF_ANGLE_STEP, subSector / Mathf.Max(1, maxRing));
                     float[] leafRadii = { RADIUS_LEAF_HIGH, RADIUS_LEAF_MID, RADIUS_LEAF_LOW };
                     float[] leafDiams = { LEAF_D_HIGH, LEAF_D_MID, LEAF_D_LOW };
                     for (int g = 0; g < 3; g++)
                     {
                         var gl = groups[g];
-                        for (int i = 0; i < gl.Count; i++)
+                        int k = gl.Count;
+                        for (int i = 0; i < k; i++)
                         {
                             var def = gl[i];
-                            float leafAngle = subCenter - leafSpan / 2f
-                                            + (i + 0.5f) / gl.Count * leafSpan;
+                            float offset = (i - (k - 1) / 2f) * leafStep;
+                            float leafAngle = subCenter + offset;
                             var leaf = new ProtoTreeNode
                             {
                                 Id = def.Id, Name = def.NameZh, Level = 2,

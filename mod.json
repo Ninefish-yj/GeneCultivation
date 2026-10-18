@@ -1,9 +1,9 @@
 {
   "name": "基因修炼",
   "author": "阿鱼要吃书",
-  "version": "0.19.14",
+  "version": "0.19.15",
   "GUID": "GeneCultivation",
-  "description": "崩溃修复：地形破坏渲染安全门（IsTileRenderSafe/CanDecrease）——连续降格与岩浆化前校验 tile 图形完整，杜绝 SetTiles null 引发的周期性 ArgumentNullException；升格仅可降时执行、岩浆化排除液体",
+  "description": "异能树布局重做（径向辐条式）：小类在大类扇区内等角距均分（不再按叶数加权）；异能叶以小类中心角为基准同品质环内±5°微调排开，沿径向辐条分布高品在内低品在外；半径按最密小类自适应（兽化系神兽5叶全高品→高品环R=4000），全环零重叠；参考流放之路天赋树中心对称效果",
   "homepage": "https://github.com/Ninefish-yj/GeneCultivation",
   "repository": "https://github.com/Ninefish-yj/GeneCultivation.git",
   "tags": [
