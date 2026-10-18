@@ -19,6 +19,39 @@ namespace Code.Realm
         private static readonly Dictionary<string, Sprite[]> _spriteCache = new Dictionary<string, Sprite[]>();
 
         // ============================================================
+        // v0.21.13 程序化形态表：11 技能特效全部由程序化图元生成（零素材图）。
+        // 格式：skill 目录名 → (主形态索引, 副形态索引, 半透明专属色)
+        // 形态索引见 CombatFxArt 26 图元库（0火 1冰 2雷 3风 4水 5土 6金 7光 8暗 9血 10镰
+        //   11心 12眼 13爪 14沙漏 15月 16毒 17毒雾 18链 19翼 20星 21符印 22涟漪 23盾 24藤 25棱晶）
+        // ============================================================
+        private static readonly Dictionary<string, (int MainFx, int SubFx, Color Tint)> _proceduralFx =
+            new Dictionary<string, (int, int, Color)>(StringComparer.OrdinalIgnoreCase)
+            {
+                // 6阶 能量弹：星芒火弹（投射物）
+                { "energy_bolt", (20, 0, new Color(0.65f, 0.8f, 1f)) },
+                // 7阶 能量刃：金刃圣光（虚拟武器）
+                { "energy_blade", (6, 7, new Color(0.55f, 0.85f, 1f)) },
+                // 7阶 治疗之光：心形圣辉
+                { "healing_light", (11, 20, new Color(0.6f, 1f, 0.7f)) },
+                // 8阶 能量风暴：旋涡雷暴
+                { "energy_storm", (15, 2, new Color(0.55f, 0.6f, 1f)) },
+                // 9阶 领域展开：符印涟漪（法阵）
+                { "domain_expand", (21, 22, new Color(0.55f, 0.62f, 1f)) },
+                // 9阶 法则压制：盾符镇压
+                { "law_suppress", (23, 21, new Color(0.75f, 0.6f, 1f)) },
+                // 10阶 本源汲取：血滴吸蚀
+                { "origin_drain", (9, 17, new Color(0.85f, 0.4f, 0.45f)) },
+                // 10阶 空间撕裂：风刃裂土
+                { "space_tear", (3, 5, new Color(0.85f, 0.8f, 1f)) },
+                // 11阶 圣域：圣翼神盾
+                { "sanctuary", (19, 23, new Color(1f, 0.85f, 0.5f)) },
+                // 12阶 维度打击：棱晶雷光（大范围）
+                { "dimensional_strike", (25, 2, new Color(0.5f, 0.75f, 1f)) },
+                // 13阶 神罚：天雷圣光（全屏）
+                { "divine_punishment", (2, 7, new Color(1f, 0.9f, 0.4f)) },
+            };
+
+        // ============================================================
         // 技能动画配置（11个技能全部注册）
         // ============================================================
         public class SkillEffectConfig
@@ -295,8 +328,9 @@ namespace Code.Realm
                 // v0.18.69：尺寸按帧宽归一化——原版 prepare 的 scale 是精灵缩放倍数（世界宽=scale×帧宽/100），
                 // 技能素材 64/128px 混用导致同 scale 下世界尺寸漂移近一倍（"大小不对"同源根因）。
                 // scale' = Scale×100/帧宽 → 世界宽恒等于 Scale（Scale 语义=期望世界宽）。
-                float frameW = sprites != null && sprites.Length > 0 ? sprites[0].rect.width : 128f;
-                if (frameW <= 0f) frameW = 128f;
+                // v0.21.13 程序化帧统一 64px；worldScale 语义不变（Scale=期望世界宽）
+                float frameW = sprites != null && sprites.Length > 0 ? sprites[0].rect.width : 64f;
+                if (frameW <= 0f) frameW = 64f;
                 float worldScale = config.Scale * 100f / frameW;
 
                 // 非跟随技能播在目标/AOE 中心脚底，中心上移对准目标身体（同 AbilityFx 位置修复）
@@ -327,10 +361,13 @@ namespace Code.Realm
                         spriteRenderer.sprite = sprites[0];
                         // 把特效放在人物后面，避免覆盖单位
                         spriteRenderer.sortingOrder = -100;
-                        // 设置半透明，显示更好看
-                        var color = spriteRenderer.color;
-                        color.a = 0.5f;  // 50%不透明度，50%透明
-                        spriteRenderer.color = color;
+                        // v0.21.13 技能专属半透明色（原版素材白图染色 → 程序化形态直接带色）
+                        Color tint = new Color(1f, 1f, 1f);
+                        string tintKey = config.AnimationPath.StartsWith("skill/")
+                            ? config.AnimationPath.Substring("skill/".Length) : config.AnimationPath;
+                        if (_proceduralFx.TryGetValue(tintKey, out var tintFx)) tint = tintFx.Tint;
+                        tint.a = 0.5f;   // 50%不透明度，50%透明
+                        spriteRenderer.color = tint;
                     }
                 }
 
@@ -407,9 +444,23 @@ namespace Code.Realm
 
             try
             {
-                var sprites = Resources.LoadAll<Sprite>(path);
-                _spriteCache[path] = sprites;
-                return sprites;
+                // v0.21.13 全程序化：path="skill/xxx" → 查程序化形态表 → 形态演化帧序列
+                string key = path.StartsWith("skill/") ? path.Substring("skill/".Length) : path;
+                if (_proceduralFx.TryGetValue(key, out var fx))
+                {
+                    int seed = 0;
+                    foreach (char c in key) seed = seed * 31 + c;   // 技能 id 哈希定消散节奏
+                    if (seed < 0) seed = -seed;
+                    var sprites = Code.Combat.Fx.CombatFxArt.MakePrototypeFrames(
+                        seed, fx.MainFx, fx.SubFx, 7);
+                    if (sprites != null && sprites.Length > 0)
+                    {
+                        _spriteCache[path] = sprites;
+                        return sprites;
+                    }
+                }
+                _spriteCache[path] = new Sprite[0];
+                return new Sprite[0];
             }
             catch
             {
