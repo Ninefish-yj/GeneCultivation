@@ -14,9 +14,9 @@ namespace Code.Realm.Prototype
         {
             // ---- 星辰 ----
             new PrototypeDef("ce_star_01", "星爆", "攻击暴击破甲，念力贯穿", "光明系", "光刃",
-                PrototypeTag.Light, PrototypeTag.Telekinesis, 4, 2),
-            new PrototypeDef("ce_star_02", "曙光", "受击免伤，受击回血", "光明系", "晨曦",
-                PrototypeTag.Light, PrototypeTag.Blessing, 4, 1),
+                PrototypeTag.Light, PrototypeTag.Knockback, 4, 2),
+            new PrototypeDef("ce_star_02", "曙光", "晨曦普照，攻击概率回复生命", "光明系", "晨曦",
+                PrototypeTag.Light, PrototypeTag.Heal, 4, 1),
             new PrototypeDef("ce_star_03", "聚能", "攻击狂暴当次+25%，溅射波及", "强化系", "能量",
                 PrototypeTag.Berserk, PrototypeTag.Chain, 4, 1),
             // ---- 宇宙 ----
@@ -28,18 +28,24 @@ namespace Code.Realm.Prototype
                 PrototypeTag.Shield, PrototypeTag.Invisibility, 4, 1),
             // ---- 陨石 ----
             new PrototypeDef("ce_meteor_01", "天火燎原", "攻击溅射波及，附加灼烧", "元素系", "火",
-                PrototypeTag.Chain, PrototypeTag.Burn, 6, 4),
+                PrototypeTag.Plasma, PrototypeTag.Gravity, 6, 4),
             new PrototypeDef("ce_meteor_02", "重压", "攻击重力压制，概率眩晕", "时空系", "引力",
-                PrototypeTag.Gravity, PrototypeTag.Stun, 6, 3),
-            new PrototypeDef("ce_meteor_03", "万磁", "护盾减伤，受击反击麻痹攻击者", "元素系", "金属",
+                PrototypeTag.Gravity, PrototypeTag.Knockback, 6, 3),
+            new PrototypeDef("ce_meteor_03", "万磁", "护盾减伤，受击反击麻痹攻击者", "机械系", "电磁",
                 PrototypeTag.Metal, PrototypeTag.Magnetism, 6, 1),
             // ---- 银河 ----
             new PrototypeDef("ce_galaxy_01", "落雷", "攻击暴击高伤，溅射波及", "元素系", "雷",
-                PrototypeTag.Thunder, PrototypeTag.Chain, 4, 1),
+                PrototypeTag.Thunder, PrototypeTag.Crit, 4, 1),
             new PrototypeDef("ce_galaxy_02", "星愈", "攻击概率回复生命，受击自愈", "生命系", "治愈",
                 PrototypeTag.Heal, PrototypeTag.Regeneration, 4, 1),
             new PrototypeDef("ce_galaxy_03", "迷幻", "闪避强化，受击反击震慑攻击者", "精神系", "幻象",
                 PrototypeTag.Illusion, PrototypeTag.Sound, 4, 1),
+            new PrototypeDef("el_metal_06", "合金化", "金属合金强化，防御增幅", "机械系", "钢铁",
+                PrototypeTag.Metal, PrototypeTag.Buff, 0, 4),
+            new PrototypeDef("ma_metal_04", "超合金", "超合金强化，金属增幅", "机械系", "钢铁",
+                PrototypeTag.Metal, PrototypeTag.ArmorBreak, 0, 5),
+            new PrototypeDef("ma_metal_05", "电磁脉冲", "电磁脉冲，磁力连锁", "机械系", "电磁",
+                PrototypeTag.Magnetism, PrototypeTag.Chain, 0, 6),
         };
     }
 
@@ -57,12 +63,12 @@ namespace Code.Realm.Prototype
             new PrototypeDef("ma_machine_03", "念盾", "护盾减伤强化，受击反击眩晕攻击者", "精神系", "念力",
                 PrototypeTag.Shield, PrototypeTag.Vibration, 0, 3),
             // ---- 金属（金属操控，归元素系，与既有金属小类合并）----
-            new PrototypeDef("ma_metal_01", "钢魂", "护盾减伤，攻击暴击", "元素系", "金属",
+            new PrototypeDef("ma_metal_01", "钢魂", "护盾减伤，攻击暴击", "机械系", "钢铁",
                 PrototypeTag.Metal, PrototypeTag.Crit, 0, 2),
-            new PrototypeDef("ma_metal_02", "金属风暴", "攻击溅射波及，念力贯穿", "元素系", "金属",
-                PrototypeTag.Metal, PrototypeTag.Telekinesis, 0, 3),
-            new PrototypeDef("ma_metal_03", "钢壁", "护盾减伤强化，受击反击麻痹攻击者", "元素系", "金属",
-                PrototypeTag.Metal, PrototypeTag.Magnetism, 0, 4),
+            new PrototypeDef("ma_metal_02", "金属风暴", "攻击溅射波及，念力贯穿", "机械系", "机械",
+                PrototypeTag.Metal, PrototypeTag.MultiShot, 0, 3),
+            new PrototypeDef("ma_metal_03", "钢壁", "护盾减伤强化，受击反击麻痹攻击者", "机械系", "钢铁",
+                PrototypeTag.Metal, PrototypeTag.Shield, 0, 4),
             // ---- 能量（原科技：身体能量强化，归强化系）----
             new PrototypeDef("ma_tech_01", "战吼", "攻击狂暴当次+25%，护盾减伤", "强化系", "能量",
                 PrototypeTag.Berserk, PrototypeTag.Shield, 4, 3),

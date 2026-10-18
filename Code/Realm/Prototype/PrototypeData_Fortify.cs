@@ -35,7 +35,7 @@ namespace Code.Realm.Prototype
             new PrototypeDef("fort_iron_wall", "铁壁", "护盾减伤，石化反击", "强化系", "防御",
                 PrototypeTag.Shield, PrototypeTag.Petrify, 2, 3),
             new PrototypeDef("fort_vajra", "金刚", "护盾减伤，反弹伤害", "强化系", "防御",
-                PrototypeTag.Shield, PrototypeTag.Thorns, 2, 5),
+                PrototypeTag.Shield, PrototypeTag.Reflect, 2, 5),
             new PrototypeDef("fort_boulder", "磐石", "石化反击，反弹伤害", "强化系", "防御",
                 PrototypeTag.Petrify, PrototypeTag.Thorns, 2, 4),
             new PrototypeDef("fort_indestructible", "不坏", "护盾减伤，受击净化", "强化系", "防御",
@@ -49,6 +49,18 @@ namespace Code.Realm.Prototype
                 PrototypeTag.Clone, PrototypeTag.Teleport, 2, 6),
             new PrototypeDef("fort_mimic", "拟态", "隐身遁形，幻象迷惑", "强化系", "变形",
                 PrototypeTag.Invisibility, PrototypeTag.Illusion, 2, 7),
+            new PrototypeDef("en_body_09", "巨力术", "巨力爆发，击退强化", "强化系", "体魄",
+                PrototypeTag.Knockback, PrototypeTag.Buff, 0, 2),
+            new PrototypeDef("en_body_10", "铜皮", "铜皮硬化，反伤强化", "强化系", "体魄",
+                PrototypeTag.Thorns, PrototypeTag.Buff, 0, 2),
+            new PrototypeDef("en_body_11", "战神附体", "战神附体，狂暴祝福", "强化系", "体魄",
+                PrototypeTag.Berserk, PrototypeTag.Blessing, 0, 6),
+            new PrototypeDef("en_body_12", "生命爆发", "燃烧生命，狂暴爆发", "强化系", "能量",
+                PrototypeTag.Heal, PrototypeTag.Berserk, 0, 5),
+            new PrototypeDef("en_body_13", "钢铁意志", "钢铁意志，护盾强化", "强化系", "力量",
+                PrototypeTag.Shield, PrototypeTag.Buff, 0, 4),
+            new PrototypeDef("en_body_14", "超速再生", "超速再生，快速痊愈", "强化系", "能量",
+                PrototypeTag.Regeneration, PrototypeTag.Heal, 0, 6),
         };
     }
 }
