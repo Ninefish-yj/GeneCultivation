@@ -93,7 +93,14 @@ namespace Code.Realm.Prototype
         Earth,        // 土：攻击概率破甲+石化定身（土块意象）
         Metal,        // 金：攻击概率暴击+破甲穿透（金属刃意象）
         Light,        // 光：攻击概率净化负面+治疗（圣光意象）
-        Shadow        // 暗：攻击附加诅咒+吸血（暗影意象）
+        Shadow,       // 暗：攻击附加诅咒+吸血（暗影意象）
+        // ---- 大众认知补充标签（v0.20.0：异能内容重构 6 新机制，差异化同质化异能）----
+        Aura,         // 光环：攻击概率获得光环加持（持续强化自身，strong 5s）
+        Mark,         // 标记：攻击概率标记目标（虚弱易伤 8s，被标记者受压制）
+        ManaDrain,    // 吸能：攻击概率汲取目标能量（夺灵吸能，能量系统联动）
+        Buff,         // 强化：攻击概率强化自身（持续战斗增益，strong 6s——狂暴的持续版）
+        Reflect,      // 反射：受击概率全额反射伤害给攻击者（护体反伤，比反弹更强）
+        Domain        // 领域：受击概率展开领域压制（压制攻击者+自身回气）
     }
 
     /// <summary>标签静态定义（数据驱动）</summary>
@@ -185,6 +192,13 @@ namespace Code.Realm.Prototype
             Add(new PrototypeTagDef(PrototypeTag.Metal, "金", "攻击概率暴击并破甲穿透（金属刃）", true, 0.15f, 0.45f, 1.2f));
             Add(new PrototypeTagDef(PrototypeTag.Light, "光", "攻击概率净化负面并治疗自身（圣光）", true, 0.20f, 0.50f, 1f));
             Add(new PrototypeTagDef(PrototypeTag.Shadow, "暗", "攻击附加诅咒并吸血（暗影）", true, 0.22f, 0.55f, 1f));
+            // ---- 大众认知补充标签（v0.20.0：6 新机制，差异化同质化异能）----
+            Add(new PrototypeTagDef(PrototypeTag.Aura, "光环", "攻击概率获得光环加持（持续强化，strong 5秒）", true, 0.30f, 0.65f, 1f));
+            Add(new PrototypeTagDef(PrototypeTag.Mark, "标记", "攻击概率标记目标（虚弱易伤，weakened 8秒）", true, 0.25f, 0.55f, 1f));
+            Add(new PrototypeTagDef(PrototypeTag.ManaDrain, "吸能", "攻击概率汲取目标能量并回血（夺灵吸能）", true, 0.35f, 0.70f, 1f));
+            Add(new PrototypeTagDef(PrototypeTag.Buff, "强化", "攻击概率强化自身（持续战斗增益，strong 6秒）", true, 0.30f, 0.65f, 1f));
+            Add(new PrototypeTagDef(PrototypeTag.Reflect, "反射", "受击概率全额反射伤害给攻击者（护体反伤）", false, 0.30f, 0.65f, 0.5f));
+            Add(new PrototypeTagDef(PrototypeTag.Domain, "领域", "受击概率展开领域（压制攻击者+自身回气）", false, 0.25f, 0.60f, 1f));
         }
 
         private static void Add(PrototypeTagDef def)

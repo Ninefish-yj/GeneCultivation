@@ -61,6 +61,11 @@ namespace Code.Realm.Prototype
                 case PrototypeTag.Metal: return "fx_slash";                  // 金：斩击
                 case PrototypeTag.Light: return "fx_cast_ground_green";      // 光：圣辉绿光
                 case PrototypeTag.Shadow: return "fx_cast_ground_purple";    // 暗：暗紫光
+                // ---- v0.20.0 6 新机制标签 ----
+                case PrototypeTag.Aura: return "fx_cast_top_green";          // 光环：绿光加持
+                case PrototypeTag.Buff: return "fx_cast_top_red";            // 强化：红光增益
+                case PrototypeTag.Mark: return "fx_hit_critical";            // 标记：重击标记
+                case PrototypeTag.ManaDrain: return "fx_cast_ground_purple"; // 吸能：紫光夺灵
                 default: return null;
             }
         }
@@ -84,6 +89,9 @@ namespace Code.Realm.Prototype
                 case PrototypeTag.Thorns: return "fx_spark";                 // 反弹：火花
                 case PrototypeTag.ElementResist: return "fx_shield_hit";     // 元素抗性：盾击
                 case PrototypeTag.Cleanse: return "fx_cast_top_green";       // 净化：圣光
+                // ---- v0.20.0 6 新机制标签（防守）----
+                case PrototypeTag.Reflect: return "fx_shield_hit";           // 反射：盾反
+                case PrototypeTag.Domain: return "fx_cast_ground_green";     // 领域：结界绿光
                 default: return null;
             }
         }

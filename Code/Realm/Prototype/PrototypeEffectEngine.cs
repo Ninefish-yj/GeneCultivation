@@ -158,6 +158,30 @@ namespace Code.Realm.Prototype
                     PrototypeFx.PlayDefendFx(defender, PrototypeTag.Thorns);   // v0.18.28 反弹火花
                     TryThorns(defender, attacker, damage);
                 }
+                // 反射：受击概率全额反射伤害（v0.20.0，护体反伤，比 Thorns 更强）
+                if (attacker != null && attacker.isAlive() &&
+                    (proto.MainTag == PrototypeTag.Reflect || proto.SubTag == PrototypeTag.Reflect))
+                {
+                    PrototypeFx.PlayDefendFx(defender, PrototypeTag.Reflect);
+                    TryReflect(defender, attacker, damage);
+                }
+                // 领域：受击概率展开领域压制攻击者+自身回气（v0.20.0）
+                if (attacker != null && attacker.isAlive() &&
+                    (proto.MainTag == PrototypeTag.Domain || proto.SubTag == PrototypeTag.Domain))
+                {
+                    var dDef = PrototypeTags.Get(PrototypeTag.Domain);
+                    if (dDef != null)
+                    {
+                        float dChance = Mathf.Min(dDef.MaxChance, dDef.BaseChance + GeneAffinityBridge.GetTagAffinity(defender, PrototypeTag.Domain) * 0.04f);
+                        if (UnityEngine.Random.value < dChance)
+                        {
+                            PrototypeFx.PlayDefendFx(defender, PrototypeTag.Domain);
+                            try { DSStatusManager.SafeAddStatusEffect(attacker, "slowness", 2f); }
+                            catch (System.Exception dsEx) { DSDebug.Verbose("[GeneCultivation] 领域压制状态异常: " + dsEx.Message); }
+                            TryHeal(defender, Mathf.Max(1f, damage * 0.15f));   // 领域回气
+                        }
+                    }
+                }
             }
             catch (System.Exception dsEx)
             {
@@ -310,6 +334,17 @@ namespace Code.Realm.Prototype
                 case PrototypeTag.Shadow:
                     TryAddStatus(attacker, target, "poisoned", tag, 4f, multiplier, 0.06f); // 暗影侵蚀
                     TryLifesteal(attacker, tag, damage);
+                    break;
+                // ---- v0.20.0 6 新机制标签（大众认知异能重构）----
+                case PrototypeTag.Aura:
+                case PrototypeTag.Buff:
+                    TryAddStatus(attacker, attacker, "powerup", tag, 5f, multiplier, 0.05f); // 光环/强化：自身获得力量增益
+                    break;
+                case PrototypeTag.Mark:
+                    TryAddStatus(attacker, target, "weakened", tag, 8f, multiplier, 0.06f);   // 标记：目标虚弱易伤
+                    break;
+                case PrototypeTag.ManaDrain:
+                    TryManaDrain(attacker, target, tag, damage);                              // 吸能：夺灵吸能
                     break;
                 default:
                     break;
@@ -511,6 +546,58 @@ namespace Code.Realm.Prototype
                 finally { _chainProcessing.Remove(defenderId); }
             }
             catch (System.Exception dsEx) { DSDebug.Verbose("[GeneCultivation] 异能反弹异常: " + dsEx.Message); }
+        }
+
+        /// <summary>吸能：攻击概率汲取目标能量并回血（v0.20.0，联动能量系统）</summary>
+        private static void TryManaDrain(Actor attacker, Actor target, PrototypeTag tag, float damage)
+        {
+            if (attacker == null || target == null || !attacker.isAlive() || !target.isAlive()) return;
+            try
+            {
+                var def = PrototypeTags.Get(tag);
+                if (def == null) return;
+                float chance = Mathf.Min(1f, def.BaseChance + GeneAffinityBridge.GetTagAffinity(attacker, tag) * 0.05f);
+                if (UnityEngine.Random.value > chance) return;
+                // 夺灵：汲取目标能量（模组能量系统）
+                float drained = Code.Data.CultivationData.GetEnergy(target);
+                if (drained > 0.5f)
+                {
+                    float take = Mathf.Min(drained, 30f);
+                    Code.Data.CultivationData.SetEnergy(target, drained - take);
+                    Code.Data.CultivationData.SetEnergy(attacker, Code.Data.CultivationData.GetEnergy(attacker) + take);
+                }
+                // 吸能回血
+                float healAmount = damage * def.Strength;
+                if (healAmount > 1f) TryHeal(attacker, healAmount);
+                DSDebug.Verbose("[GeneCultivation] " + attacker.getName() + " 异能吸能: " + target.getName());
+            }
+            catch (System.Exception dsEx) { DSDebug.Verbose("[GeneCultivation] 异能吸能异常: " + dsEx.Message); }
+        }
+
+        /// <summary>反射：受击概率全额反射伤害给攻击者（v0.20.0，护体反伤；比 Thorns 比例更高）</summary>
+        private static void TryReflect(Actor defender, Actor attacker, float incomingDamage)
+        {
+            if (defender == null || attacker == null || !attacker.isAlive()) return;
+            long defenderId = defender.getID();
+            if (_chainProcessing.Contains(defenderId)) return;   // 反射链防递归
+            try
+            {
+                var def = PrototypeTags.Get(PrototypeTag.Reflect);
+                if (def == null) return;
+                float chance = Mathf.Min(def.MaxChance, def.BaseChance + GeneAffinityBridge.GetTagAffinity(defender, PrototypeTag.Reflect) * 0.04f);
+                if (UnityEngine.Random.value > chance) return;
+                float reflect = incomingDamage * def.Strength;
+                if (reflect < 1f) return;
+                _chainProcessing.Add(defenderId);
+                try
+                {
+                    attacker.getHit(reflect, false, AttackType.Other, defender,
+                        pSkipIfShake: false, pMetallicWeapon: false, pCheckDamageReduction: true);
+                    DSDebug.Verbose("[GeneCultivation] " + defender.getName() + " 异能反射: " + attacker.getName());
+                }
+                finally { _chainProcessing.Remove(defenderId); }
+            }
+            catch (System.Exception dsEx) { DSDebug.Verbose("[GeneCultivation] 异能反射异常: " + dsEx.Message); }
         }
 
         /// <summary>净化：清除自身负面状态（原版状态移除，v0.18.24）</summary>
