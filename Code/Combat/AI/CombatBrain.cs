@@ -65,8 +65,12 @@ namespace Code.Combat.AI
                 if (unit == null || !unit.isAlive()) continue;
                 if (CultivationData.GetRealmTier(unit) < MinFightTier) continue;
                 if (!PrototypeRegistry.HasPrototype(unit)) continue;
+                // v0.21.19 异能辨识光晕：视野内异能单位一眼区分（火=火环、冰=冰环…），
+                // 兼作"这是异能战斗"的视觉标识；已挂单位幂等跳过
+                Code.Combat.Fx.CombatAuraFx.EnsureAura(unit, PrototypeRegistry.GetForActor(unit));
                 DecideFor(unit);
             }
+            Code.Combat.Fx.CombatAuraFx.Prune();   // 清理已死单位记录（粒子由跟随机制自动回收）
         }
 
         private static void DecideFor(Actor self)

@@ -75,8 +75,21 @@ namespace Code.Combat.Fx
             {
                 // 原版状态贴图（QuantumSpriteLibrary 同源：effects/fx_status_*）
                 frames = Resources.LoadAll<Sprite>("effects/" + fxId);
-                if (frames == null || frames.Length == 0) return;
-                Array.Sort(frames, (a, b) => string.Compare(a.name, b.name, StringComparison.Ordinal));
+                if (frames == null || frames.Length == 0)
+                {
+                    // v0.21.19 原版贴图缺失兜底：程序化形态（着火=火形、冻结=冰晶），
+                    // 保证"单位身上持续冒火/被冰晶覆盖"的视觉一定出现（不依赖原版素材存在性）
+                    int glyph = fxId.Contains("frozen") ? AbilityFx.TagGlyphIndex(Code.Realm.Prototype.PrototypeTag.Frost)
+                              : fxId.Contains("burning") ? AbilityFx.TagGlyphIndex(Code.Realm.Prototype.PrototypeTag.Burn) : -1;
+                    if (glyph < 0) return;
+                    int seed = target != null ? (int)(target.getID() * 131 + 7) : 0;
+                    frames = CombatFxArt.MakePrototypeFrames(seed, glyph, -1, 0);
+                    if (frames == null || frames.Length == 0) return;
+                }
+                else
+                {
+                    Array.Sort(frames, (a, b) => string.Compare(a.name, b.name, StringComparison.Ordinal));
+                }
             }
             else if (fxId == "__proto_poison")
             {

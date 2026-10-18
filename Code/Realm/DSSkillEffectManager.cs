@@ -94,12 +94,14 @@ namespace Code.Realm
                     new SkillEffectConfig("skill/healing_light", 0.4f, 0.1f, followActor: true, offsetY: 0.17f, duration: 3.0f) },
 
                 // 8阶 能量风暴：范围伤害
+                // v0.21.19 巨型程序化图元降级为小辅助（原版 fx_fire+fx_storm 放大为主演出）——根治"巨大旋涡压场"
                 { "ds_ability_energy_storm",
-                    new SkillEffectConfig("skill/energy_storm", 8f, 0.12f, followActor: true, offsetY: 0.17f, duration: 3.0f) },
+                    new SkillEffectConfig("skill/energy_storm", 1.2f, 0.12f, followActor: true, offsetY: 0.17f, duration: 3.0f) },
 
                 // 9阶 领域展开：跟随施法者，持续5秒
                 { "ds_ability_domain_expand",
-                    new SkillEffectConfig("skill/domain_expand", 5f, 0.15f, followActor: true, offsetY: 0.17f, duration: 5.0f) },
+                    // v0.21.19 修复2倍放大bug（128px→64px未换算）并降级为小辅助：原版 fx_energy_field 放大做领域法阵主场
+                    new SkillEffectConfig("skill/domain_expand", 1.0f, 0.15f, followActor: true, offsetY: 0.17f, duration: 5.0f) },
 
                 // 9阶 法则压制：目标位置
                 { "ds_ability_law_suppress",
@@ -117,13 +119,16 @@ namespace Code.Realm
                 { "ds_ability_sanctuary",
                     new SkillEffectConfig("skill/sanctuary", 1.5f, 0.12f, followActor: true, offsetY: 0.17f, duration: 10.0f) },
 
-                // 12阶 维度打击：大范围（v0.21.15 特效 12f→24f，对齐伤害半径 24f）
+                // 12阶 维度打击：大范围
+                // v0.21.19 24世界宽棱晶实体=用户"巨大冰块"根因——降为小辅助（1.5），
+                // 主演出=原版地震灾难 + 放大版爆炸/风暴（伤害半径24f不变，观感从"巨大冰块"→"天崩地裂"）
                 { "ds_ability_dimensional_strike",
-                    new SkillEffectConfig("skill/dimensional_strike", 24f, 0.08f, followActor: false, duration: 3.0f) },
+                    new SkillEffectConfig("skill/dimensional_strike", 1.5f, 0.08f, followActor: false, duration: 3.0f) },
 
-                // 13阶 神罚：全屏，超大
+                // 13阶 神罚：全屏
+                // v0.21.19 12世界宽实体图元降级为小辅助——原版 爆炸+闪电+大爆炸 放大为主演出
                 { "ds_ability_divine_punishment",
-                    new SkillEffectConfig("skill/divine_punishment", 12f, 0.05f, followActor: false, duration: 4.0f) },
+                    new SkillEffectConfig("skill/divine_punishment", 1.5f, 0.05f, followActor: false, duration: 4.0f) },
             };
 
         // ============================================================
@@ -164,15 +169,15 @@ namespace Code.Realm
                     new OriginalEffectConfig("fx_heal", 1.0f),
                 }},
 
-                // 8阶 能量风暴：火焰+旋风
+                // 8阶 能量风暴：火焰+旋风（v0.21.19 放大——大范围风暴主演出）
                 { "ds_ability_energy_storm", new List<OriginalEffectConfig> {
-                    new OriginalEffectConfig("fx_fire", 1.0f),
-                    new OriginalEffectConfig("fx_storm", 0.8f, delay: 0.1f),
+                    new OriginalEffectConfig("fx_fire", 3.0f),
+                    new OriginalEffectConfig("fx_storm", 4.0f, delay: 0.1f),
                 }},
 
-                // 9阶 领域展开：能量场域
+                // 9阶 领域展开：能量场域（v0.21.19 放大——领域法阵主演出）
                 { "ds_ability_domain_expand", new List<OriginalEffectConfig> {
-                    new OriginalEffectConfig("fx_energy_field", 1.2f),
+                    new OriginalEffectConfig("fx_energy_field", 4.0f),
                 }},
 
                 // 9阶 法则压制：debuff效果
@@ -197,17 +202,17 @@ namespace Code.Realm
                     new OriginalEffectConfig("fx_buff", 1.0f, delay: 0.2f),
                 }},
 
-                // 12阶 维度打击：大爆炸+风暴
+                // 12阶 维度打击：大爆炸+风暴（v0.21.19 放大——配合原版地震灾难，"天崩地裂"主演出）
                 { "ds_ability_dimensional_strike", new List<OriginalEffectConfig> {
-                    new OriginalEffectConfig("fx_explosion", 1.5f),
-                    new OriginalEffectConfig("fx_storm", 1.2f, delay: 0.1f),
+                    new OriginalEffectConfig("fx_explosion", 6.0f),
+                    new OriginalEffectConfig("fx_storm", 5.0f, delay: 0.1f),
                 }},
 
-                // 13阶 神罚：超级爆炸+闪电+大爆炸
+                // 13阶 神罚：超级爆炸+闪电+大爆炸（v0.21.19 放大——全屏天罚主演出）
                 { "ds_ability_divine_punishment", new List<OriginalEffectConfig> {
-                    new OriginalEffectConfig("fx_explosion", 2.5f),
-                    new OriginalEffectConfig("fx_lightning", 2.0f, delay: 0.1f),
-                    new OriginalEffectConfig("fx_bigexplosion", 3.0f, delay: 0.2f),
+                    new OriginalEffectConfig("fx_explosion", 6.0f),
+                    new OriginalEffectConfig("fx_lightning", 6.0f, delay: 0.1f),
+                    new OriginalEffectConfig("fx_bigexplosion", 8.0f, delay: 0.2f),
                 }},
             };
 
@@ -334,8 +339,14 @@ namespace Code.Realm
                 float worldScale = config.Scale * 100f / frameW;
 
                 // 非跟随技能播在目标/AOE 中心脚底，中心上移对准目标身体（同 AbilityFx 位置修复）
+                // v0.21.19 大范围技能观感治理：Scale>=10（维度打击/神罚）几乎贴地+更透明——
+                //   面积随伤害范围不变，但"24世界宽立体晶体压场=巨大冰块感"去掉（变范围法阵感）
                 Vector2 spawnPos = position;
-                if (!config.FollowActor) spawnPos.y += 0.17f;
+                if (!config.FollowActor)
+                {
+                    float lift = config.Scale >= 10f ? 0.03f : (config.Scale >= 5f ? 0.06f : 0.17f);
+                    spawnPos.y += lift;
+                }
 
                 // 清理对象池残留
                 effect.transform.localScale = Vector3.one;
@@ -366,7 +377,9 @@ namespace Code.Realm
                         string tintKey = config.AnimationPath.StartsWith("skill/")
                             ? config.AnimationPath.Substring("skill/".Length) : config.AnimationPath;
                         if (_proceduralFx.TryGetValue(tintKey, out var tintFx)) tint = tintFx.Tint;
-                        tint.a = 0.5f;   // 50%不透明度，50%透明
+                        // v0.21.19 透明度分级：大范围技能更透明（面积大不挡视野）——
+                        //   Scale>=10 → 0.25（维度打击/神罚半透明法阵），Scale>=5 → 0.35（能量风暴/领域），小技能 → 0.5
+                        tint.a = config.Scale >= 10f ? 0.25f : (config.Scale >= 5f ? 0.35f : 0.5f);
                         spriteRenderer.color = tint;
                     }
                 }

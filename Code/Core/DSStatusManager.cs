@@ -45,6 +45,13 @@ namespace Code.Core
             {
                 // 直接调用addStatusEffect方法
                 actor.addStatusEffect(statusId, duration, addToUI);
+                // v0.21.19 状态生效回读诊断：0.51.x 无效状态 id 会静默失败
+                // （视觉贴图挂上了、状态却没生效）——立即回读 hasStatus 确诊；
+                // 失败打 Warning（Verbose 默认被过滤，Warning 一定可见）
+                bool applied = false;
+                try { applied = actor.hasStatus(statusId); } catch { }
+                if (!applied)
+                    DSDebug.Warning($"[GeneCultivation] 状态可能未生效(id无效或延迟生效): {statusId}@{actor.getName()}");
             }
             catch (System.Exception e)
             {
