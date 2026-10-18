@@ -23,7 +23,7 @@ namespace Code.Combat.Fx
         private const float CD = 1.2f;   // 每单位地图融合冷却（防每次命中都改地形/铺地面）
 
         /// <summary>攻击命中入口（AbilityFx 攻击分支调用）：标签 → 地图融合形态</summary>
-        public static void OnHit(Actor by, Vector2 pos, PrototypeTag mainTag, PrototypeTag subTag)
+        public static void OnHit(Actor by, Vector2 pos, PrototypeTag mainTag, PrototypeTag subTag, PrototypeDef def = null)
         {
             if (by == null || !by.isAlive()) return;
             if (World.world == null || World.world.isPaused()) return;
@@ -40,10 +40,11 @@ namespace Code.Combat.Fx
 
             int tier = CultivationData.GetRealmTier(by);
 
-            // L0：贴地持续域（视觉层，不改地形；任何境界都铺，意象按标签）
-            var groundFx = GroundFxFor(mainTag, subTag);
+            // L0：贴地持续域（视觉层，不改地形；任何境界都铺，意象按标签；
+            // v0.21.9 异能级：色=异能派生色、帧节奏=异能 id 哈希——同标签不同异能地面域各异）
+            var groundFx = GroundFxFor(mainTag, subTag, def);
             if (groundFx.Item1 >= 0)
-                SpawnGround(groundFx, pos, by, tier);
+                SpawnGround(groundFx, pos, by, tier, def);
 
             // v0.21.2 冰系命中水面：封冻域（视觉持久冰霜 + 尝试降温；不破坏水面 tile）
             if (IsFrost(mainTag) || IsFrost(subTag)) FreezeWater(pos, by);
@@ -119,7 +120,7 @@ namespace Code.Combat.Fx
         /// <summary>贴地形态映射（v0.21.9 全程序化：不再用素材图）。
         /// 返回 (主形态索引, 副形态索引(-1=无), 标签基准色, 是否自转)。形态复用
         /// AbilityFx.TagGlyphIndex 的 26 形态库，与命中爆同源——地图融合层与命中特效同视觉语言。</summary>
-        private static (int, int, Color, bool) GroundFxFor(PrototypeTag main, PrototypeTag sub)
+        private static (int, int, Color, bool) GroundFxFor(PrototypeTag main, PrototypeTag sub, PrototypeDef def = null)
         {
             bool spin = false;
             int m = AbilityFx.TagGlyphIndex(main);
@@ -140,15 +141,18 @@ namespace Code.Combat.Fx
                 int sm = AbilityFx.TagGlyphIndex(sub);
                 if (sm != m) s2 = sm;
             }
-            return (m, s2, AbilityFx.TagBaseColor(main), spin);
+            // 异能级：def 存在时用异能专属派生色（标签基准±哈希偏色），否则回落标签基准色
+            Color tint = def != null ? AbilityFx.DeriveTint(def) : AbilityFx.TagBaseColor(main);
+            return (m, s2, tint, spin);
         }
 
-        private static void SpawnGround((int, int, Color, bool) fx, Vector2 pos, Actor by, int tier)
+        private static void SpawnGround((int, int, Color, bool) fx, Vector2 pos, Actor by, int tier, PrototypeDef def = null)
         {
             int mainIdx = fx.Item1, subIdx = fx.Item2;
             Color tint = fx.Item3;
             bool spin = fx.Item4;
-            int seed = by != null ? (int)(by.getID() * 31 + 17) : 0;
+            // 异能级帧节奏：seed=异能 id 哈希（同标签不同异能贴地域生长/爆散方向各异）
+            int seed = (def != null && !string.IsNullOrEmpty(def.Id)) ? AbilityFx.StableSeed(def.Id) : (by != null ? (int)(by.getID() * 31 + 17) : 0);
             var frames = CombatFxArt.MakePrototypeFrames(seed, mainIdx, subIdx, Mathf.Max(0, tier));
             if (frames == null || frames.Length == 0) return;
             float frameW = frames[0].rect.width;

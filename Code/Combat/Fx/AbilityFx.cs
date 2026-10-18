@@ -351,7 +351,7 @@ namespace Code.Combat.Fx
 
         /// <summary>异能专属派生色：基准标签色 + 异能 id 稳定哈希（色相 ±12°、明度 ±0.08）。
         /// 233 个异能各自稳定可辨识；同标签下不同异能互不撞色；不破坏标签大众认知。</summary>
-        private static Color DeriveTint(PrototypeDef def)
+        internal static Color DeriveTint(PrototypeDef def)
         {
             Color c = TagBaseColor(def.MainTag);
             if (def == null || string.IsNullOrEmpty(def.Id)) return c;
@@ -464,7 +464,7 @@ namespace Code.Combat.Fx
                 // v0.21.1 地图融合：攻击命中后按异能标签铺贴地持续域 + 分级地形响应
                 // （不再"所有特效都只是砸过去"；火→地面起火、冰→地面结霜、雷→劈焦大地、
                 //   登神+真实炸坑/岩浆、超神命中"陆地打没"，复用 DSTerrainDestruction 分级破坏）
-                try { if (def != null) CombatMapFx.OnHit(self, pos, def.MainTag, def.SubTag); }
+                try { if (def != null) CombatMapFx.OnHit(self, pos, def.MainTag, def.SubTag, def); }
                 catch (System.Exception dsEx) { Code.Core.DSDebug.Verbose("[CombatMapFx] " + dsEx.Message); }
             }
             else
@@ -542,7 +542,7 @@ namespace Code.Combat.Fx
         }
 
         /// <summary>异能 Id 稳定哈希（与 DeriveTint 同一算法，保证色/形同源）。</summary>
-        private static int StableSeed(string id)
+        internal static int StableSeed(string id)
         {
             unchecked
             {
