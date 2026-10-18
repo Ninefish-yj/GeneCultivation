@@ -598,20 +598,37 @@ namespace Code.Combat.Fx
             }
         }
 
-        /// <summary>专属图元爆发（动态特效：中心扩散 + 自旋 + 上抛 + 专属色淡出，非静态贴图）。
-        /// v0.21.6.1 修正"像图标不像特效"：原恒定尺寸+零旋转=静态图淡出，现
-        /// 0.22→0.5 扩散炸开、Spin 自旋（seed 定方向）、Vel 上抛，0.32s 内形、位、色、旋全动。</summary>
+        /// <summary>专属图元命中爆（真·粒子爆，非贴图）。
+        /// v0.21.6.2 用户验收"这就是贴图"——单帧整图扩散+旋转观感仍是"一张图"，
+        /// 重做为：中心核心闪光（0.14s）+ 8~10 片同形态碎片八方飞散（Vel 径向外抛 +
+        /// Spin 高速自旋 + 尺寸收缩 + 专属色淡出）——"异能形态炸开成碎屑"的粒子爆，
+        /// 命中处不再存在可辨认的整张图。</summary>
         private static void SpawnGlyphBurst(Sprite glyph, Vector2 pos, float scale, Color tint, int seed)
         {
             try
             {
-                var g = CombatFxCore.Spawn(new[] { glyph }, pos + new Vector2(0f, 0.08f * scale),
-                    1f / 64f, 0.34f, FxLayer.Top, 34);
-                if (g == null) return;
-                g.Sized(0.22f * scale, 0.5f * scale);                    // 中心扩散炸开
-                g.Spin = ((seed % 2 == 0) ? 1f : -1f) * (0.8f + (seed % 5) * 0.15f); // 60~120°/s 自旋
-                g.Vel = new Vector2(((seed / 2) % 5 - 2) * 0.03f, 0.12f); // 轻微上抛+侧偏
-                g.Color(new Color(tint.r, tint.g, tint.b, 0.92f), new Color(tint.r, tint.g, tint.b, 0f));
+                Vector2 center = pos + new Vector2(0f, 0.08f * scale);
+                // 中心核心：极短闪光（只留"命中闪点"，不构成贴图）
+                var core = CombatFxCore.Spawn(new[] { glyph }, center, 1f / 64f, 0.13f, FxLayer.Top, 35);
+                if (core != null)
+                {
+                    core.Sized(0.24f * scale, 0.3f * scale);
+                    core.Spin = ((seed % 2 == 0) ? 1f : -1f) * (1.4f + (seed % 4) * 0.25f);
+                    core.Color(new Color(tint.r, tint.g, tint.b, 1f), new Color(tint.r, tint.g, tint.b, 0.5f));
+                }
+                // 碎片溅射：8~10 片同形态小图元向八方飞散（粒子爆主体）
+                int shards = 8 + (seed % 3);
+                for (int i = 0; i < shards; i++)
+                {
+                    float ang = i * Mathf.PI * 2f / shards + ((seed % 7) * 0.13f);
+                    float speed = (0.5f + ((seed + i * 3) % 5) * 0.09f) * scale;
+                    var s = CombatFxCore.Spawn(new[] { glyph }, center, 1f / 64f, 0.32f, FxLayer.Top, 33);
+                    if (s == null) continue;
+                    s.Vel = new Vector2(Mathf.Cos(ang), Mathf.Sin(ang)) * speed;
+                    s.Spin = ((i % 2 == 0) ? 1f : -1f) * (1.8f + (seed % 5) * 0.3f);
+                    s.Sized(0.11f * scale, 0.02f * scale);
+                    s.Color(new Color(tint.r, tint.g, tint.b, 0.85f), new Color(tint.r, tint.g, tint.b, 0f));
+                }
             }
             catch (System.Exception dsEx) { Code.Core.DSDebug.Verbose("[AbilityFx] glyph burst: " + dsEx.Message); }
         }
