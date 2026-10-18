@@ -167,13 +167,15 @@ namespace Code.Combat.Fx
         {
             // 尺寸基准：px=1/帧宽 → 世界宽恒等于 size（size 即期望世界宽）。
             // 人类 actor_scale≈0.25 → 单位视觉宽≈0.22~0.28 世界单位（v0.18.91 反编译复核；
-            // 西幻奥术护盾 0.24 世界单位=罩全身的标准）：
-            // 护盾≈1.3 倍单位宽罩全身、投射≈单位宽、爆炸类扩散到≈2 倍单位宽，不遮地图人物。
+            // 西幻奥术护盾 0.24 世界单位=罩全身的标准）。
+            // v0.19.4 按异能定位分级（大众认知）：
+            //   护盾≈1.1 倍单位宽罩躯干 · 状态泡≈1.4 倍 · 单体命中≈1.5 倍 · 图元≈1.7 倍
+            //   星座≈2.2 倍（念力星图）· 大爆≈2.8 倍（波及周围）· 领域/结界/威压≈3.4 倍（笼罩四方）
             if (id == null) { size = 0.4f; life = 0.6f; return; }
             if (id.StartsWith("art_"))
             {
-                // v0.18.74 程序化中式图元：魂焰/风痕/木藤≈单位宽，符环≈领域环
-                if (id == "art_rune") { size = 0.5f; life = 0.7f; return; }
+                // v0.18.74 程序化中式图元：魂焰/风痕/木藤≈单位宽，符环≈领域环（v0.19.4 放大到领域级）
+                if (id == "art_rune") { size = 0.85f; life = 0.9f; return; }
                 size = 0.42f; life = 0.55f; return;
             }
             if (id.StartsWith("shield_")) { size = 0.28f; life = 2.0f; return; }      // v0.18.75 对齐西幻奥术护盾：半单位宽（0.28/0.55≈51%）只罩躯干
@@ -185,13 +187,22 @@ namespace Code.Combat.Fx
             {
                 size = 0.38f; life = 0.5f; return;
             }
-            if (id.StartsWith("vfx_") && (id.Contains("explosion") || id.Contains("kabooms")
-                || id.Contains("bighit") || id.Contains("charged") || id.Contains("magma")
-                || id.Contains("tentacles") || id.Contains("vortex") || id.Contains("worm")
-                || id.Contains("wheel") || id.Contains("eldenring") || id.Contains("constellation")
-                || id.Contains("powerchords") || id.Contains("hyperspeed")))
+            // v0.19.4 领域级：结界/领域/威压/巨兽（贴地扩散，笼罩周围≈3.4 倍单位宽）
+            if (id.StartsWith("vfx_") && (id.Contains("tentacles") || id.Contains("vortex")
+                || id.Contains("eldenring") || id.Contains("powerchords")))
             {
-                size = 0.5f; life = 0.75f; return;                                    // 命中爆发类≈单位宽，不遮地图人物
+                size = 0.85f; life = 0.9f; return;
+            }
+            // v0.19.4 大爆级：爆炸/震地/重击（波及周围≈2.8 倍单位宽）
+            if (id.StartsWith("vfx_") && (id.Contains("explosion") || id.Contains("kabooms")
+                || id.Contains("bighit") || id.Contains("charged") || id.Contains("magma")))
+            {
+                size = 0.7f; life = 0.75f; return;
+            }
+            // 星座：念力星图（介于单体与领域之间≈2.2 倍单位宽）
+            if (id.StartsWith("vfx_") && id.Contains("constellation"))
+            {
+                size = 0.55f; life = 0.65f; return;
             }
             size = 0.4f; life = 0.6f;
         }
