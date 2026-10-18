@@ -1357,6 +1357,97 @@ namespace Code.Combat.Fx
             return GlyphMain(x, y, w, h, idx, seed + 31);
         }
 
+        /// <summary>单帧图元 → 形态演化帧序列（v0.21.8，对齐战斗之神"程序化多帧形态动画"）。
+        /// 每帧重绘形态：62% 扩散生长 → 峰值(100%, 最亮) → 外扩爆散 → 有序抖动消散
+        /// （离中心越远越先碎，残留零星碎片淡出）。不再是"同一张图的几何抖动"。
+        /// seed 定抖动相位 → 398 异能消散节奏各异。零素材成本。</summary>
+        internal static Sprite[] MakePrototypeFrames(int idHash, int mainIdx, int subIdx, int tier)
+        {
+            try
+            {
+                EnsureInit();
+                const int S = 64;
+                // 1) 基准 alpha 场（含副形态叠加 + 品质辉光，与单帧 MakePrototypeGlyph 同源）
+                float[] baseA = new float[S * S];
+                for (int y = 0; y < S; y++)
+                {
+                    for (int x = 0; x < S; x++)
+                    {
+                        float a = GlyphMain(x, y, S, S, mainIdx, idHash);
+                        if (subIdx >= 0)
+                            a = Mathf.Max(a, GlyphSub(x, y, S, S, subIdx, idHash) * 0.55f);
+                        if (tier >= 7) a = Mathf.Clamp01(a * 1.15f);
+                        baseA[y * S + x] = a;
+                    }
+                }
+                // 2) 形态演化 5 帧
+                const int frames = 5;
+                var result = new Sprite[frames];
+                for (int f = 0; f < frames; f++)
+                {
+                    float k = f / (float)(frames - 1);                       // 0..1
+                    float scale = k < 0.5f
+                        ? Mathf.Lerp(0.62f, 1.0f, k * 2f)                     // 前半：62% 生长到 100%
+                        : Mathf.Lerp(1.0f, 1.22f, (k - 0.5f) * 2f);          // 后半：爆散外扩到 122%
+                    float alphaMul = k < 0.5f
+                        ? Mathf.Lerp(0.55f, 1f, k * 2f)                      // 前半渐强（峰值最亮）
+                        : Mathf.Lerp(1f, 0.15f, (k - 0.5f) * 2f);            // 后半渐弱（消散留零星碎片）
+                    float jitter = k >= 0.5f ? (k - 0.5f) * 2f : 0f;         // 消散期抖动强度 0→1
+                    result[f] = EvolveFrame(baseA, S, scale, alphaMul, jitter, idHash, f);
+                }
+                return result;
+            }
+            catch (Exception e)
+            {
+                Code.Core.DSDebug.Verbose("[CombatFxArt] PrototypeFrames: " + e.Message);
+                return null;
+            }
+        }
+
+        /// <summary>单帧演化采样：逆缩放取基准 alpha；消散期有序抖动（hash 阈值，边缘先消失）。</summary>
+        private static Sprite EvolveFrame(float[] baseA, int S, float scale, float alphaMul, float jitter, int seed, int frame)
+        {
+            var tex = new Texture2D(S, S, TextureFormat.RGBA32, false) { filterMode = FilterMode.Point };
+            var px = new Color32[S * S];
+            float cx = S * 0.5f, cy = S * 0.5f;
+            for (int y = 0; y < S; y++)
+            {
+                for (int x = 0; x < S; x++)
+                {
+                    float u = (x - cx) / scale + cx;
+                    float v = (y - cy) / scale + cy;
+                    int sx = (int)u, sy = (int)v;
+                    float a = 0f;
+                    if (sx >= 0 && sy >= 0 && sx < S && sy < S) a = baseA[sy * S + sx];
+                    // 有序抖动消散：离中心越远越先散（hash 阈值），残留像素稍降亮
+                    if (jitter > 0f && a > 0f)
+                    {
+                        float dist = Mathf.Sqrt((x - cx) * (x - cx) + (y - cy) * (y - cy)) / (S * 0.5f);
+                        float th = jitter * (0.35f + dist * 0.65f);
+                        if (FrameHash(x, y, frame, seed) < th) a = 0f;
+                        else a *= (1f - jitter * 0.5f);
+                    }
+                    a = Mathf.Clamp01(a * alphaMul);
+                    px[y * S + x] = new Color32(255, 255, 255, (byte)(a * 255f));
+                }
+            }
+            tex.SetPixels32(px);
+            tex.Apply(false, false);
+            return Sprite.Create(tex, new Rect(0f, 0f, S, S), new Vector2(0.5f, 0.5f), 100f);
+        }
+
+        /// <summary>确定性 0..1 哈希（x,y,帧,seed → 抖动阈值，同一异能帧序列可复现）。</summary>
+        private static float FrameHash(int x, int y, int f, int seed)
+        {
+            unchecked
+            {
+                int h = seed * 374761393 + x * 668265263 + y * (-2048144777) + f * (-1028477379);
+                h = (h ^ (h >> 13)) * 1274126177;
+                h = h ^ (h >> 16);
+                return (h & 0x7fffffff) % 997 / 997f;
+            }
+        }
+
         /// <summary>单帧图元 → 真·帧动画序列（v0.21.6.4 每异能独立帧动画）。
         /// 用户要求"那就生成这么多特效图"——用代码按像素仿射变换生成 count 帧
         /// （呼吸缩放 + 摆动平移 + 旋转漂移），等于为每异能生成独立动画帧，

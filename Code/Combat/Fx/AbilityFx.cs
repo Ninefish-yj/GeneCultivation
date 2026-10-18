@@ -527,9 +527,8 @@ namespace Code.Combat.Fx
                 int seed = StableSeed(def.Id);
                 int mainIdx = TagGlyphIndex(def.MainTag);
                 int subIdx = def.SubTag == def.MainTag ? -1 : TagGlyphIndex(def.SubTag);   // 副标签同主标签不重复叠加
-                var sprite = CombatFxArt.MakePrototypeGlyph(seed, mainIdx, subIdx, def.Tier);
-                if (sprite == null) return null;
-                var frames = CombatFxArt.GlyphFrames(sprite, 5, seed);
+                // v0.21.8 形态演化帧（生长→峰值→爆散→有序消散），对齐战斗之神程序化多帧形态动画
+                var frames = CombatFxArt.MakePrototypeFrames(seed, mainIdx, subIdx, def.Tier);
                 if (frames == null) return null;
                 if (_prototypeGlyphs.Count > 512) _prototypeGlyphs.Clear();   // 防膨胀（超 512 清重建）
                 _prototypeGlyphs[def.Id] = frames;
