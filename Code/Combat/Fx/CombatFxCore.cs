@@ -211,7 +211,9 @@ namespace Code.Combat.Fx
             if (_live.Count >= MaxLive) return null;
             CombatFxParticle p = _free.Count > 0 ? _free.Pop() : Create();
             p.Frames = frames;
-            p.Fps = 0f;
+            // v0.21.6.2 帧动画修复（"素材特效全是贴图"根因）：多帧素材此前 Fps=0 永不切帧，
+            // 永远停第一帧=静态贴图。现多帧素材自动按 15fps 播放（单帧图元保持 0 不变）。
+            p.Fps = (frames != null && frames.Length > 1) ? 15f : 0f;
             p.Loop = false;
             p.Pos = pos;
             p.Z = 0f;
@@ -276,7 +278,7 @@ namespace Code.Combat.Fx
             if (_live.Count >= MaxLive) { _free.Push(p); return null; }
             p.One[0] = sprite;
             p.Frames = p.One;
-            p.Fps = 0f;
+            p.Fps = 0f;   // 单帧图元无动画（多帧走上方 frames 版本自动 15fps）
             p.Loop = false;
             p.Pos = pos;
             p.Z = 0f;
