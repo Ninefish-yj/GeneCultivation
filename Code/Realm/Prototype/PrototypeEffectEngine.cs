@@ -391,6 +391,11 @@ namespace Code.Realm.Prototype
             {
                 try { DSStatusManager.SafeAddStatusEffect(target, statusId, duration); }
                 catch (System.Exception dsEx) { DSDebug.Verbose("[GeneCultivation] 附加状态异常 " + statusId + ": " + dsEx.Message); }
+                // v0.21.3 状态附着：状态真的加上后，给目标挂"持续状态视觉"
+                // （燃烧=原版 fx_status_burning_t 火焰帧跟随、冻结=原版 fx_status_frozen_t、
+                //   中毒=我方毒雾——不再把状态效果做成"命中砸一下"的攻击爆发）
+                try { Code.Combat.Fx.CombatStatusFx.Attach(target, statusId, duration); }
+                catch (System.Exception dsFxEx) { DSDebug.Verbose("[GeneCultivation] 状态附着异常 " + statusId + ": " + dsFxEx.Message); }
             }
         }
 

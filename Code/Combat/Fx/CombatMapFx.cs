@@ -65,9 +65,10 @@ namespace Code.Combat.Fx
             return tag == PrototypeTag.Frost || tag == PrototypeTag.Frostbite || tag == PrototypeTag.Slow;
         }
 
-        /// <summary>冰系命中水面 → 封冻域：持久冰霜视觉（2.5s 亮蓝，比普通地面域久）+ 尝试降温。
-        /// WorldBox 无安全的水→冰 tile 替换 API（反编译不可全量获取），不硬换 tile 类型——
-        /// 避免 v0.19.14 那类渲染崩溃；视觉"封冻"+不挖水面（DSTerrainDestruction 本就跳过液体）。</summary>
+        /// <summary>冰系命中水面 → 真冻结：复用原版地表冻结 API（反编译 0.51.x 已核实）——
+        /// WorldTile.canBeFrozen() 判断 → tile.freeze(5) 按 freeze_to_id 换顶层冰面
+        /// （frozen_low/frozen_high），温度回升由原版 WorldBehaviourTilesTemperatureUnFreeze 自动解冻。
+        /// v0.21.3 从"视觉封冻"升级为原版真冻结；视觉冰霜域保留辅助观感。</summary>
         private static void FreezeWater(Vector2 pos, Actor by)
         {
             if (World.world == null) return;
@@ -75,22 +76,25 @@ namespace Code.Combat.Fx
             {
                 var tile = World.world.GetTileSimple((int)pos.x, (int)pos.y);
                 if (tile == null || tile.Type == null || !tile.Type.liquid) return;
-                // 视觉封冻：持久亮蓝冰霜铺水面
-                var frames = AbilityFx.Load("magic_ice_c");
-                if (frames != null && frames.Length > 0)
+                // 原版真冻结：canBeFrozen + freeze（换 frozen 顶层 tile，温度回升自动解冻）
+                if (tile.canBeFrozen())
                 {
-                    float frameW = frames[0].rect.width;
-                    if (frameW <= 0f) frameW = 128f;
-                    var p = CombatFxCore.Spawn(frames, pos + new Vector2(0f, 0.02f), 1f / frameW, 2.5f, FxLayer.Behind, 8);
-                    if (p != null)
+                    tile.freeze(5);
+                    // 冻结成功后铺持久亮蓝冰霜视觉（封冻观感，2.5s）
+                    var frames = AbilityFx.Load("magic_ice_c");
+                    if (frames != null && frames.Length > 0)
                     {
-                        float s = 1.6f * AbilityFx.UnitScale(by);
-                        p.Sized(s, s * 0.45f);
-                        p.Color(new Color(0.62f, 0.85f, 1f, 0.6f), new Color(0.62f, 0.85f, 1f, 0f));
+                        float frameW = frames[0].rect.width;
+                        if (frameW <= 0f) frameW = 128f;
+                        var p = CombatFxCore.Spawn(frames, pos + new Vector2(0f, 0.02f), 1f / frameW, 2.5f, FxLayer.Behind, 8);
+                        if (p != null)
+                        {
+                            float s = 1.6f * AbilityFx.UnitScale(by);
+                            p.Sized(s, s * 0.45f);
+                            p.Color(new Color(0.62f, 0.85f, 1f, 0.6f), new Color(0.62f, 0.85f, 1f, 0f));
+                        }
                     }
                 }
-                // 尝试降温（原版 heat 若 clamp 负值则无副作用；try/catch 保护）
-                try { World.world.heat.addTile(tile, -20); } catch { }
             }
             catch (System.Exception dsEx) { Code.Core.DSDebug.Verbose("[CombatMapFx] FreezeWater: " + dsEx.Message); }
         }
