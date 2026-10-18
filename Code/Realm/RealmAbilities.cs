@@ -791,6 +791,11 @@ namespace Code.Realm
                             }
                         }
                         catch (Exception e) { DSDebug.Verbose($"地形破坏异常: {e.Message}"); }
+
+                        // ★ 原版天灾演出（v0.19.7：EffectsLibrary 原生 fx_ 特效——陨石雨/龙卷风/雷暴，
+                        // 对齐"高境界大招=天灾级"的大众认知，复用原版灾难演出资源）
+                        try { TriggerCataclysmFx(actor, tier); }
+                        catch (System.Exception dsFxEx) { Code.Core.DSDebug.Verbose("[GeneCultivation] 天灾演出失败: " + dsFxEx.Message); }
                     }
                     
                     DSDebug.Verbose($"[GeneCultivation]  终极技能 {ability.Name} 释放！命中{ultDamaged}个敌人，伤害{ultDamage:F0}");
@@ -863,6 +868,50 @@ namespace Code.Realm
             catch (Exception e)
             {
                 DSDebug.Warning($"场域展开失败: {e.Message}");
+            }
+        }
+
+        /// <summary>
+        /// v0.19.7 原版天灾演出：复用 EffectsLibrary 原生灾难特效（fx_meteorite 陨石 / fx_tornado 龙卷风 /
+        /// fx_lightning_medium 雷暴），对齐"高境界大招=天灾级"的大众认知。
+        /// 登神 11+：陨石雨；真神 12+：追加龙卷风；超神 13+：追加雷暴群。
+        /// </summary>
+        private static void TriggerCataclysmFx(Actor actor, int tier)
+        {
+            if (World.world == null || actor == null || !actor.isAlive()) return;
+            var center = World.world.GetTileSimple((int)actor.current_position.x, (int)actor.current_position.y);
+            if (center == null) return;
+            var r = new System.Random((int)(actor.data.id % int.MaxValue) + tier * 131);
+            try
+            {
+                // 陨石雨（登神起）：数量随境界上升
+                int meteors = 4 + (tier - 10) * 2;
+                for (int i = 0; i < meteors; i++)
+                {
+                    var t = World.world.GetTileSimple(center.x + r.Next(-9, 10), center.y + r.Next(-9, 10));
+                    if (t == null) continue;
+                    EffectsLibrary.spawnAtTile("fx_meteorite", t, 0.9f);
+                }
+                // 龙卷风（真神起）
+                if (tier >= 12)
+                {
+                    var t = World.world.GetTileSimple(center.x + r.Next(-3, 4), center.y + r.Next(-3, 4));
+                    if (t != null) EffectsLibrary.spawnAtTile("fx_tornado", t, 0.7f);
+                }
+                // 雷暴群（超神）
+                if (tier >= 13)
+                {
+                    for (int i = 0; i < 4; i++)
+                    {
+                        var t = World.world.GetTileSimple(center.x + r.Next(-12, 13), center.y + r.Next(-12, 13));
+                        if (t == null) continue;
+                        EffectsLibrary.spawnAtTile("fx_lightning_medium", t, 0.8f);
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                DSDebug.Verbose($"[GeneCultivation] 天灾演出异常: {e.Message}");
             }
         }
 

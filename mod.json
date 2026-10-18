@@ -1,9 +1,9 @@
 {
   "name": "基因修炼",
   "author": "阿鱼要吃书",
-  "version": "0.19.6",
+  "version": "0.19.7",
   "GUID": "GeneCultivation",
-  "description": "高境界大招地形破坏升级：登神/真神/超神释放技能时把陆地打出岩浆+打没陆地(维度打击连续降格)",
+  "description": "特效贴合单位体型：状态泡0.8x/命中1.3x/图元1.5x；剔除KABOOM美漫文字；高境界大招接入原版天灾(陨石雨/龙卷风/雷暴)",
   "homepage": "https://github.com/Ninefish-yj/GeneCultivation",
   "repository": "https://github.com/Ninefish-yj/GeneCultivation.git",
   "tags": [

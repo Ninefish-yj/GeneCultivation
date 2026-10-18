@@ -36,7 +36,7 @@ namespace Code.Combat.Fx
             _tagPool[PrototypeTag.Frostbite]  = new[] { "magic_ice_c", "magic_ice_b", "magic_ice_a" };
             _tagPool[PrototypeTag.TimeSlow]   = new[] { "bub_mana", "bub_ice" };
             _tagPool[PrototypeTag.Stun]       = new[] { "vfx_impact", "vfx_smallhit", "magic_spark" };
-            _tagPool[PrototypeTag.Crit]       = new[] { "vfx_bighit", "vfx_kabooms", "magic_spark4" };
+            _tagPool[PrototypeTag.Crit]       = new[] { "vfx_bighit", "vfx_explosion2", "magic_spark4" };   // v0.19.7 剔除KABOOM美漫文字
             _tagPool[PrototypeTag.Telekinesis]= new[] { "magic_bolt", "vfx_constellation", "magic_spark4" };
             _tagPool[PrototypeTag.Poison]     = new[] { "bub_toxic", "magic_smoke", "bub_green2" };
             _tagPool[PrototypeTag.Curse]      = new[] { "magic_darkbolt", "bub_purple", "bub_black" };
@@ -56,7 +56,7 @@ namespace Code.Combat.Fx
             _tagPool[PrototypeTag.Aging]      = new[] { "bub_purple2", "bub_black" };
             _tagPool[PrototypeTag.Weakness]   = new[] { "bub_purple", "bub_purple2" };
             _tagPool[PrototypeTag.ArmorBreak] = new[] { "magic_spark", "magic_spark2", "magic_spark4" };
-            _tagPool[PrototypeTag.Execute]    = new[] { "vfx_kabooms", "vfx_bighit", "blood_vfx1" };
+            _tagPool[PrototypeTag.Execute]    = new[] { "vfx_explosion2", "vfx_bighit", "blood_vfx1" };   // v0.19.7 剔除KABOOM美漫文字
             _tagPool[PrototypeTag.Sleep]      = new[] { "bub_white", "bub_mana" };
             _tagPool[PrototypeTag.MultiShot]  = new[] { "magic_spark2", "magic_spark4", "spx_splatter" };
             _tagPool[PrototypeTag.HealAlly]   = new[] { "bub_green2", "bub_gold", "vfx_puffstars" };
@@ -168,8 +168,8 @@ namespace Code.Combat.Fx
             // 尺寸基准：px=1/帧宽 → 世界宽恒等于 size（size 即期望世界宽）。
             // 人类 actor_scale≈0.25 → 单位视觉宽≈0.22~0.28 世界单位（v0.18.91 反编译复核；
             // 西幻奥术护盾 0.24 世界单位=罩全身的标准）。
-            // v0.19.4 按异能定位分级（大众认知），v0.19.5 回调防遮挡：
-            //   护盾≈1.1 倍单位宽罩全身（奥术光膜）· 状态泡≈1.4 倍 · 单体命中≈1.5 倍 · 图元≈1.7 倍
+            // v0.19.4 按异能定位分级（大众认知），v0.19.5 回调防遮挡，v0.19.7 状态泡/命中贴体型：
+            //   护盾≈1.1 倍单位宽罩全身（奥术光膜）· 状态泡≈0.8 倍（小泡贴体）· 单体命中≈1.3 倍 · 图元≈1.5 倍
             //   星座≈2 倍（念力星图）· 大爆≈2.2 倍（波及周围）· 领域/结界/威压≈2.5 倍（笼罩四方但半透明贴地，不遮地图）
             if (id == null) { size = 0.4f; life = 0.6f; return; }
             if (id.StartsWith("art_"))
@@ -177,16 +177,16 @@ namespace Code.Combat.Fx
                 // 奥术光膜护盾（罩全身≈1.1 倍单位宽，持续环绕）；符环=领域环（v0.19.5 回调 0.62）
                 if (id == "art_arcaneshield") { size = 0.28f; life = 2.0f; return; }
                 if (id == "art_rune") { size = 0.62f; life = 0.8f; return; }
-                size = 0.42f; life = 0.55f; return;
+                size = 0.38f; life = 0.55f; return;                                     // v0.19.7 图元回调：1.5 倍单位宽贴体
             }
             if (id.StartsWith("shield_")) { size = 0.28f; life = 2.0f; return; }      // 兼容旧引用（池已切奥术光膜）
-            if (id.StartsWith("bub_")) { size = 0.35f; life = 0.55f; return; }
+            if (id.StartsWith("bub_")) { size = 0.2f; life = 0.55f; return; }        // v0.19.7 状态泡回调：0.8 倍单位宽（小泡贴体，不再大球罩身）
             if (id.StartsWith("spx_") || id.StartsWith("magic_spark") || id == "magic_flash"
                 || id == "magic_dust" || id == "vfx_impact" || id == "vfx_smallhit"
                 || id == "vfx_ditheredfire" || id == "vfx_fastfire" || id == "vfx_bloodimpact"
                 || id == "vfx_puffstars" || id == "vfx_elecshield" || id == "vfx_anima")
             {
-                size = 0.38f; life = 0.5f; return;
+                size = 0.32f; life = 0.5f; return;                                    // v0.19.7 单体命中回调：1.3 倍单位宽贴体
             }
             // v0.19.5 领域级：结界/领域/威压/巨兽（贴地扩散，笼罩≈2.5 倍单位宽，回调防遮挡）
             if (id.StartsWith("vfx_") && (id.Contains("tentacles") || id.Contains("vortex")
