@@ -355,37 +355,20 @@ namespace Code.Combat.Fx
         }
 
         // ============================================================
-        // 神形显现（v0.18.66 unit_gifs 登神动画）
-        // 帧序列在 GameResources/effects/unit_anim_<name>/ 下，清单在
-        // GameResources/effects_unit_anims.txt（GIF 转换脚本生成，运行期只读清单）
+        // 神形显现（v0.19.19 程序化自生成，替代原版 unit_anim boss 待机动画素材）
+        // 金色半透明神祇虚影图元（art_divinevision，CombatFxArt 纯几何生成），
+        // 零素材文件依赖：不再读取 effects_unit_anims 清单与 unit_anim_* 帧序列。
         // ============================================================
-        private static string[] _unitAnimNames;
 
-        public static Sprite[] PickUnitAnim()
+        public static Sprite[] PickDivineVision()
         {
-            if (_unitAnimNames == null)
+            try
             {
-                _unitAnimNames = new string[0];
-                try
-                {
-                    var ta = Resources.Load<TextAsset>("effects_unit_anims");
-                    if (ta != null)
-                    {
-                        var lines = ta.text.Split('\n');
-                        var list = new List<string>();
-                        foreach (var ln in lines)
-                        {
-                            string s = ln.Trim();
-                            if (s.Length > 0) list.Add(s);
-                        }
-                        _unitAnimNames = list.ToArray();
-                    }
-                }
-                catch (Exception) { }
+                CombatFxArt.EnsureInit();
+                if (CombatFxArt.DivineVision == null) return null;
+                return new[] { CombatFxArt.DivineVision };
             }
-            if (_unitAnimNames.Length == 0) return null;
-            string pick = _unitAnimNames[UnityEngine.Random.Range(0, _unitAnimNames.Length)];
-            return Load("unit_anim_" + pick);
+            catch (Exception) { return null; }
         }
 
         // ============================================================

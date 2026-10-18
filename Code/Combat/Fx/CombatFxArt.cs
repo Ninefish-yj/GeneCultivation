@@ -63,6 +63,10 @@ namespace Code.Combat.Fx
         internal static Sprite HolyLight;    // 圣光（光柱光环）
         internal static Sprite ShadowWave;   // 暗影波（暗波扩散）
 
+        // ---- v0.19.19 程序化神形显现（替代原版 unit_anim boss 待机动画素材）----
+        /// <summary>神形显现（v0.19.19 程序化，替代原版 unit_anim 素材，81×81 帧沿用宽归一化）。</summary>
+        internal static Sprite DivineVision;
+
         private static bool _ready;
 
         /// <summary>幂等初始化：任意消费方调用均安全，仅首次真正生成。</summary>
@@ -98,6 +102,7 @@ namespace Code.Combat.Fx
                 case "art_metalslash":  return MetalSlash;
                 case "art_holylight":   return HolyLight;
                 case "art_shadowwave":  return ShadowWave;
+                case "art_divinevision": return DivineVision;   // v0.19.19 程序化神形显现
                 default:              return null;
             }
         }
@@ -169,6 +174,8 @@ namespace Code.Combat.Fx
                 MetalSlash   = Make(33, 33, (x, y) => MetalSlashAt(x, y, 33, 33));
                 HolyLight    = Make(33, 33, (x, y) => HolyLightAt(x, y, 33, 33));
                 ShadowWave   = Make(33, 33, (x, y) => ShadowWaveAt(x, y, 33, 33));
+                // v0.19.19 程序化神形显现（替代原版 unit_anim 素材，81×81 帧沿用 1.5 宽归一化）
+                DivineVision = Make(81, 81, (x, y) => DivineVisionAt(x, y, 81, 81));
             }
             catch (Exception e)
             {
@@ -611,6 +618,73 @@ namespace Code.Combat.Fx
                 }
             }
             return alpha;
+        }
+
+        // ---- v0.19.19 程序化神形显现图元函数 ----
+
+        /// <summary>神形显现（金色半透明神祇虚影，v0.19.19 纯几何自生成，零素材依赖）：
+        /// 背后放射神光（中心向外的细射线，烘托神圣）→ 头顶光环（完整细环，贴头上方）
+        /// → 圆首 → 长袍剪影（肩宽下摆喇叭形）→ 两侧展开光翼（斜光带）。
+        /// 全部白色生成、alpha 分段给值；粒子端用金色渐变+上升呈现"虚影"，不旋转。</summary>
+        private static float DivineVisionAt(int x, int y, int w, int h)
+        {
+            float cx = (w - 1) * 0.5f, cy = (h - 1) * 0.5f;
+            float W = (w - 1), H = (h - 1);
+            float a = 0f;
+
+            // 背后放射神光：中心 (cx, cy+0.16H) 向外 10 条细射线（神性光晕，弱）
+            float rx = cx, ry = cy + 0.16f * H;
+            float dRay = Mathf.Sqrt((x - rx) * (x - rx) + (y - ry) * (y - ry));
+            float rayR = 0.44f * H;
+            if (dRay < rayR && dRay > 2f)
+            {
+                float ang = Mathf.Atan2(y - ry, x - rx);
+                float step = Mathf.PI * 2f / 10f;
+                float k = ang / step - Mathf.Floor(ang / step);
+                float spread = Mathf.Min(k, 1f - k) * step;
+                if (spread < 0.09f)
+                    a = Mathf.Max(a, 0.30f * (1f - dRay / rayR));
+            }
+
+            // 头顶光环（神性光轮）：圆心 (cx, cy-0.36H)，环带 0.82r~r，贴头上缘不压头
+            float hx = cx, hy = cy - 0.36f * H;
+            float haloR = 0.13f * H;
+            float dHalo = Mathf.Sqrt((x - hx) * (x - hx) + (y - hy) * (y - hy));
+            if (dHalo > haloR * 0.82f && dHalo < haloR)
+            {
+                float edge = Mathf.Min(dHalo - haloR * 0.82f, haloR - dHalo);
+                a = Mathf.Max(a, Mathf.Clamp01(edge / 1.5f) * 0.9f);
+            }
+
+            // 头：圆 (cx, cy-0.17H) 半径 0.115H
+            float headY = cy - 0.17f * H;
+            float headR = 0.115f * H;
+            float dHead = Mathf.Sqrt((x - cx) * (x - cx) + (y - headY) * (y - headY));
+            if (dHead < headR) a = Mathf.Max(a, 0.58f * (1f - dHead / headR * 0.35f));
+
+            // 长袍剪影：梯形（肩 y=+0.07H 半宽 0.18W → 下摆 y=+0.34H 半宽 0.26W），喇叭形
+            float ty = (y - cy) / H;
+            if (ty > 0.07f && ty < 0.34f)
+            {
+                float k = (ty - 0.07f) / 0.27f;          // 0~1（上→下张开）
+                float halfW = W * 0.5f * (0.18f + 0.08f * k);
+                if (Mathf.Abs(x - cx) < halfW)
+                {
+                    float edge = halfW - Mathf.Abs(x - cx);
+                    a = Mathf.Max(a, Mathf.Clamp01(edge / 2f) * 0.52f);
+                }
+            }
+
+            // 展开光翼（双臂）：两条斜光带 (cx±0.20W, cy+0.10H)→(cx±0.42W, cy+0.30H)，线宽 0.055W
+            float wx1 = cx - 0.20f * W, wy1 = cy + 0.10f * H;
+            float wx2 = cx - 0.42f * W, wy2 = cy + 0.30f * H;
+            float dWing1 = SegDist(x, y, wx1, wy1, wx2, wy2);
+            float dWing2 = SegDist(x, y, cx + 0.20f * W, cy + 0.10f * H, cx + 0.42f * W, cy + 0.30f * H);
+            float wingT = 0.055f * W;
+            if (dWing1 < wingT) a = Mathf.Max(a, (1f - dWing1 / wingT) * 0.42f);
+            if (dWing2 < wingT) a = Mathf.Max(a, (1f - dWing2 / wingT) * 0.42f);
+
+            return Mathf.Clamp01(a);
         }
     }
 }

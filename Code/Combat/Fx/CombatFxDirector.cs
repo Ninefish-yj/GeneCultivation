@@ -492,8 +492,9 @@ namespace Code.Combat.Fx
                 }
                 CombatFxSound.Play(CombatFxSound.Inspiration, pos);
                 CombatFxSound.Play(CombatFxSound.ExplosionMeteorite, pos);
-                // 神形显现（v0.18.66 unit_gifs）：登神单位上方浮现半透明虚影动画
-                var deity = AbilityFx.PickUnitAnim();
+                // 神形显现（v0.19.19 程序化自生成）：登神单位上方浮现金色半透明神祇虚影动画
+                // （替代 v0.18.66-0.19.18 的原版 unit_anim boss 待机动画素材，零素材依赖）
+                var deity = AbilityFx.PickDivineVision();
                 if (deity != null)
                 {
                     // v0.18.91：神形按帧宽归一化到 1.5 世界单位宽（原 3.4 宽×6.5 高遮屏），
