@@ -1,9 +1,9 @@
 {
   "name": "基因修炼",
   "author": "阿鱼要吃书",
-  "version": "0.19.8",
+  "version": "0.19.9",
   "GUID": "GeneCultivation",
-  "description": "元素细分标签+专属图元：水/风/雷/土/金/光/暗7标签×7程序化图元(水波/风刃/雷闪/土块/金属刃/圣光/暗影波)，47元素异能迁移主标签，特效意象贴合大众认知",
+  "description": "爆炸图去滥用：Crit暴击/Sound声波池剔除爆炸素材；家庭氛围光环全部换本地图元(art_burst/灵魂火/触手/星芒)，剔除原版传送门/等离子尾迹持续残留特效",
   "homepage": "https://github.com/Ninefish-yj/GeneCultivation",
   "repository": "https://github.com/Ninefish-yj/GeneCultivation.git",
   "tags": [

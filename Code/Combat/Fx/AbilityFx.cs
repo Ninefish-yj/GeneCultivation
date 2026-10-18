@@ -36,7 +36,7 @@ namespace Code.Combat.Fx
             _tagPool[PrototypeTag.Frostbite]  = new[] { "magic_ice_c", "magic_ice_b", "magic_ice_a" };
             _tagPool[PrototypeTag.TimeSlow]   = new[] { "bub_mana", "bub_ice" };
             _tagPool[PrototypeTag.Stun]       = new[] { "vfx_impact", "vfx_smallhit", "magic_spark" };
-            _tagPool[PrototypeTag.Crit]       = new[] { "vfx_bighit", "vfx_explosion2", "magic_spark4" };   // v0.19.7 剔除KABOOM美漫文字
+            _tagPool[PrototypeTag.Crit]       = new[] { "vfx_bighit", "magic_spark4", "vfx_impact" };   // v0.19.8 暴击=重击闪光，不是爆炸
             _tagPool[PrototypeTag.Telekinesis]= new[] { "magic_bolt", "vfx_constellation", "magic_spark4" };
             _tagPool[PrototypeTag.Poison]     = new[] { "bub_toxic", "magic_smoke", "bub_green2" };
             _tagPool[PrototypeTag.Curse]      = new[] { "magic_darkbolt", "bub_purple", "bub_black" };
@@ -81,7 +81,7 @@ namespace Code.Combat.Fx
             _tagPool[PrototypeTag.Regeneration]   = new[] { "bub_aqua", "bub_green1", "vfx_puffstars" };
             _tagPool[PrototypeTag.Magnetism]      = new[] { "vfx_elecshield", "magic_bolt", "magic_spark4" };
             _tagPool[PrototypeTag.Vibration]      = new[] { "vfx_smallhit", "vfx_impact" };
-            _tagPool[PrototypeTag.Sound]          = new[] { "vfx_explosion", "vfx_powerchords", "bub_white" };
+            _tagPool[PrototypeTag.Sound]          = new[] { "vfx_powerchords", "vfx_impact", "bub_white" };   // v0.19.8 声波=音爆波纹，不是爆炸
             _tagPool[PrototypeTag.Thorns]         = new[] { "magic_spark", "spx_splatter", "vfx_impact" };
             _tagPool[PrototypeTag.ElementResist]  = new[] { "art_arcaneshield" };   // v0.19.5 奥术光膜（元素抗性=同款淡罩）
             _tagPool[PrototypeTag.Cleanse]        = new[] { "bub_white", "bub_gold" };
@@ -95,36 +95,36 @@ namespace Code.Combat.Fx
             _family["光明系/圣光"] = "art_rune";        _family["光明系/光刃"] = "spx_shock";
             _family["光明系/净化"] = "bub_white";       _family["光明系/晨曦"] = "art_rune";
             _family["黑暗系/暗影"] = "vfx_vortex";      _family["黑暗系/腐蚀"] = "bub_toxic";
-            _family["黑暗系/诅咒"] = "bub_purple";      _family["黑暗系/夜幕"] = "fx_teleport_singularity";
+            _family["黑暗系/诅咒"] = "bub_purple";      _family["黑暗系/夜幕"] = "bub_black";   // v0.19.8 剔除原版传送门(可能持续残留)
             _family["生命系/生命"] = "art_soulflame";   _family["生命系/治愈"] = "vfx_puffstars";
             _family["生命系/再生"] = "bub_aqua";        _family["生命系/生长"] = "art_woodvine";
             _family["生命系/祝福"] = "bub_gold";
             _family["死亡系/亡灵"] = "vfx_bloodimpact"; _family["死亡系/凋零"] = "bub_black";
             _family["死亡系/死亡"] = "art_soulflame";   _family["死亡系/灵魂"] = "art_soulflame";
-            _family["死亡系/腐化"] = "vfx_magma";
+            _family["死亡系/腐化"] = "art_soulflame";
             _family["精神系/催眠"] = "bub_mana";        _family["精神系/幻象"] = "bub_rainbow";
             _family["精神系/心灵"] = "vfx_constellation"; _family["精神系/念力"] = "vfx_constellation";
             _family["精神系/意志"] = "art_rune";         _family["精神系/操控"] = "vfx_constellation";
             _family["精神系/预知"] = "bub_rainbow";
-            _family["时空系/时间"] = "bub_mana";        _family["时空系/空间"] = "fx_teleport_singularity";
+            _family["时空系/时间"] = "bub_mana";        _family["时空系/空间"] = "art_burst";   // v0.19.8 剔除原版传送门(可能持续残留)
             _family["时空系/次元"] = "vfx_vortex";      _family["时空系/引力"] = "vfx_vortex";
-            _family["时空系/速度"] = "fx_plasma_trail";
+            _family["时空系/速度"] = "magic_spark2";    // v0.19.8 剔除原版等离子尾迹(可能持续残留)
             _family["自然系/动物"] = "vfx_puffstars";   _family["自然系/植物"] = "art_woodvine";
             _family["自然系/毒"] = "bub_toxic";         _family["自然系/气象"] = "vfx_elecshield";
             _family["自然系/藤蔓"] = "art_woodvine";    _family["自然系/野兽"] = "spx_shock";
-            _family["强化系/体魄"] = "vfx_bighit";      _family["强化系/能量"] = "bub_gold";
+            _family["强化系/体魄"] = "art_burst";       _family["强化系/能量"] = "bub_gold";
             // ---- v0.18.99 新体系家族氛围 ----
-            _family["兽化系/猛兽"] = "vfx_bighit";      _family["兽化系/飞禽"] = "art_windarc";
+            _family["兽化系/猛兽"] = "vfx_puffstars";    _family["兽化系/飞禽"] = "art_windarc";
             _family["兽化系/爬行"] = "art_woodvine";    _family["兽化系/虫豸"] = "spx_shock";
             _family["兽化系/神兽"] = "vfx_powerchords";
             _family["命运系/命运"] = "vfx_constellation"; _family["命运系/因果"] = "vfx_constellation";
             _family["命运系/气运"] = "bub_gold";         _family["命运系/灾厄"] = "vfx_vortex";
             _family["召唤系/兽灵"] = "vfx_puffstars";    _family["召唤系/元素"] = "magic_lightning";
             _family["召唤系/亡灵"] = "art_soulflame";    _family["召唤系/幻影"] = "bub_rainbow";
-            _family["召唤系/虫潮"] = "spx_shock";        _family["召唤系/巨兽"] = "vfx_bighit";
+            _family["召唤系/虫潮"] = "spx_shock";        _family["召唤系/巨兽"] = "vfx_tentacles";
             _family["召唤系/圣灵"] = "bub_gold";         _family["召唤系/龙裔"] = "vfx_powerchords";
             _family["召唤系/百鬼"] = "vfx_vortex";
-            _family["强化系/力量"] = "vfx_bighit";       _family["强化系/速度"] = "fx_plasma_trail";
+            _family["强化系/力量"] = "art_burst";       _family["强化系/速度"] = "magic_spark2";   // v0.19.8 剔除原版等离子尾迹(可能持续残留)
             _family["强化系/防御"] = "art_arcaneshield"; _family["强化系/变形"] = "art_windarc";   // v0.19.5 防御氛围=奥术光膜
         }
 
