@@ -288,7 +288,7 @@ namespace Code.Combat.Fx
         // 同一异能每次播放色调一致（哈希稳定，非随机）。
         // ============================================================
 
-        private static Color TagBaseColor(PrototypeTag tag)
+        internal static Color TagBaseColor(PrototypeTag tag)
         {
             switch (tag)
             {
@@ -412,7 +412,7 @@ namespace Code.Combat.Fx
                 // ---- 攻击：投射飞行 or 目标爆发 ----
                 if (!string.IsNullOrEmpty(mainFx) && IsProjectile(mainFx))
                 {
-                    SpawnProjectile(mainFx, self.current_position, pos, scale, tint);
+                    SpawnProjectile(mainFx, def, self.current_position, pos, scale, tint);
                     // v0.21.6 命中爆：每异能独立专属图元（形态×seed×专属色），不再共用素材命中爆
                     Sprite[] glyph = PrototypeFramesFor(def);
                     if (glyph != null) SpawnGlyphBurst(glyph, pos, scale, tint, StableSeed(def.Id));
@@ -553,7 +553,7 @@ namespace Code.Combat.Fx
         }
 
         /// <summary>标签 → 形态库索引（主/副形态分发）。</summary>
-        private static int TagGlyphIndex(PrototypeTag tag)
+        internal static int TagGlyphIndex(PrototypeTag tag)
         {
             switch (tag)
             {
@@ -735,9 +735,12 @@ namespace Code.Combat.Fx
         /// v0.18.69：px=1/帧宽归一化（世界尺寸=Size 参数，不再随素材帧宽漂移）；起点从单位身体中部飞出。
         /// v0.18.92：投射体颜色跟随异能专属派生色。
         /// v0.21.2：飞行 0.26s→0.4s（近战距离也能看清弹道；原太快"瞬移到目标"被当成贴脸炸）。</summary>
-        private static void SpawnProjectile(string id, Vector2 from, Vector2 to, float scale, Color? tint = null)
+        private static void SpawnProjectile(string id, PrototypeDef def, Vector2 from, Vector2 to, float scale, Color tint)
         {
-            var frames = Load(id);
+            // v0.21.9 弹体程序化：不再用素材图（对齐战斗之神纯程序化）。按异能形态生成
+            // 形态演化帧循环飞行（生长→峰值→爆散 循环 = 弹体脉动飞行），命中处 SpawnGlyphBurst 衔接爆散。
+            if (def == null || string.IsNullOrEmpty(def.Id)) return;
+            var frames = PrototypeFramesFor(def);
             if (frames == null || frames.Length == 0) return;
             Vector2 dir = to - from;
             float dist = Mathf.Max(0.5f, dir.magnitude);
@@ -749,7 +752,8 @@ namespace Code.Combat.Fx
             // v0.18.91：起点从单位身体中心飞出（脚底+0.17×体型），原 0.3×scale 在头顶
             var p = CombatFxCore.Spawn(frames, from + new Vector2(0f, 0.17f * scale), px, fly, FxLayer.Top, 34);
             if (p == null) return;
-            Color tc = tint ?? Color.white;
+            p.Loop = true;   // v0.21.9 弹体循环播形态演化帧（飞行中脉动，命中处 burst 衔接）
+            Color tc = tint;
             // v0.21.6.2 尺寸定标（反编译 ProjectileAsset/ProjectileLibrary 实锤）：
             //   原版投射物 scale_target=0.075~0.2（弹丸级）、scale_start=0.035~0.1，
             //   飞行从小变大。此前 0.34→0.22 = 1.4 倍单位宽（比原版大 2~4 倍）且方向相反。

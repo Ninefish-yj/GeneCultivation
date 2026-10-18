@@ -43,7 +43,7 @@ namespace Code.Combat.Fx
             {
                 case "burning": fxId = "fx_status_burning_t"; alpha = 0.55f; break;  // 原版火焰帧（单位身上持续冒火）
                 case "frozen":  fxId = "fx_status_frozen_t";  alpha = 0.7f;  break;  // 原版冻结贴图（单位被冰晶覆盖定身）
-                case "poisoned": fxId = "magic_smoke";        alpha = 0.3f;  break;  // 原版 poisoned 无贴图 → 我方毒雾
+                case "poisoned": fxId = "__proto_poison";   alpha = 0.3f;  break;  // 原版 poisoned 无贴图 → 程序化毒雾（v0.21.9 全程序化）
                 default: return;   // stunned/slowness 等短状态不挂，防刷屏
             }
 
@@ -78,6 +78,15 @@ namespace Code.Combat.Fx
                 if (frames == null || frames.Length == 0) return;
                 Array.Sort(frames, (a, b) => string.Compare(a.name, b.name, StringComparison.Ordinal));
             }
+            else if (fxId == "__proto_poison")
+            {
+                // v0.21.9 程序化毒附着：淡绿烟雾形态（TagGlyphIndex(Poison)=火形变体 seed 区分），
+                // 循环播形态演化帧 = 单位身上持续涌毒雾
+                int seed = target != null ? (int)(target.getID() * 131 + 7) : 0;
+                frames = CombatFxArt.MakePrototypeFrames(seed, AbilityFx.TagGlyphIndex(Code.Realm.Prototype.PrototypeTag.Poison), -1, 0);
+                if (frames == null || frames.Length == 0) return;
+                alpha = 0.3f;
+            }
             else
             {
                 frames = AbilityFx.Load(fxId);
@@ -93,6 +102,7 @@ namespace Code.Combat.Fx
                 target.current_position + new Vector2(0f, 0.17f * scale),
                 px, duration, FxLayer.Top, 25);
             if (p == null) return;
+            if (fxId == "__proto_poison") p.Loop = true;   // 毒雾循环涌动
             p.FollowActor = target;
             p.FollowOffset = new Vector2(0f, 0.17f * scale);
             p.Loop = true;   // 帧动画循环（燃烧持续冒火）

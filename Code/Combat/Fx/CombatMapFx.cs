@@ -41,8 +41,8 @@ namespace Code.Combat.Fx
             int tier = CultivationData.GetRealmTier(by);
 
             // L0：贴地持续域（视觉层，不改地形；任何境界都铺，意象按标签）
-            string groundFx = GroundFxFor(mainTag, subTag);
-            if (!string.IsNullOrEmpty(groundFx))
+            var groundFx = GroundFxFor(mainTag, subTag);
+            if (groundFx.Item1 >= 0)
                 SpawnGround(groundFx, pos, by, tier);
 
             // v0.21.2 冰系命中水面：封冻域（视觉持久冰霜 + 尝试降温；不破坏水面 tile）
@@ -86,13 +86,17 @@ namespace Code.Combat.Fx
                 if (tile.canBeFrozen())
                 {
                     tile.freeze(5);
-                    // 冻结成功后铺持久亮蓝冰霜视觉（封冻观感，2.5s）
-                    var frames = AbilityFx.Load("magic_ice_c");
+                    // 冻结成功后铺持久亮蓝冰霜视觉（封冻观感，2.5s；v0.21.9 程序化冰晶形态）
+                    var frames = CombatFxArt.MakePrototypeFrames((int)(by.getID() * 37 + 11), AbilityFx.TagGlyphIndex(Code.Realm.Prototype.PrototypeTag.Frost), -1, 0);
                     if (frames != null && frames.Length > 0)
                     {
                         float frameW = frames[0].rect.width;
                         if (frameW <= 0f) frameW = 128f;
                         var p = CombatFxCore.Spawn(frames, pos + new Vector2(0f, 0.02f), 1f / frameW, 2.5f, FxLayer.Behind, 8);
+                        if (p != null)
+                        {
+                            p.Loop = true;   // 冰晶形态循环涌动 = 冻结面持续发光
+                        }
                         if (p != null)
                         {
                             float s = 1.6f * AbilityFx.UnitScale(by);
@@ -112,70 +116,61 @@ namespace Code.Combat.Fx
         }
 
         /// <summary>标签 → 贴地持续域素材（意象与大众认知对应；不铺=该标签无地面域，不硬凑）</summary>
-        private static string GroundFxFor(PrototypeTag main, PrototypeTag sub)
+        /// <summary>贴地形态映射（v0.21.9 全程序化：不再用素材图）。
+        /// 返回 (主形态索引, 副形态索引(-1=无), 标签基准色, 是否自转)。形态复用
+        /// AbilityFx.TagGlyphIndex 的 26 形态库，与命中爆同源——地图融合层与命中特效同视觉语言。</summary>
+        private static (int, int, Color, bool) GroundFxFor(PrototypeTag main, PrototypeTag sub)
         {
-            // 火系：地面起火平铺（火焰持续燃烧）
-            if (main == PrototypeTag.Burn || main == PrototypeTag.Plasma || main == PrototypeTag.Berserk)
-                return "vfx_ditheredfire";
-            // 冰系：地面结霜（冰雾冰锥贴地）
-            if (main == PrototypeTag.Frost || main == PrototypeTag.Frostbite || main == PrototypeTag.Slow)
-                return "magic_ice_b";
-            // 雷系：劈焦弧光（锯齿闪电贴地）
-            if (main == PrototypeTag.Thunder || main == PrototypeTag.Chain || main == PrototypeTag.Stun)
-                return "magic_lightning";
-            // 水系：水波蔓延
-            if (main == PrototypeTag.Water) return "soul_water";
-            // 毒系：毒雾蔓延
-            if (main == PrototypeTag.Poison) return "magic_smoke";
-            // 暗系：暗影领域（紫暗影尖刺铺地）
-            if (main == PrototypeTag.Shadow || main == PrototypeTag.Curse || main == PrototypeTag.Fear
-                || main == PrototypeTag.Aging || main == PrototypeTag.Weakness) return "soul_yin";
-            // 引力/念力/磁/声/振动/幻象：引力旋涡（贴地旋转）
+            bool spin = false;
+            int m = AbilityFx.TagGlyphIndex(main);
+            // 旋涡类（引力/念力/磁/声/振动/幻象）：Moon 环状旋涡意象 + 贴地自转
             if (main == PrototypeTag.Gravity || main == PrototypeTag.Telekinesis
                 || main == PrototypeTag.Magnetism || main == PrototypeTag.Sound
-                || main == PrototypeTag.Vibration || main == PrototypeTag.Illusion) return "vfx_vortex";
-            // 召唤/分身：三环发光领域
-            if (main == PrototypeTag.Summon || main == PrototypeTag.Clone) return "vfx_eldenring";
-            // 束缚/再生/荆棘（木系意象）：藤蔓铺地
-            if (main == PrototypeTag.Entangle || main == PrototypeTag.Regeneration
-                || main == PrototypeTag.Thorns) return "soul_wood";
-            // 光/治疗/祝福/净化：圣光地面
-            if (main == PrototypeTag.Light || main == PrototypeTag.Heal || main == PrototypeTag.HealAlly
-                || main == PrototypeTag.Blessing || main == PrototypeTag.Cleanse) return "soul_yang";
-            // 灵魂/吸血/汲取/血：灵魂火焰铺地
-            if (main == PrototypeTag.Soul || main == PrototypeTag.Lifesteal
-                || main == PrototypeTag.Drain || main == PrototypeTag.Blood) return "vfx_anima";
-            // 石化/土：土岩结晶铺地
-            if (main == PrototypeTag.Petrify || main == PrototypeTag.Earth) return "soul_earth";
-            // 其余标签（暴击/击退/破甲/标记/反射/闪避/传送/隐身等）：无地面域，不硬凑
-            return null;
+                || main == PrototypeTag.Vibration || main == PrototypeTag.Illusion)
+            {
+                m = 15;   // GlyphMoonAt（环状旋涡）
+                spin = true;
+            }
+            // 领域类（召唤/分身）：Burn 火环意象（seed 区分，贴地铺展成发光领域）
+            if (main == PrototypeTag.Summon || main == PrototypeTag.Clone)
+                m = 0;    // GlyphFlameAt（领域=持续燃烧的发光环）
+            int s2 = -1;
+            if (sub != main)
+            {
+                int sm = AbilityFx.TagGlyphIndex(sub);
+                if (sm != m) s2 = sm;
+            }
+            return (m, s2, AbilityFx.TagBaseColor(main), spin);
         }
 
-        /// <summary>贴地持续域：铺在命中位置地面上，横向展宽、低透明、持续 ~1.2s 淡出</summary>
-        private static void SpawnGround(string id, Vector2 pos, Actor by, int tier)
+        private static void SpawnGround((int, int, Color, bool) fx, Vector2 pos, Actor by, int tier)
         {
-            var frames = AbilityFx.Load(id);
+            int mainIdx = fx.Item1, subIdx = fx.Item2;
+            Color tint = fx.Item3;
+            bool spin = fx.Item4;
+            int seed = by != null ? (int)(by.getID() * 31 + 17) : 0;
+            var frames = CombatFxArt.MakePrototypeFrames(seed, mainIdx, subIdx, Mathf.Max(0, tier));
             if (frames == null || frames.Length == 0) return;
-            AbilityFx.Style(id, out float size, out float life);
             float frameW = frames[0].rect.width;
             if (frameW <= 0f) frameW = 128f;
             float px = 1f / frameW;
 
-            // 贴地（地面类特效 CenterOffset≈0.02×scale；领域级平铺不悬空）
+            // 贴地（地面类特效贴地铺展；领域级平铺不悬空）
             float scale = AbilityFx.UnitScale(by);
             Vector2 center = pos + new Vector2(0f, 0.02f * scale);
-            // 持续时长：1.2s 左右（比单体命中 0.5s 长——"地面起火持续燃烧"的观感）
-            float lifeSec = Mathf.Clamp(life * 1.6f, 1.0f, 1.6f);
+            // 持续时长：1.5s（贴地持续燃烧/蔓延的观感；帧动画循环播）
+            float lifeSec = 1.5f;
             var p = CombatFxCore.Spawn(frames, center, px, lifeSec, FxLayer.Behind, 8);
             if (p == null) return;
-            // 地面域：横向铺展（宽 1.6× 期望 size，高压到 0.45×——贴地不遮单位）
-            float s = size * 1.6f * scale;
+            p.Loop = true;   // v0.21.9 循环播形态演化帧 = 持续生长-消散的贴地域（不再静态贴图）
+            // 地面域：横向铺展（宽 1.6× 期望尺寸，高压到 0.45×——贴地不遮单位）
+            float s = 0.45f * 1.6f * scale;
             p.Sized(s, s * 0.45f);
-            // 半透明贴地淡出（不挡地图；领域级再降透明度）
+            // 半透明贴地淡出（不挡地图；领域级再降透明度），着色跟随标签基准色
             bool domain = s > 1.2f;
-            p.Color(new Color(1f, 1f, 1f, domain ? 0.38f : 0.55f), new Color(1f, 1f, 1f, 0f));
-            // 领域/旋涡类轻微自转（贴地转；火/冰/毒平铺类不自转——素材帧本身是生长动画）
-            if (id == "vfx_vortex" || id == "vfx_eldenring" || id == "soul_yin") p.Spin = 30f;
-        }
-    }
+            p.Color(new Color(tint.r, tint.g, tint.b, domain ? 0.38f : 0.55f),
+                    new Color(tint.r, tint.g, tint.b, 0f));
+            // 领域/旋涡类轻微自转（贴地转；火/冰/毒平铺类不自转——帧动画本身是生长-消散循环）
+            if (spin) p.Spin = 30f;
+        }    }
 }
