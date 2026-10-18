@@ -77,6 +77,26 @@ namespace Code.Combat.Moves
                 MoveTerrain.Crater, 7, 11f,
                 "收割灵魂，地面随镰刀崩裂（死亡系重击）。", "Soul", "Execute", "Aging"));
 
+            // ---- v0.21.11 补全：强化/血肉/自然系（世界观原创命名）----
+            Register(new CombatMove("mv_beast_frenzy", "狂兽冲撞", MoveWeight.Light, MoveKind.Lunge,
+                MoveTerrain.None, 3, 3.5f,
+                "兽性觉醒，四肢伏地猛冲撕咬（强化系突进）。", "Berserk", "MultiShot"));
+            Register(new CombatMove("mv_steel_guard", "金刚护体", MoveWeight.Heavy, MoveKind.Buff,
+                MoveTerrain.None, 4, 8f,
+                "钢铁意志外放，金芒护体震荡（强化/机械系防守）。", "Buff", "Shield", "Metal"));
+            Register(new CombatMove("mv_blood_sacrifice", "血祭爆发", MoveWeight.Heavy, MoveKind.Blast,
+                MoveTerrain.Crater, 6, 10f,
+                "燃烧自身鲜血引爆周身，血浪成坑（血肉系重击）。", "Blood", "Drain", "Berserk"));
+            Register(new CombatMove("mv_regen_field", "再生领域", MoveWeight.Light, MoveKind.Domain,
+                MoveTerrain.None, 5, 6f,
+                "脚下藤蔓生根、绿光回涌，领域内快速再生（血肉/自然系领域）。", "Regeneration", "Heal", "HealAlly"));
+            Register(new CombatMove("mv_thorn_bind", "荆棘囚笼", MoveWeight.Heavy, MoveKind.Domain,
+                MoveTerrain.None, 3, 7f,
+                "荆棘破土合拢成笼，困锁目标（自然系控制）。", "Thorns", "Entangle"));
+            Register(new CombatMove("mv_wood_whiplash", "藤蔓鞭击", MoveWeight.Light, MoveKind.Chain,
+                MoveTerrain.None, 2, 3f,
+                "藤蔓长鞭连抽，缚缠横扫（自然系轻击）。", "Thorns", "Entangle", "Water"));
+
             // ---- 标签 → 招式映射（标签优先，多个标签取权重最大的招）----
             _tagToMove["Plasma"] = "mv_fire_blast";
             _tagToMove["Burn"] = "mv_fire_blast";
@@ -105,6 +125,16 @@ namespace Code.Combat.Moves
             _tagToMove["Reflect"] = "mv_fate_verdict";
             _tagToMove["Soul"] = "mv_soul_harvest";
             _tagToMove["Aging"] = "mv_soul_harvest";
+            // v0.21.11 补全映射：强化/血肉/自然系
+            _tagToMove["Berserk"] = "mv_beast_frenzy";
+            _tagToMove["MultiShot"] = "mv_beast_frenzy";
+            _tagToMove["Buff"] = "mv_steel_guard";
+            _tagToMove["Shield"] = "mv_steel_guard";
+            _tagToMove["Drain"] = "mv_blood_sacrifice";
+            _tagToMove["Regeneration"] = "mv_regen_field";
+            _tagToMove["Heal"] = "mv_regen_field";
+            _tagToMove["HealAlly"] = "mv_regen_field";
+            _tagToMove["Thorns"] = "mv_thorn_bind";
         }
 
         private static void Register(CombatMove move)
