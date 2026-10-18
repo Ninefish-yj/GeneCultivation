@@ -1356,5 +1356,65 @@ namespace Code.Combat.Fx
             // 副形态只取主形态库的一个子集（重复部分弱化即可，避免喧宾夺主）
             return GlyphMain(x, y, w, h, idx, seed + 31);
         }
+
+        /// <summary>单帧图元 → 真·帧动画序列（v0.21.6.4 每异能独立帧动画）。
+        /// 用户要求"那就生成这么多特效图"——用代码按像素仿射变换生成 count 帧
+        /// （呼吸缩放 + 摆动平移 + 旋转漂移），等于为每异能生成独立动画帧，
+        /// 零素材成本（不烧 AI 生图额度），CombatFxCore 已支持帧序列播放（Fps 自动 15）。
+        /// seed 决定摆动方向/幅度/相位 → 398 异能动画各不相同。
+        /// 帧0=原形，后续帧为环绕原形的"形变呼吸"，命中处播完整 4~6 帧=真动画而非一张图。</summary>
+        internal static Sprite[] GlyphFrames(Sprite baseSpr, int count, int seed)
+        {
+            if (baseSpr == null) return null;
+            count = Mathf.Clamp(count, 3, 8);
+            var tex = baseSpr.texture;
+            int w = tex.width, h = tex.height;
+            var frames = new Sprite[count];
+            // seed 派生节奏参数（幅度/方向/相位）
+            float amp = 0.10f + (seed % 4) * 0.025f;          // 摆动幅度 10~17.5%
+            int dirX = (seed % 2 == 0) ? 1 : -1;              // 横向摆动方向
+            int dirY = ((seed / 2) % 2 == 0) ? 1 : -1;        // 纵向摆动方向
+            float phase = (seed % 7) * 0.45f;                 // 相位偏移（弧度步）
+            for (int i = 0; i < count; i++)
+            {
+                // 环绕呼吸：scale 1±amp、摆动 dx/dy ±amp*12px、旋转 ±amp*30°
+                float t = (i / (float)(count - 1)) * Mathf.PI * 2f + phase;
+                float sc = 1f + Mathf.Sin(t) * amp;
+                float dx = Mathf.Cos(t) * amp * 12f * dirX;
+                float dy = Mathf.Sin(t * 0.7f) * amp * 8f * dirY;
+                float rot = Mathf.Sin(t * 0.8f) * amp * 30f * dirX;
+                frames[i] = WarpToSprite(tex, sc, dx, dy, rot);
+            }
+            return frames;
+        }
+
+        /// <summary>像素仿射重采样（逆变换采样，Point 滤波保锐利；旋转绕中心）。</summary>
+        private static Sprite WarpToSprite(Texture2D src, float scale, float dx, float dy, float rotDeg)
+        {
+            int w = src.width, h = src.height;
+            var dst = new Texture2D(w, h, TextureFormat.RGBA32, false) { filterMode = FilterMode.Point };
+            float rad = rotDeg * Mathf.Deg2Rad;
+            float cos = Mathf.Cos(rad), sin = Mathf.Sin(rad);
+            var px = new Color32[w * h];
+            float cx = w * 0.5f, cy = h * 0.5f;
+            for (int y = 0; y < h; y++)
+            {
+                for (int x = 0; x < w; x++)
+                {
+                    float u = x - cx, v = y - cy;
+                    // 逆变换：先逆平移，再逆旋转，再逆缩放
+                    float u2 = (u - dx) * cos + (v - dy) * sin;
+                    float v2 = -(u - dx) * sin + (v - dy) * cos;
+                    u2 /= scale; v2 /= scale;
+                    int sx = (int)(u2 + cx);
+                    int sy = (int)(v2 + cy);
+                    px[y * w + x] = (sx >= 0 && sy >= 0 && sx < w && sy < h)
+                        ? src.GetPixel(sx, sy) : new Color32(0, 0, 0, 0);
+                }
+            }
+            dst.SetPixels32(px);
+            dst.Apply(false, false);
+            return Sprite.Create(dst, new Rect(0f, 0f, w, h), new Vector2(0.5f, 0.5f), 100f);
+        }
     }
 }

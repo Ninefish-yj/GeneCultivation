@@ -23,7 +23,7 @@ namespace Code.Combat.Fx
         private static readonly Dictionary<string, Sprite[]> _cache = new Dictionary<string, Sprite[]>();
 
         // v0.21.6 每异能独立特效：异能Id → 专属程序化图元（懒生成，首次播放才建，398 上限）
-        private static readonly Dictionary<string, Sprite> _prototypeGlyphs = new Dictionary<string, Sprite>();
+        private static readonly Dictionary<string, Sprite[]> _prototypeGlyphs = new Dictionary<string, Sprite[]>();
         private static bool _glyphInited;
 
         // 主标签 → 特效池（多个变体；按副标签哈希取用，保证 (主,副) 组合唯一）
@@ -414,7 +414,7 @@ namespace Code.Combat.Fx
                 {
                     SpawnProjectile(mainFx, self.current_position, pos, scale, tint);
                     // v0.21.6 命中爆：每异能独立专属图元（形态×seed×专属色），不再共用素材命中爆
-                    Sprite glyph = PrototypeGlyphFor(def);
+                    Sprite[] glyph = PrototypeFramesFor(def);
                     if (glyph != null) SpawnGlyphBurst(glyph, pos, scale, tint, StableSeed(def.Id));
                     else SpawnFx(mainFx, pos, FxLayer.Top, 36, true, scale, delay: 0.13f, follow: null, tint: tint);
                 }
@@ -427,13 +427,13 @@ namespace Code.Combat.Fx
                     SpawnFx(mainFx, pos, FxLayer.Top, shieldFx ? 25 : 35, true, scale, 0f,
                         shieldFx ? anchor : null, tint: tint);
                     // v0.21.6 每异能独立特效：素材主演出之外叠专属图元爆发（形态可辨每异能）
-                    Sprite glyph = PrototypeGlyphFor(def);
+                    Sprite[] glyph = PrototypeFramesFor(def);
                     if (glyph != null) SpawnGlyphBurst(glyph, pos, scale, tint, StableSeed(def.Id));
                 }
                 else
                 {
                     // v0.21.6 无池素材兜底：纯专属图元（新/未入池标签不再"无特效"）
-                    Sprite glyph = PrototypeGlyphFor(def);
+                    Sprite[] glyph = PrototypeFramesFor(def);
                     if (glyph != null) SpawnGlyphBurst(glyph, pos, scale, tint, StableSeed(def.Id));
                 }
                 // 命中冲击环（扩张淡出，贴合目标体型，细环不遮视野）
@@ -460,11 +460,11 @@ namespace Code.Combat.Fx
                     SpawnFx(mainFx, pos, FxLayer.Over, 25, true, scale, 0f, self, tint: tint);
                 }
                 // v0.21.6 防守印记：弱化专属图元环贴自身（护盾/闪避时异能印记可辨，不遮人）
-                Sprite glyph = PrototypeGlyphFor(def);
+                Sprite[] glyph = PrototypeFramesFor(def);
                 if (glyph != null)
                 {
-                    var g = CombatFxCore.Spawn(new[] { glyph }, pos + new Vector2(0f, 0.17f * scale),
-                        1f / 64f, 0.3f, FxLayer.Over, 22);
+                    var g = CombatFxCore.Spawn(glyph, pos + new Vector2(0f, 0.17f * scale),
+                        1f / 64f, 0.35f, FxLayer.Over, 22);
                     if (g != null)
                     {
                         g.Sized(0.2f * scale, 0.26f * scale);         // 微扩散环（0.8~1 倍单位宽）
@@ -498,7 +498,11 @@ namespace Code.Combat.Fx
         // ================================================================
 
         /// <summary>取异能专属图元（懒生成+缓存；失败返回 null 走素材兜底）。</summary>
-        private static Sprite PrototypeGlyphFor(PrototypeDef def)
+        /// <summary>每异能独立帧动画序列（v0.21.6.4）。
+        /// 原单帧图元 → 由 CombatFxArt.GlyphFrames 生成 5 帧真·动画序列
+        /// （呼吸缩放+摆动+旋转漂移，seed 定节奏），懒生成 + 512 LRU 缓存。
+        /// 命中/投射命中播帧序列（CombatFxCore Fps=15 自动），不再是"一张图"。</summary>
+        private static Sprite[] PrototypeFramesFor(PrototypeDef def)
         {
             if (def == null || string.IsNullOrEmpty(def.Id)) return null;
             if (_prototypeGlyphs.TryGetValue(def.Id, out var cached)) return cached;
@@ -510,9 +514,11 @@ namespace Code.Combat.Fx
                 int subIdx = def.SubTag == def.MainTag ? -1 : TagGlyphIndex(def.SubTag);   // 副标签同主标签不重复叠加
                 var sprite = CombatFxArt.MakePrototypeGlyph(seed, mainIdx, subIdx, def.Tier);
                 if (sprite == null) return null;
+                var frames = CombatFxArt.GlyphFrames(sprite, 5, seed);
+                if (frames == null) return null;
                 if (_prototypeGlyphs.Count > 512) _prototypeGlyphs.Clear();   // 防膨胀（超 512 清重建）
-                _prototypeGlyphs[def.Id] = sprite;
-                return sprite;
+                _prototypeGlyphs[def.Id] = frames;
+                return frames;
             }
             catch (System.Exception dsEx)
             {
@@ -603,16 +609,16 @@ namespace Code.Combat.Fx
         /// 重做为：中心核心闪光（0.14s）+ 8~10 片同形态碎片八方飞散（Vel 径向外抛 +
         /// Spin 高速自旋 + 尺寸收缩 + 专属色淡出）——"异能形态炸开成碎屑"的粒子爆，
         /// 命中处不再存在可辨认的整张图。</summary>
-        private static void SpawnGlyphBurst(Sprite glyph, Vector2 pos, float scale, Color tint, int seed)
+        private static void SpawnGlyphBurst(Sprite[] glyph, Vector2 pos, float scale, Color tint, int seed)
         {
             try
             {
                 Vector2 center = pos + new Vector2(0f, 0.08f * scale);
                 // 中心核心：极短闪光（只留"命中闪点"，不构成贴图）
-                var core = CombatFxCore.Spawn(new[] { glyph }, center, 1f / 64f, 0.13f, FxLayer.Top, 35);
+                var core = CombatFxCore.Spawn(glyph, center, 1f / 64f, 0.4f, FxLayer.Top, 35);
                 if (core != null)
                 {
-                    core.Sized(0.12f * scale, 0.16f * scale);
+                    core.Sized(0.12f * scale, 0.1f * scale);
                     core.Spin = ((seed % 2 == 0) ? 1f : -1f) * (1.4f + (seed % 4) * 0.25f);
                     core.Color(new Color(tint.r, tint.g, tint.b, 1f), new Color(tint.r, tint.g, tint.b, 0.5f));
                 }
@@ -622,7 +628,7 @@ namespace Code.Combat.Fx
                 {
                     float ang = i * Mathf.PI * 2f / shards + ((seed % 7) * 0.13f);
                     float speed = (0.5f + ((seed + i * 3) % 5) * 0.09f) * scale;
-                    var s = CombatFxCore.Spawn(new[] { glyph }, center, 1f / 64f, 0.32f, FxLayer.Top, 33);
+                    var s = CombatFxCore.Spawn(glyph, center, 1f / 64f, 0.4f, FxLayer.Top, 33);
                     if (s == null) continue;
                     s.Vel = new Vector2(Mathf.Cos(ang), Mathf.Sin(ang)) * speed;
                     s.Spin = ((i % 2 == 0) ? 1f : -1f) * (1.8f + (seed % 5) * 0.3f);
