@@ -409,30 +409,41 @@ namespace Code.Combat.Fx
 
             if (attack)
             {
-                // ---- 攻击：投射飞行 or 目标爆发 ----
-                if (!string.IsNullOrEmpty(mainFx) && IsProjectile(mainFx))
+                // ---- 攻击：v0.21.27 异能级规格分发（每异能专属形态×特效类型）----
+                // Kind: 0爆发 1投射 2领域 3召唤 4附着 5强化（攻击时强化也按爆发表现）
+                AbilityFxSpec spec = LookupSpec(def);
+                int gIdx = spec != null ? spec.GlyphIdx : -1;
+                Sprite[] glyph = PrototypeFramesFor(def, gIdx);
+                int seed = StableSeed(def.Id);
+                int kind = spec != null ? spec.Kind : 0;
+                if (glyph != null)
                 {
-                    SpawnProjectile(mainFx, def, self.current_position, pos, scale, tint);
-                    // v0.21.6 命中爆：每异能独立专属图元（形态×seed×专属色），不再共用素材命中爆
-                    Sprite[] glyph = PrototypeFramesFor(def);
-                    if (glyph != null) SpawnGlyphBurst(glyph, pos, scale, tint, StableSeed(def.Id));
-                    else SpawnFx(mainFx, pos, FxLayer.Top, 36, true, scale, delay: 0.13f, follow: null, tint: tint);
+                    if (kind == 1)
+                    {
+                        SpawnProjectile(def, self.current_position, pos, scale, tint);
+                        SpawnGlyphBurst(glyph, pos, scale, tint, seed);
+                    }
+                    else if (kind == 2)
+                    {
+                        SpawnField(glyph, pos, scale, tint, seed);
+                        SpawnGlyphBurst(glyph, pos, scale, tint, seed);
+                    }
+                    else if (kind == 3)
+                    {
+                        SpawnSummon(glyph, pos, scale, tint, seed);
+                        SpawnGlyphBurst(glyph, pos, scale, tint, seed);
+                    }
+                    else if (kind == 4)
+                    {
+                        SpawnGlyphBurst(glyph, pos, scale, tint, seed);
+                        SpawnAttach(glyph, anchor, scale, tint, seed);
+                    }
+                    else
+                    {
+                        SpawnGlyphBurst(glyph, pos, scale, tint, seed);
+                    }
                 }
-                else if (!string.IsNullOrEmpty(mainFx))
-                {
-                    // v0.21.26 素材层正式退役：mainFx 素材池 id 来自素材包清单（VFXSource 100 条，
-                    // 打包明确排除、GameResources/effects 不存在）→ Load 静默空 → 本层假死不播。
-                    // 战斗之神 Art.cs 铁证（px.ToSprite 全程序化像素生成，零素材图）确认正路。
-                    // 命中特效 = 异能专属程序化爆唯一主体（每异能形态×色×seed 差异化）。
-                    Sprite[] glyph = PrototypeFramesFor(def);
-                    if (glyph != null) SpawnGlyphBurst(glyph, pos, scale, tint, StableSeed(def.Id));
-                }
-                else
-                {
-                    // v0.21.6 无池素材兜底：纯专属图元（新/未入池标签不再"无特效"）
-                    Sprite[] glyph = PrototypeFramesFor(def);
-                    if (glyph != null) SpawnGlyphBurst(glyph, pos, scale, tint, StableSeed(def.Id));
-                }
+
                 // 命中冲击环（扩张淡出，贴合目标体型，细环不遮视野）
                 var ring = CombatFxCore.Spawn(CombatFxArt.Rings[0], pos, 0.09f, 0.35f, FxLayer.Top, 30);
                 if (ring != null)
@@ -466,10 +477,11 @@ namespace Code.Combat.Fx
             }
             else
             {
-                // ---- 防守：异能专属程序化护盾环（v0.21.26 素材跟随退役，原因同命中）----
-                // 每异能用自身形态帧做贴体环绕环 + 专属派生色 + seed 慢转——防守时异能可辨，
-                // 不再是"冰/火系防守都套同一个大素材"。
-                Sprite[] glyph = PrototypeFramesFor(def);
+                // ---- 防守：异能专属程序化护盾环 + Buff 特效（v0.21.27 按异能规格）----
+                AbilityFxSpec spec = LookupSpec(def);
+                int gIdx = spec != null ? spec.GlyphIdx : -1;
+                Sprite[] glyph = PrototypeFramesFor(def, gIdx);
+                int seed = StableSeed(def.Id);
                 if (glyph != null)
                 {
                     var g = CombatFxCore.Spawn(glyph, pos + new Vector2(0f, 0.17f * scale),
@@ -477,9 +489,11 @@ namespace Code.Combat.Fx
                     if (g != null)
                     {
                         g.Sized(0.2f * scale, 0.26f * scale);         // 微扩散环（0.8~1 倍单位宽）
-                        g.Spin = ((StableSeed(def.Id) % 2 == 0) ? 1f : -1f) * 0.9f;  // 慢转 51°/s
+                        g.Spin = ((seed % 2 == 0) ? 1f : -1f) * 0.9f;  // 慢转 51°/s
                         g.Color(new Color(tint.r, tint.g, tint.b, 0.5f), new Color(tint.r, tint.g, tint.b, 0f));
                     }
+                    // v0.21.27 强化/Buff 异能（治愈/护盾/狂化…）防守时上浮专属粒子——语义可辨
+                    if (spec != null && spec.Kind == 5) SpawnBuff(glyph, self, scale, tint, seed);
                 }
             }
 
@@ -507,24 +521,26 @@ namespace Code.Combat.Fx
         /// 原单帧图元 → 由 CombatFxArt.GlyphFrames 生成 5 帧真·动画序列
         /// （呼吸缩放+摆动+旋转漂移，seed 定节奏），懒生成 + 512 LRU 缓存。
         /// 命中/投射命中播帧序列（CombatFxCore Fps=15 自动），不再是"一张图"。</summary>
-        private static Sprite[] PrototypeFramesFor(PrototypeDef def)
+        private static Sprite[] PrototypeFramesFor(PrototypeDef def, int overrideGlyphIdx = -1)
         {
             if (def == null || string.IsNullOrEmpty(def.Id)) return null;
-            if (_prototypeGlyphs.TryGetValue(def.Id, out var cached)) return cached;
+            // v0.21.27 异能级规格：spec.GlyphIdx 覆盖小类形态（每异能形态可不同）
+            string key = overrideGlyphIdx >= 0 ? def.Id + "#" + overrideGlyphIdx : def.Id;
+            if (_prototypeGlyphs.TryGetValue(key, out var cached)) return cached;
             try
             {
                 CombatFxArt.EnsureInit();
                 int seed = StableSeed(def.Id);
                 // v0.21.24 小类语义优先定形态（火衣出火苗/冰封出冰晶/死亡宣告出骨镰），
-                // 小类未命中（抽象小类）回退主标签索引
-                int mainIdx = SubCategoryGlyphIndex(def.SubCategory);
-                if (mainIdx < 0) mainIdx = TagGlyphIndex(def.MainTag);
+                // 小类未命中（抽象小类）回退主标签索引；异能级规格覆盖优先
+                int mainIdx = overrideGlyphIdx >= 0 ? overrideGlyphIdx : SubCategoryGlyphIndex(def.SubCategory);
+                if (overrideGlyphIdx < 0 && mainIdx < 0) mainIdx = TagGlyphIndex(def.MainTag);
                 int subIdx = def.SubTag == def.MainTag ? -1 : TagGlyphIndex(def.SubTag);   // 副标签同主标签不重复叠加
                 // v0.21.8 形态演化帧（生长→峰值→爆散→有序消散），对齐战斗之神程序化多帧形态动画
                 var frames = CombatFxArt.MakePrototypeFrames(seed, mainIdx, subIdx, def.Tier);
                 if (frames == null) return null;
-                if (_prototypeGlyphs.Count > 512) _prototypeGlyphs.Clear();   // 防膨胀（超 512 清重建）
-                _prototypeGlyphs[def.Id] = frames;
+                if (_prototypeGlyphs.Count > 1024) _prototypeGlyphs.Clear();   // 防膨胀（异能级形态翻倍，1024 清重建）
+                _prototypeGlyphs[key] = frames;
                 return frames;
             }
             catch (System.Exception dsEx)
@@ -532,6 +548,15 @@ namespace Code.Combat.Fx
                 Code.Core.DSDebug.Verbose("[AbilityFx] glyph " + def.Id + ": " + dsEx.Message);
                 return null;
             }
+        }
+
+        /// <summary>查异能级特效规格（v0.21.27）；无则 null → 回退小类/标签形态。</summary>
+        private static AbilityFxSpec LookupSpec(PrototypeDef def)
+        {
+            if (def == null || string.IsNullOrEmpty(def.Id)) return null;
+            AbilityFxSpec spec;
+            if (AbilityFxSpecs.All.TryGetValue(def.Id, out spec)) return spec;
+            return null;
         }
 
         /// <summary>异能 Id 稳定哈希（与 DeriveTint 同一算法，保证色/形同源）。</summary>
@@ -669,6 +694,132 @@ namespace Code.Combat.Fx
                 case "命运": case "因果": case "气运": case "预知":     return 21;  // 符环（命运符文）
                 default:                                              return -1;  // 未命中→回退主标签
             }
+        }
+
+        /// <summary>命中附着（v0.21.27 Kind=4）：命中后目标身上挂异能形态环 1.2s 循环——
+        /// 御木缠绕/冰封冻结/诅咒噬魂/狼群吸血等"效果持续"的视觉，不再一闪而过。</summary>
+        private static void SpawnAttach(Sprite[] glyph, Actor target, float scale, Color tint, int seed)
+        {
+            try
+            {
+                if (target == null || !target.isAlive()) return;
+                var p = CombatFxCore.Spawn(glyph,
+                    target.current_position + new Vector2(0f, 0.17f * scale),
+                    1f / 64f, 1.2f, FxLayer.Top, 26);
+                if (p == null) return;
+                p.FollowActor = target;
+                p.FollowOffset = new Vector2(0f, 0.17f * scale);
+                p.Loop = true;   // 状态持续期间环绕
+                p.Sized(0.15f * scale, 0.19f * scale);
+                p.Spin = ((seed % 2 == 0) ? 1f : -1f) * (1.1f + (seed % 3) * 0.3f);
+                p.Color(new Color(tint.r, tint.g, tint.b, 0.75f), new Color(tint.r, tint.g, tint.b, 0f));
+            }
+            catch (System.Exception dsEx) { Code.Core.DSDebug.Verbose("[AbilityFx] attach: " + dsEx.Message); }
+        }
+
+        /// <summary>贴地领域展开（v0.21.27 Kind=2）：大扩散环 + 异能形态中心 + 二次冲击——
+        /// 领域/结界/火海/雷云/重力场等"区域型"异能的贴地场感（地形响应走 CombatMapFx）。</summary>
+        private static void SpawnField(Sprite[] glyph, Vector2 pos, float scale, Color tint, int seed)
+        {
+            try
+            {
+                Vector2 center = pos + new Vector2(0f, 0.06f * scale);
+                // 中心形态（贴地，弱光）
+                var core = CombatFxCore.Spawn(glyph, center, 1f / 64f, 0.8f, FxLayer.Behind, 24);
+                if (core != null)
+                {
+                    core.Sized(0.34f * scale, 0.3f * scale);
+                    core.Spin = ((seed % 2 == 0) ? 1f : -1f) * 0.6f;
+                    core.Color(new Color(tint.r, tint.g, tint.b, 0.45f), new Color(tint.r, tint.g, tint.b, 0f));
+                }
+                // 扩散环（领域边界，缓慢放大）
+                var ring = CombatFxCore.Spawn(CombatFxArt.Rings[seed % CombatFxArt.Rings.Length],
+                    center, 1f / 64f, 1.0f, FxLayer.Over, 28);
+                if (ring != null)
+                {
+                    ring.Sized(0.3f * scale, 1.3f * scale);
+                    ring.Color(new Color(tint.r, tint.g, tint.b, 0.6f), new Color(tint.r, tint.g, tint.b, 0f));
+                }
+                // 贴地星点（区域内能量涌动）
+                for (int i = 0; i < 5; i++)
+                {
+                    float ang = i * Mathf.PI * 2f / 5f + (seed % 7) * 0.15f;
+                    float dist = (0.35f + (seed + i * 11) % 5 * 0.07f) * scale;
+                    var st = CombatFxCore.Spawn(CombatFxArt.HitStars[seed % CombatFxArt.HitStars.Length],
+                        center + new Vector2(Mathf.Cos(ang), Mathf.Sin(ang)) * dist,
+                        1f / 64f, 0.6f, FxLayer.Over, 27);
+                    if (st != null)
+                    {
+                        st.Sized(0.08f * scale, 0.08f * scale);
+                        st.Color(new Color(tint.r, tint.g, tint.b, 0.7f), new Color(tint.r, tint.g, tint.b, 0f));
+                    }
+                }
+            }
+            catch (System.Exception dsEx) { Code.Core.DSDebug.Verbose("[AbilityFx] field: " + dsEx.Message); }
+        }
+
+        /// <summary>召唤展开（v0.21.27 Kind=3）：旋转召唤环 + 中心形态浮现 + 上浮星尘——
+        /// 召唤/唤灵/傀儡/兽群等"从虚空中来"的观感。</summary>
+        private static void SpawnSummon(Sprite[] glyph, Vector2 pos, float scale, Color tint, int seed)
+        {
+            try
+            {
+                Vector2 center = pos + new Vector2(0f, 0.08f * scale);
+                // 召唤环（双环反向旋转）
+                for (int r = 0; r < 2; r++)
+                {
+                    var rg = CombatFxCore.Spawn(CombatFxArt.Rings[(seed + r) % CombatFxArt.Rings.Length],
+                        center, 1f / 64f, 0.7f, FxLayer.Over, 28 + r);
+                    if (rg != null)
+                    {
+                        rg.Sized((0.24f + r * 0.08f) * scale, (0.24f + r * 0.08f) * scale);
+                        rg.Spin = (r == 0 ? 1f : -1f) * (1.6f + (seed % 3) * 0.4f);
+                        rg.Color(new Color(tint.r, tint.g, tint.b, 0.65f), new Color(tint.r, tint.g, tint.b, 0f));
+                    }
+                }
+                // 中心浮现形态（由小变大）
+                var core = CombatFxCore.Spawn(glyph, center, 1f / 64f, 0.6f, FxLayer.Top, 30);
+                if (core != null)
+                {
+                    core.Sized(0.12f * scale, 0.22f * scale);
+                    core.Spin = ((seed % 2 == 0) ? 1f : -1f) * 0.8f;
+                    core.Color(new Color(1f, 1f, 1f, 0.9f), new Color(tint.r, tint.g, tint.b, 0f));
+                }
+                // 上浮星尘（召唤物升起的能量）
+                for (int i = 0; i < 4; i++)
+                {
+                    float ang = ((seed + i * 29) % 360) * Mathf.Deg2Rad;
+                    var st = CombatFxCore.Spawn(CombatFxArt.HitStars[seed % CombatFxArt.HitStars.Length],
+                        center, 1f / 64f, 0.5f, FxLayer.Over, 29);
+                    if (st == null) continue;
+                    st.Vel = new Vector2(Mathf.Cos(ang), Mathf.Sin(ang)) * (0.35f * scale);
+                    st.Sized(0.06f * scale, 0.06f * scale);
+                    st.Color(new Color(tint.r, tint.g, tint.b, 0.8f), new Color(tint.r, tint.g, tint.b, 0f));
+                }
+            }
+            catch (System.Exception dsEx) { Code.Core.DSDebug.Verbose("[AbilityFx] summon: " + dsEx.Message); }
+        }
+
+        /// <summary>强化/Buff 特效（v0.21.27 Kind=5 防守）：自身光环 + 上浮专属粒子——
+        /// 治愈/护盾/狂化/再生/净化等增益异能的"能量灌注自身"观感。</summary>
+        private static void SpawnBuff(Sprite[] glyph, Actor self, float scale, Color tint, int seed)
+        {
+            try
+            {
+                if (self == null || !self.isAlive()) return;
+                Vector2 center = self.current_position + new Vector2(0f, 0.17f * scale);
+                for (int i = 0; i < 6; i++)
+                {
+                    float ang = ((seed + i * 53) % 360) * Mathf.Deg2Rad;
+                    var st = CombatFxCore.Spawn(CombatFxArt.HitStars[seed % CombatFxArt.HitStars.Length],
+                        center, 1f / 64f, 0.5f, FxLayer.Top, 26);
+                    if (st == null) continue;
+                    st.Vel = new Vector2(Mathf.Cos(ang), Mathf.Sin(ang)) * (0.4f * scale);
+                    st.Sized(0.06f * scale, 0.06f * scale);
+                    st.Color(new Color(tint.r, tint.g, tint.b, 0.85f), new Color(tint.r, tint.g, tint.b, 0f));
+                }
+            }
+            catch (System.Exception dsEx) { Code.Core.DSDebug.Verbose("[AbilityFx] buff: " + dsEx.Message); }
         }
 
         /// <summary>专属图元命中爆（真·粒子爆，非贴图）。
@@ -845,7 +996,7 @@ namespace Code.Combat.Fx
         /// v0.18.69：px=1/帧宽归一化（世界尺寸=Size 参数，不再随素材帧宽漂移）；起点从单位身体中部飞出。
         /// v0.18.92：投射体颜色跟随异能专属派生色。
         /// v0.21.2：飞行 0.26s→0.4s（近战距离也能看清弹道；原太快"瞬移到目标"被当成贴脸炸）。</summary>
-        private static void SpawnProjectile(string id, PrototypeDef def, Vector2 from, Vector2 to, float scale, Color tint)
+        private static void SpawnProjectile(PrototypeDef def, Vector2 from, Vector2 to, float scale, Color tint)
         {
             // v0.21.9 弹体程序化：不再用素材图（对齐战斗之神纯程序化）。按异能形态生成
             // 形态演化帧循环飞行（生长→峰值→爆散 循环 = 弹体脉动飞行），命中处 SpawnGlyphBurst 衔接爆散。
