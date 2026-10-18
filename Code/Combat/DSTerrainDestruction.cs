@@ -371,11 +371,14 @@ namespace Code.Combat
         /// <summary>境界 tier → 基础破坏力（0..4）。档位映射按超神机械师世界观。</summary>
         public static int ForceForTier(int tier)
         {
+            // v0.21.15 门槛下调+力度提升（用户反馈"境界太高/力度不够"）：
+            //   凡/玄 4 阶起即有焦痕（不再是 6 阶前完全无破坏），6 阶起炸坑、9 阶地裂、11 阶岩浆、13 阶天地崩裂
             if (tier >= 13) return 4;   // 真神/超神：天地崩裂
-            if (tier >= 11) return 3;   // 登神：焚山煮海
-            if (tier >= 9) return 2;    // 圣：地裂
-            if (tier >= 6) return 1;    // 灵/使徒：焦痕
-            return 0;                   // 凡/玄：不动大地
+            if (tier >= 11) return 4;   // 登神：焚山煮海（顶格）
+            if (tier >= 9) return 3;    // 圣：地裂（原 2 → 3）
+            if (tier >= 6) return 2;    // 灵/使徒：炸坑（原 1 → 2）
+            if (tier >= 4) return 1;    // 凡/玄后段：焦痕（原 6 阶前无破坏 → 4 阶起）
+            return 0;                   // 凡/玄前段（1~3 阶）：不动大地
         }
 
         /// <summary>最终破坏力（基础 + 轻重调整，夹到 0..4）。</summary>

@@ -117,9 +117,9 @@ namespace Code.Realm
                 { "ds_ability_sanctuary",
                     new SkillEffectConfig("skill/sanctuary", 1.5f, 0.12f, followActor: true, offsetY: 0.17f, duration: 10.0f) },
 
-                // 12阶 维度打击：大范围
+                // 12阶 维度打击：大范围（v0.21.15 特效 12f→24f，对齐伤害半径 24f）
                 { "ds_ability_dimensional_strike",
-                    new SkillEffectConfig("skill/dimensional_strike", 12f, 0.08f, followActor: false, duration: 3.0f) },
+                    new SkillEffectConfig("skill/dimensional_strike", 24f, 0.08f, followActor: false, duration: 3.0f) },
 
                 // 13阶 神罚：全屏，超大
                 { "ds_ability_divine_punishment",

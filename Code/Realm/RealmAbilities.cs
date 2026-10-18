@@ -467,9 +467,10 @@ namespace Code.Realm
                         try { Code.Realm.DSSkillEffectManager.PlayEffect(actor, ability.Id, null); } catch (System.Exception dsEx) { Code.Core.DSDebug.Warning("[GeneCultivation] ExecuteAbilityEffect 异常: " + dsEx.Message); }
                         
                         // ★ 使用统一AOE伤害管理器（修复：只伤害敌人 + 性能优化）
+                        // v0.21.15 能量弹=单点弹丸：伤害范围 5f→1.5f，与特效 0.35 小弹丸语义匹配
                         int damaged = Code.Combat.DSAoEDamageManager.ApplyAreaDamageAtCaster(
                             attacker: actor,
-                            radius: 5f,
+                            radius: 1.5f,
                             baseDamage: damage,
                             damageType: 1,
                             distanceDecay: true,

@@ -562,8 +562,8 @@ namespace Code.Combat.Fx
                 case PrototypeTag.Berserk: return 0;    // 火苗
                 case PrototypeTag.Frost:
                 case PrototypeTag.Frostbite:
-                case PrototypeTag.Slow:
-                case PrototypeTag.TimeSlow: return 1;   // 冰晶（时缓同冰蓝，seed 区分）
+                case PrototypeTag.Slow: return 1;   // 冰晶
+                case PrototypeTag.TimeSlow: return 14; // 沙漏（v0.21.15 时缓=时间意象，不再用冰晶）
                 case PrototypeTag.Thunder:
                 case PrototypeTag.Chain:
                 case PrototypeTag.Magnetism:
@@ -610,7 +610,7 @@ namespace Code.Combat.Fx
                 case PrototypeTag.Dodge:
                 case PrototypeTag.Invisibility:
                 case PrototypeTag.Clone: return 22;     // 虚影环
-                case PrototypeTag.Teleport:
+                case PrototypeTag.Teleport: return 3;  // 风刃三斜（v0.21.15 瞬移=空间撕裂感）
                 case PrototypeTag.Domain:
                 case PrototypeTag.Mark: return 21;      // 符环
                 case PrototypeTag.Thorns: return 22;    // 反弹环

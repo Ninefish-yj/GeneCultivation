@@ -61,8 +61,11 @@ namespace Code.Combat.Fx
             var dScale = tier >= 13 ? DSTerrainDestruction.DestructionScale.Ultimate
                       : tier >= 11 ? DSTerrainDestruction.DestructionScale.Heavy
                       : DSTerrainDestruction.DestructionScale.Light;
-            DSTerrainDestruction.Blast(by, pos,
-                tier >= 13 ? 1.7f : tier >= 11 ? 1.4f : 1.2f,
+            // v0.21.15 破坏半径随最终力度分级（不再固定 1.2/1.4/1.7）：
+            //   焦痕1.0 → 炸坑1.4 → 地裂2.0 → 天地崩裂2.6（伤害范围与坑面观感匹配）
+            int finalForce = DSTerrainDestruction.FinalForce(tier, dScale, 1);
+            float blastRadius = finalForce <= 1 ? 1.0f : finalForce == 2 ? 1.4f : finalForce == 3 ? 2.0f : 2.6f;
+            DSTerrainDestruction.Blast(by, pos, blastRadius,
                 dScale, keep: by.current_position, fire: IsFire(mainTag), extra: 1);
         }
 
