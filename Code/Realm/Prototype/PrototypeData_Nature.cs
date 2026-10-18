@@ -38,20 +38,20 @@ namespace Code.Realm.Prototype
                 PrototypeTag.Poison, PrototypeTag.Curse, 5, 1),
             new PrototypeDef("na_poison_02", "毒躯", "受击反击震慑攻击者，攻击中毒", "自然系", "毒",
                 PrototypeTag.Sound, PrototypeTag.Poison, 5, 5),
-            new PrototypeDef("na_poison_03", "毒瘴", "攻击溅射波及，附加持续伤害", "自然系", "毒",
-                PrototypeTag.Chain, PrototypeTag.Burn, 5, 9),
+            new PrototypeDef("na_poison_03", "毒瘴", "释放剧毒瘴气，持续侵蚀并减速", "自然系", "毒",
+                PrototypeTag.Poison, PrototypeTag.Slow, 5, 9),
             // ---- 治愈 ----
             new PrototypeDef("na_heal_01", "复苏", "攻击概率回复生命，受击自愈", "生命系", "治愈",
-                PrototypeTag.Heal, PrototypeTag.Regeneration, 2, 3),
+                PrototypeTag.Heal, PrototypeTag.Buff, 2, 3),
             new PrototypeDef("na_heal_02", "圣歌", "治疗强化，护盾减伤", "生命系", "治愈",
-                PrototypeTag.Soul, PrototypeTag.Shield, 2, 7),
+                PrototypeTag.Heal, PrototypeTag.Sound, 2, 7),
             new PrototypeDef("na_heal_03", "回春术", "受击回血强化，闪避免伤", "生命系", "治愈",
                 PrototypeTag.Blessing, PrototypeTag.Dodge, 2, 9),
             // ---- 野兽 ----
             new PrototypeDef("na_wild_01", "兽血", "攻击吸血，暴击高伤", "自然系", "野兽",
                 PrototypeTag.Lifesteal, PrototypeTag.Crit, 0, 1),
-            new PrototypeDef("na_wild_02", "熊力", "攻击念力贯穿高伤，击退定身", "自然系", "野兽",
-                PrototypeTag.Telekinesis, PrototypeTag.Knockback, 0, 5),
+            new PrototypeDef("na_wild_02", "熊力", "熊之蛮力，重击破甲并击退目标", "自然系", "野兽",
+                PrototypeTag.Knockback, PrototypeTag.ArmorBreak, 0, 5),
             new PrototypeDef("na_wild_03", "豹速", "闪避强化，攻击暴击", "自然系", "野兽",
                 PrototypeTag.Illusion, PrototypeTag.Crit, 1, 9),
             // ---- 藤蔓 ----
@@ -61,6 +61,16 @@ namespace Code.Realm.Prototype
                 PrototypeTag.Gravity, PrototypeTag.Burn, 2, 5),
             new PrototypeDef("na_vine_03", "藤墙", "护盾减伤，受击自愈", "自然系", "藤蔓",
                 PrototypeTag.Shield, PrototypeTag.Regeneration, 2, 9),
+            new PrototypeDef("na_plant_04", "灵植术", "催生灵植，治愈友军", "自然系", "植物",
+                PrototypeTag.Summon, PrototypeTag.HealAlly, 0, 4),
+            new PrototypeDef("na_wild_04", "兽性觉醒", "兽性觉醒，狂暴再生", "自然系", "野兽",
+                PrototypeTag.Berserk, PrototypeTag.Regeneration, 0, 5),
+            new PrototypeDef("na_plant_05", "荆棘缠绕", "荆棘缠绕，束缚反伤", "自然系", "植物",
+                PrototypeTag.Entangle, PrototypeTag.Thorns, 0, 3),
+            new PrototypeDef("na_plant_06", "花粉迷瘴", "花粉迷瘴，催眠中毒", "自然系", "植物",
+                PrototypeTag.Sleep, PrototypeTag.Poison, 0, 5),
+            new PrototypeDef("na_plant_07", "光合作用", "光合作用，强化治愈", "自然系", "植物",
+                PrototypeTag.Buff, PrototypeTag.Heal, 0, 2),
         };
     }
 }

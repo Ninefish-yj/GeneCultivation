@@ -14,18 +14,18 @@ namespace Code.Realm.Prototype
         {
             // ---- 生命 ----
             new PrototypeDef("lf_life_01", "生息", "攻击概率回复生命，护盾减伤", "生命系", "生命",
-                PrototypeTag.Heal, PrototypeTag.Shield, 2, 1),
+                PrototypeTag.Heal, PrototypeTag.Aura, 2, 1),
             new PrototypeDef("lf_life_02", "共生", "受击自愈回血，攻击治疗强化", "生命系", "生命",
                 PrototypeTag.Regeneration, PrototypeTag.Soul, 2, 5),
             new PrototypeDef("lf_life_03", "命泉", "攻击治疗强化，溅射波及", "生命系", "生命",
                 PrototypeTag.Soul, PrototypeTag.Chain, 2, 9),
             // ---- 治愈 ----
-            new PrototypeDef("lf_heal_01", "圣愈术", "攻击概率回复生命，受击回血", "生命系", "治愈",
-                PrototypeTag.Heal, PrototypeTag.Blessing, 2, 2),
+            new PrototypeDef("lf_heal_01", "圣愈术", "圣愈术施展，治疗自身并治愈友军", "生命系", "治愈",
+                PrototypeTag.Heal, PrototypeTag.HealAlly, 2, 2),
             new PrototypeDef("lf_heal_02", "群疗", "攻击溅射波及，治疗强化", "生命系", "治愈",
                 PrototypeTag.Chain, PrototypeTag.HealAlly, 2, 4),
             new PrototypeDef("lf_heal_03", "愈合", "受击自愈回血强化，免伤", "生命系", "治愈",
-                PrototypeTag.Regeneration, PrototypeTag.Dodge, 2, 5),
+                PrototypeTag.Heal, PrototypeTag.Shield, 2, 5),
             new PrototypeDef("lf_heal_04", "圣泉", "攻击回血，受击净化负面", "生命系", "治愈",
                 PrototypeTag.Heal, PrototypeTag.Cleanse, 2, 6),
             new PrototypeDef("lf_heal_05", "神愈", "攻击群疗友军，受击再生", "生命系", "治愈",
@@ -51,6 +51,16 @@ namespace Code.Realm.Prototype
                 PrototypeTag.Berserk, PrototypeTag.Lifesteal, 3, 6),
             new PrototypeDef("lf_bless_03", "光环", "攻击概率回复生命，受击免伤", "生命系", "祝福",
                 PrototypeTag.Soul, PrototypeTag.Dodge, 3, 9),
+            new PrototypeDef("lf_life_04", "不死之身", "不死之身，再生护盾", "生命系", "再生",
+                PrototypeTag.Regeneration, PrototypeTag.Reflect, 0, 8),
+            new PrototypeDef("lf_life_05", "生命绽放", "生命绽放，群体再生", "生命系", "生长",
+                PrototypeTag.HealAlly, PrototypeTag.Heal, 0, 3),
+            new PrototypeDef("de_undead_04", "亡灵天灾", "亡灵天灾，召唤狂暴", "死亡系", "亡灵",
+                PrototypeTag.Summon, PrototypeTag.Berserk, 0, 9),
+            new PrototypeDef("lf_life_06", "生命链接", "生命链接，治疗连锁", "生命系", "生命",
+                PrototypeTag.Heal, PrototypeTag.Chain, 0, 6),
+            new PrototypeDef("lf_life_07", "生命源泉", "生命源泉，汲取生机", "生命系", "生命",
+                PrototypeTag.Heal, PrototypeTag.ManaDrain, 0, 4),
         };
     }
 
@@ -63,8 +73,8 @@ namespace Code.Realm.Prototype
                 PrototypeTag.Curse, PrototypeTag.Lifesteal, 5, 1),
             new PrototypeDef("de_undead_02", "亡视", "攻击恐惧眩晕目标，减速", "死亡系", "亡灵",
                 PrototypeTag.Fear, PrototypeTag.Slow, 5, 5),
-            new PrototypeDef("de_undead_03", "招魂", "攻击溅射波及，附加持续伤害", "死亡系", "亡灵",
-                PrototypeTag.Chain, PrototypeTag.Burn, 5, 9),
+            new PrototypeDef("de_undead_03", "招魂", "召唤亡灵仆从助战，汲取灵魂", "死亡系", "亡灵",
+                PrototypeTag.Summon, PrototypeTag.Soul, 5, 9),
             // ---- 死亡 ----
             new PrototypeDef("de_death_01", "死亡宣告", "攻击念力贯穿高伤，诅咒加深", "死亡系", "死亡",
                 PrototypeTag.Telekinesis, PrototypeTag.Curse, 5, 1),
@@ -77,8 +87,8 @@ namespace Code.Realm.Prototype
                 PrototypeTag.Poison, PrototypeTag.Chain, 5, 1),
             new PrototypeDef("de_corrupt_02", "衰败", "攻击附加灼烧持续伤害，衰老虚弱", "死亡系", "腐化",
                 PrototypeTag.Burn, PrototypeTag.Aging, 5, 5),
-            new PrototypeDef("de_corrupt_03", "腐甲", "受击反击震慑攻击者，受击回血", "死亡系", "腐化",
-                PrototypeTag.Sound, PrototypeTag.Regeneration, 5, 9),
+            new PrototypeDef("de_corrupt_03", "腐甲", "腐蚀侵蚀目标护甲，附加剧毒", "死亡系", "腐化",
+                PrototypeTag.ArmorBreak, PrototypeTag.Poison, 5, 9),
             // ---- 灵魂 ----
             new PrototypeDef("de_soul_01", "噬魂", "攻击攫取灵魂回血，吸血", "死亡系", "灵魂",
                 PrototypeTag.Soul, PrototypeTag.Lifesteal, 5, 1),

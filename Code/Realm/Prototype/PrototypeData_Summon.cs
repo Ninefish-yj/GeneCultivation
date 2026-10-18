@@ -32,6 +32,22 @@ namespace Code.Realm.Prototype
                 PrototypeTag.Summon, PrototypeTag.Execute, 0, 9),
             new PrototypeDef("sum_ghost_night", "百鬼夜行", "召唤百鬼，恐惧震慑", "召唤系", "百鬼",
                 PrototypeTag.Summon, PrototypeTag.Fear, 6, 8),
+            new PrototypeDef("sm_spirit_fire", "火元素", "召唤火元素助战", "召唤系", "元素",
+                PrototypeTag.Summon, PrototypeTag.Burn, 0, 3),
+            new PrototypeDef("sm_spirit_ice", "冰元素", "召唤冰元素助战", "召唤系", "元素",
+                PrototypeTag.Summon, PrototypeTag.Frost, 0, 3),
+            new PrototypeDef("sm_spirit_earth", "石魔像", "召唤石魔像护卫", "召唤系", "元素",
+                PrototypeTag.Summon, PrototypeTag.Earth, 0, 4),
+            new PrototypeDef("sm_spirit_water", "水元素", "召唤水元素助战", "召唤系", "元素",
+                PrototypeTag.Summon, PrototypeTag.Water, 0, 3),
+            new PrototypeDef("sm_demon_01", "恶魔召唤", "召唤恶魔，附带诅咒", "召唤系", "恶魔",
+                PrototypeTag.Summon, PrototypeTag.Curse, 0, 6),
+            new PrototypeDef("sm_demon_02", "魔仆", "召唤魔仆，汲取生命", "召唤系", "恶魔",
+                PrototypeTag.Summon, PrototypeTag.ManaDrain, 0, 5),
+            new PrototypeDef("sm_light_01", "光天使", "召唤光天使助战", "召唤系", "圣灵",
+                PrototypeTag.Summon, PrototypeTag.Light, 0, 7),
+            new PrototypeDef("sm_shadow_01", "影魔", "召唤影魔潜伏", "召唤系", "百鬼",
+                PrototypeTag.Summon, PrototypeTag.Shadow, 0, 6),
         };
     }
 }

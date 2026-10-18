@@ -69,6 +69,13 @@ namespace Code.Combat.Fx
             _tagPool[PrototypeTag.Metal]      = new[] { "soul_jin", "magic_spark4", "magic_spark" };
             _tagPool[PrototypeTag.Light]      = new[] { "soul_yang", "magic_flash", "vfx_eldenring" };
             _tagPool[PrototypeTag.Shadow]     = new[] { "soul_yin", "magic_darkbolt", "vfx_vortex" };
+            // ---- v0.20.0 6 新机制标签特效池 ----
+            _tagPool[PrototypeTag.Aura]       = new[] { "vfx_eldenring", "vfx_powerchords", "magic_flash" };   // 光环=金色环
+            _tagPool[PrototypeTag.Mark]       = new[] { "magic_spark4", "vfx_smallhit", "magic_spark" };       // 标记=锐点
+            _tagPool[PrototypeTag.ManaDrain]  = new[] { "soul_yin", "magic_darkbolt", "vfx_vortex" };          // 吸能=暗紫夺灵
+            _tagPool[PrototypeTag.Buff]       = new[] { "vfx_fastfire", "vfx_magma", "spx_explosion" };        // 强化=赤红增益
+            _tagPool[PrototypeTag.Reflect]    = new[] { "magic_spark", "vfx_smallhit", "vfx_impact" };         // 反射=反震
+            _tagPool[PrototypeTag.Domain]     = new[] { "vfx_elecshield", "vfx_eldenring", "magic_flash" };    // 领域=结界罩
 
             // ---- 防守标签池（v0.19.13 全素材，剔除 art_windarc/art_burst/art_holylight/art_woodvine 程序化残留）----
             // v0.19.13b 网格护盾回归：用户澄清从未否决网格盾，问题只在尺寸过大——现统一 0.28 罩全身（与奥术光膜同级）
@@ -92,8 +99,13 @@ namespace Code.Combat.Fx
             _family["元素系/火"] = "vfx_fastfire";     _family["元素系/水"] = "magic_splash";
             _family["元素系/风"] = "soul_wind";        _family["元素系/雷"] = "magic_lightning";
             _family["元素系/冰"] = "magic_ice_a";      _family["元素系/土"] = "magic_dust";
-            _family["元素系/木"] = "soul_wood";        _family["元素系/金属"] = "soul_jin";
-            _family["元素系/光"] = "soul_yang";        _family["元素系/暗"] = "soul_yin";
+            _family["元素系/木"] = "soul_wood";        _family["元素系/光"] = "soul_yang";
+            _family["元素系/暗"] = "soul_yin";
+            // ---- v0.20.0 血神系/机械系独立成大分类（自黑暗系/元素系金属迁出）----
+            _family["血神系/嗜血"] = "blood_vfx1";     _family["血神系/血蚀"] = "blood_vfx2";
+            _family["血神系/血缚"] = "vfx_tentacles";  _family["血神系/血咒"] = "magic_darkbolt";
+            _family["机械系/钢铁"] = "magic_spark4";   _family["机械系/电磁"] = "vfx_elecshield";
+            _family["机械系/机械"] = "soul_jin";
             _family["光明系/圣光"] = "soul_yang";       _family["光明系/光刃"] = "spx_shock";
             _family["光明系/净化"] = "magic_spark4";    _family["光明系/晨曦"] = "magic_flash";
             _family["黑暗系/暗影"] = "soul_yin";        _family["黑暗系/腐蚀"] = "magic_smoke";
