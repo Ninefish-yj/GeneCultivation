@@ -1,9 +1,9 @@
 {
   "name": "基因修炼",
   "author": "阿鱼要吃书",
-  "version": "0.19.2",
+  "version": "0.19.3",
   "GUID": "GeneCultivation",
-  "description": "大众认知异能补全：精神系+4小类13异能（记忆/情绪/梦境/感知），全库317",
+  "description": "特效-异能-效果自洽核查：修复4处描述与效果不符（地裂石化/净化负面/衰败衰老/瞬移遁走）",
   "homepage": "https://github.com/Ninefish-yj/GeneCultivation",
   "repository": "https://github.com/Ninefish-yj/GeneCultivation.git",
   "tags": [

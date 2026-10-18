@@ -104,7 +104,7 @@ namespace Code.Realm.Prototype
             new PrototypeDef("el_ice_09", "永冻", "石化定身，时缓强减速", "元素系", "冰",
                 PrototypeTag.Petrify, PrototypeTag.TimeSlow, 4, 8),
             // ---- 土 ----
-            new PrototypeDef("earth", "地裂", "护盾减伤，攻击波及周围", "元素系", "土",
+            new PrototypeDef("earth", "地裂", "护盾减伤，攻击概率石化定身目标", "元素系", "土",
                 PrototypeTag.Shield, PrototypeTag.Petrify, 2, 1),
             new PrototypeDef("el_earth_02", "岩铠", "护盾减伤，元素抗性", "元素系", "土",
                 PrototypeTag.Shield, PrototypeTag.ElementResist, 2, 5),
@@ -144,7 +144,7 @@ namespace Code.Realm.Prototype
             // ---- 光 ----
             new PrototypeDef("light", "圣光", "治疗自身，护盾减伤", "光明系", "圣光",
                 PrototypeTag.Heal, PrototypeTag.Shield, 3, 4),
-            new PrototypeDef("el_light_02", "净化", "攻击概率回复生命，治疗强化", "光明系", "净化",
+            new PrototypeDef("el_light_02", "净化", "攻击回复生命，概率净化自身负面状态", "光明系", "净化",
                 PrototypeTag.Soul, PrototypeTag.Cleanse, 3, 2),
             new PrototypeDef("el_light_03", "光罩", "受击免伤强化，受击回血", "光明系", "圣光",
                 PrototypeTag.Invisibility, PrototypeTag.Blessing, 3, 5),

@@ -20,7 +20,7 @@ namespace Code.Realm.Prototype
             new PrototypeDef("st_time_03", "回溯", "受击自愈回血，攻击治疗", "时空系", "时间",
                 PrototypeTag.Regeneration, PrototypeTag.Heal, 4, 9),
             // ---- 空间 ----
-            new PrototypeDef("st_space_01", "瞬移", "闪避强化，受击概率免伤", "时空系", "空间",
+            new PrototypeDef("st_space_01", "瞬移", "受击概率瞬移遁走免伤，幻象闪避", "时空系", "空间",
                 PrototypeTag.Illusion, PrototypeTag.Teleport, 4, 3),
             new PrototypeDef("st_space_02", "空间斩", "攻击念力贯穿高伤，溅射波及", "时空系", "空间",
                 PrototypeTag.Telekinesis, PrototypeTag.Chain, 4, 6),

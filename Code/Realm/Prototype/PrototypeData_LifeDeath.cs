@@ -75,7 +75,7 @@ namespace Code.Realm.Prototype
             // ---- 腐化 ----
             new PrototypeDef("de_corrupt_01", "腐化", "攻击附加中毒持续伤害，溅射", "死亡系", "腐化",
                 PrototypeTag.Poison, PrototypeTag.Chain, 5, 1),
-            new PrototypeDef("de_corrupt_02", "衰败", "攻击附加灼烧持续伤害，减速", "死亡系", "腐化",
+            new PrototypeDef("de_corrupt_02", "衰败", "攻击附加灼烧持续伤害，衰老虚弱", "死亡系", "腐化",
                 PrototypeTag.Burn, PrototypeTag.Aging, 5, 5),
             new PrototypeDef("de_corrupt_03", "腐甲", "受击反击震慑攻击者，受击回血", "死亡系", "腐化",
                 PrototypeTag.Sound, PrototypeTag.Regeneration, 5, 9),
