@@ -18,6 +18,9 @@ namespace Code.Combat.Fx
         /// <summary>本帧世界模拟是否被跳过（演出仍在继续）。</summary>
         internal static bool Skipped;
 
+        /// <summary>上次演出驱动时刻（真实时间）。倍速=每帧多次调用本方法，用它把 dt 收敛为真实帧间隔。</summary>
+        private static float _lastTickReal = -1f;
+
         private static bool Prefix()
         {
             try
@@ -36,12 +39,20 @@ namespace Code.Combat.Fx
         {
             try
             {
+                // v0.21.12 倍速闪退根因修复：原版倍速 = 每帧多次调用 checkMainSimulationUpdate，
+                // 若每次都用 Time.deltaTime，演出链（冷却/姿态/粒子）会被 N 倍加速、招式与地形
+                // 破坏在模拟时间轴上成倍密集。改为按"距上次驱动"的真实间隔收敛——每真实帧只
+                // 驱动一次，演出跟随真实时间，倍速下不再叠加。
+                float nowReal = Time.unscaledTime;
+                float elapsed = _lastTickReal < 0f ? 0f : Mathf.Max(0f, nowReal - _lastTickReal);
+                _lastTickReal = nowReal;
+
                 CombatFxHitStop.Tick();
                 CombatFxCinema.Tick();
                 // 模拟时间步：击停/冻结/暂停时为 0（普通粒子冻结；Cine 粒子用 Cinema.Dt 继续）
                 float dt = Skipped || World.world == null || World.world.isPaused()
                     ? 0f
-                    : Mathf.Min(Time.deltaTime, 0.05f) * CombatFxCinema.Rate;
+                    : Mathf.Min(elapsed, 0.05f) * CombatFxCinema.Rate;
                 CombatFxCore.Update(dt, CombatFxCinema.Dt);
                 CombatFxDirector.Tick();
                 Code.Combat.Moves.CombatMovePose.Tick(dt);      // v0.21.5 招式动作姿态衰减

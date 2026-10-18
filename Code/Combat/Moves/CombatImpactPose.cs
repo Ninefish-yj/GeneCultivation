@@ -42,6 +42,9 @@ namespace Code.Combat.Moves
     public static class CombatImpactPose
     {
         private static readonly Dictionary<Actor, ImpactState> _impacts = new Dictionary<Actor, ImpactState>();
+        /// <summary>受击防抖：同一受击者最近一次触发时刻（真实时间），防倍速/群战高频打飞乱姿态。</summary>
+        private static readonly Dictionary<Actor, float> _lastHitAt = new Dictionary<Actor, float>();
+        private const float HitDebounce = 0.12f;
 
         // ------------------------------------------------------ 对外接口 --
 
@@ -65,6 +68,11 @@ namespace Code.Combat.Moves
             else if (hpPct >= 0.08f || diff >= 1) level = ImpactLevel.Stagger;    // 重击/高一阶：踉跄
             else if (hpPct >= 0.02f) level = ImpactLevel.Fluster;                 // 轻击：微颤
             else return;                                                          // 刮痧不动
+
+            // 防抖：倍速下 getHit 每帧多次，受击姿态只按真实时间 0.12s 一次触发
+            float now = Time.unscaledTime;
+            if (_lastHitAt.TryGetValue(victim, out float lastHit) && now - lastHit < HitDebounce) return;
+            _lastHitAt[victim] = now;
 
             Vector2 dir = attacker != null && victim != null
                 ? (victim.current_position - attacker.current_position)
@@ -162,7 +170,11 @@ namespace Code.Combat.Moves
                     dead.Add(kv.Key);
                 }
             }
-            foreach (var k in dead) _impacts.Remove(k);
+            foreach (var k in dead)
+            {
+                _impacts.Remove(k);
+                _lastHitAt.Remove(k);
+            }
         }
 
         /// <summary>世界销毁/存档切换：清空全部受击姿态。</summary>
@@ -172,6 +184,7 @@ namespace Code.Combat.Moves
                 if (kv.Key != null)
                     kv.Key.move_jump_offset = new Vector2(kv.Value.OriginX, kv.Value.OriginY);
             _impacts.Clear();
+            _lastHitAt.Clear();
         }
     }
 }

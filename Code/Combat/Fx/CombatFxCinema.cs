@@ -14,6 +14,8 @@ namespace Code.Combat.Fx
     {
         private static float _freezeLeft;
         private static float _rate = 1f, _rateLeft, _acc;
+        /// <summary>慢动作触发冷却（真实时间）：防倍速下招式密集导致慢镜常驻。</summary>
+        private static float _nextSlow;
 
         private static SpriteRenderer _veil;
         private static float _veilA, _veilTarget, _veilSpeed;
@@ -37,6 +39,9 @@ namespace Code.Combat.Fx
         /// <summary>世界以 'rate'（0.05..1）运行 'seconds' 秒真实时间。</summary>
         public static void SlowMo(float rate, float seconds)
         {
+            float now = Time.unscaledTime;
+            if (now < _nextSlow) return;
+            _nextSlow = now + 0.6f;
             _rate = Mathf.Clamp(rate, 0.05f, 1f);
             _rateLeft = seconds;
         }
@@ -119,6 +124,7 @@ namespace Code.Combat.Fx
             _freezeLeft = 0f;
             _rateLeft = 0f;
             _acc = 0f;
+            _nextSlow = 0f;
             _veilA = 0f;
             _veilTarget = 0f;
             if (_veil != null) _veil.enabled = false;
