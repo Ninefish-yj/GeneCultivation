@@ -1,4 +1,4 @@
-﻿// ============================================================
+// ============================================================
 // 异能数据 · 星辰系 / 强化系（v0.18.11 重构；原机械系拆分归位）
 // 大类：星辰系（星辰/宇宙/陨石/银河）| 强化系（能量/体魄）——机械系已按大众认知拆分归位
 // 描述 = 真实机制（由主/副标签组合表达），不含虚假效果。
@@ -14,9 +14,9 @@ namespace Code.Realm.Prototype
         {
             // ---- 星辰 ----
             new PrototypeDef("ce_star_01", "星爆", "攻击暴击破甲，念力贯穿", "光明系", "光刃",
-                PrototypeTag.Crit, PrototypeTag.Telekinesis, 4, 2),
+                PrototypeTag.Light, PrototypeTag.Telekinesis, 4, 2),
             new PrototypeDef("ce_star_02", "曙光", "受击免伤，受击回血", "光明系", "晨曦",
-                PrototypeTag.Dodge, PrototypeTag.Blessing, 4, 1),
+                PrototypeTag.Light, PrototypeTag.Blessing, 4, 1),
             new PrototypeDef("ce_star_03", "聚能", "攻击狂暴当次+25%，溅射波及", "强化系", "能量",
                 PrototypeTag.Berserk, PrototypeTag.Chain, 4, 1),
             // ---- 宇宙 ----
@@ -32,10 +32,10 @@ namespace Code.Realm.Prototype
             new PrototypeDef("ce_meteor_02", "重压", "攻击重力压制，概率眩晕", "时空系", "引力",
                 PrototypeTag.Gravity, PrototypeTag.Stun, 6, 3),
             new PrototypeDef("ce_meteor_03", "万磁", "护盾减伤，受击反击麻痹攻击者", "元素系", "金属",
-                PrototypeTag.Shield, PrototypeTag.Magnetism, 6, 1),
+                PrototypeTag.Metal, PrototypeTag.Magnetism, 6, 1),
             // ---- 银河 ----
             new PrototypeDef("ce_galaxy_01", "落雷", "攻击暴击高伤，溅射波及", "元素系", "雷",
-                PrototypeTag.Crit, PrototypeTag.Chain, 4, 1),
+                PrototypeTag.Thunder, PrototypeTag.Chain, 4, 1),
             new PrototypeDef("ce_galaxy_02", "星愈", "攻击概率回复生命，受击自愈", "生命系", "治愈",
                 PrototypeTag.Heal, PrototypeTag.Regeneration, 4, 1),
             new PrototypeDef("ce_galaxy_03", "迷幻", "闪避强化，受击反击震慑攻击者", "精神系", "幻象",
@@ -58,11 +58,11 @@ namespace Code.Realm.Prototype
                 PrototypeTag.Shield, PrototypeTag.Vibration, 0, 3),
             // ---- 金属（金属操控，归元素系，与既有金属小类合并）----
             new PrototypeDef("ma_metal_01", "钢魂", "护盾减伤，攻击暴击", "元素系", "金属",
-                PrototypeTag.Shield, PrototypeTag.Crit, 0, 2),
+                PrototypeTag.Metal, PrototypeTag.Crit, 0, 2),
             new PrototypeDef("ma_metal_02", "金属风暴", "攻击溅射波及，念力贯穿", "元素系", "金属",
-                PrototypeTag.Chain, PrototypeTag.Telekinesis, 0, 3),
-            new PrototypeDef("ma_metal_03", "铁壁", "护盾减伤强化，受击反击麻痹攻击者", "元素系", "金属",
-                PrototypeTag.Shield, PrototypeTag.Magnetism, 0, 4),
+                PrototypeTag.Metal, PrototypeTag.Telekinesis, 0, 3),
+            new PrototypeDef("ma_metal_03", "钢壁", "护盾减伤强化，受击反击麻痹攻击者", "元素系", "金属",
+                PrototypeTag.Metal, PrototypeTag.Magnetism, 0, 4),
             // ---- 能量（原科技：身体能量强化，归强化系）----
             new PrototypeDef("ma_tech_01", "战吼", "攻击狂暴当次+25%，护盾减伤", "强化系", "能量",
                 PrototypeTag.Berserk, PrototypeTag.Shield, 4, 3),
@@ -73,7 +73,7 @@ namespace Code.Realm.Prototype
             // ---- 体魄（原改造：身体强化/再生，归强化系）----
             new PrototypeDef("ma_cyber_01", "狂化", "攻击吸血强化，暴击高伤", "强化系", "体魄",
                 PrototypeTag.Blood, PrototypeTag.Crit, 0, 5),
-            new PrototypeDef("ma_cyber_02", "金刚", "护盾减伤，攻击念力贯穿", "强化系", "体魄",
+            new PrototypeDef("ma_cyber_02", "金刚不坏", "护盾减伤，攻击念力贯穿", "强化系", "体魄",
                 PrototypeTag.Shield, PrototypeTag.Telekinesis, 0, 7),
             new PrototypeDef("ma_cyber_03", "浴血", "受击回血强化，受击反击震慑攻击者", "强化系", "体魄",
                 PrototypeTag.Blessing, PrototypeTag.Sound, 0, 9),

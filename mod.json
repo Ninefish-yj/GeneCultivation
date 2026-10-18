@@ -1,9 +1,9 @@
 {
   "name": "基因修炼",
   "author": "阿鱼要吃书",
-  "version": "0.19.11",
+  "version": "0.19.12",
   "GUID": "GeneCultivation",
-  "description": "泡泡缩至粒子级：bub_ 0.13→0.08(0.32倍单位宽)，状态泡如小光点贴身",
+  "description": "异能审查：光明/黑暗/元素主标签全量归位48处+重名去重；targetGameBuild 725 兼容0.51.4；程序化异能图标64px",
   "homepage": "https://github.com/Ninefish-yj/GeneCultivation",
   "repository": "https://github.com/Ninefish-yj/GeneCultivation.git",
   "tags": [
@@ -18,5 +18,6 @@
   "requirements": {
     "gameVersion": "0.51"
   },
+  "targetGameBuild": 725,
   "iconPath": "icon.png"
 }

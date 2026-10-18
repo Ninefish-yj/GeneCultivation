@@ -29,46 +29,46 @@ namespace Code.Combat.Fx
 
         static AbilityFx()
         {
-            // ---- 攻击标签池 ----
-            _tagPool[PrototypeTag.Burn]       = new[] { "vfx_ditheredfire", "vfx_fastfire", "magic_fireball" };
-            _tagPool[PrototypeTag.Plasma]     = new[] { "vfx_explosion", "vfx_explosion2", "spx_explosion" };
-            _tagPool[PrototypeTag.Frost]      = new[] { "magic_ice_b", "magic_ice_a", "magic_ice_c" };
-            _tagPool[PrototypeTag.Frostbite]  = new[] { "magic_ice_c", "magic_ice_b", "magic_ice_a" };
-            _tagPool[PrototypeTag.TimeSlow]   = new[] { "magic_spark4", "art_burst" };
-            _tagPool[PrototypeTag.Stun]       = new[] { "vfx_impact", "vfx_smallhit", "magic_spark" };
-            _tagPool[PrototypeTag.Crit]       = new[] { "vfx_bighit", "magic_spark4", "vfx_impact" };   // v0.19.8 暴击=重击闪光，不是爆炸
-            _tagPool[PrototypeTag.Telekinesis]= new[] { "magic_bolt", "vfx_constellation", "magic_spark4" };
-            _tagPool[PrototypeTag.Poison]     = new[] { "magic_smoke", "bub_toxic", "magic_dust" };
-            _tagPool[PrototypeTag.Curse]      = new[] { "magic_darkbolt", "art_shadowwave", "vfx_vortex" };
-            _tagPool[PrototypeTag.Fear]       = new[] { "vfx_vortex", "magic_darkbolt" };
-            _tagPool[PrototypeTag.Slow]       = new[] { "magic_ice_a", "bub_ice", "magic_dust" };
-            _tagPool[PrototypeTag.Lifesteal]  = new[] { "blood_vfx1", "blood_vfx3", "bub_blood" };
-            _tagPool[PrototypeTag.Drain]      = new[] { "blood_vfx2", "blood_vfx3" };
-            _tagPool[PrototypeTag.Blood]      = new[] { "blood_vfx1", "blood_vfx3" };
-            _tagPool[PrototypeTag.Soul]       = new[] { "art_soulflame", "magic_darkbolt" };
-            _tagPool[PrototypeTag.Heal]       = new[] { "vfx_puffstars", "bub_green1", "magic_spark4" };
-            _tagPool[PrototypeTag.Chain]      = new[] { "magic_lightning", "vfx_elecshield", "magic_bolt" };
-            _tagPool[PrototypeTag.Knockback]  = new[] { "vfx_smallhit", "magic_spark", "magic_dust" };
-            _tagPool[PrototypeTag.Gravity]    = new[] { "vfx_vortex", "magic_dust", "vfx_impact" };
-            _tagPool[PrototypeTag.Berserk]    = new[] { "vfx_magma", "vfx_fastfire" };
-            _tagPool[PrototypeTag.Entangle]   = new[] { "art_woodvine", "vfx_tentacles" };
-            _tagPool[PrototypeTag.Petrify]    = new[] { "magic_dust", "magic_smoke" };
-            _tagPool[PrototypeTag.Aging]      = new[] { "magic_darkbolt", "vfx_vortex" };
-            _tagPool[PrototypeTag.Weakness]   = new[] { "magic_darkbolt", "bub_purple" };
-            _tagPool[PrototypeTag.ArmorBreak] = new[] { "magic_spark", "magic_spark2", "magic_spark4" };
-            _tagPool[PrototypeTag.Execute]    = new[] { "vfx_explosion2", "vfx_bighit", "blood_vfx1" };   // v0.19.7 剔除KABOOM美漫文字
-            _tagPool[PrototypeTag.Sleep]      = new[] { "magic_spark4", "magic_spark2" };
-            _tagPool[PrototypeTag.MultiShot]  = new[] { "magic_spark2", "magic_spark4", "spx_splatter" };
-            _tagPool[PrototypeTag.HealAlly]   = new[] { "vfx_puffstars", "bub_green2" };
-            _tagPool[PrototypeTag.Summon]     = new[] { "vfx_vortex", "art_burst", "magic_darkbolt" };
-            // ---- 元素细分标签池（v0.19.8：专属程序化图元，意象独立）----
-            _tagPool[PrototypeTag.Water]      = new[] { "art_waterwave", "bub_water1", "bub_water2" };
-            _tagPool[PrototypeTag.Wind]       = new[] { "art_windblade", "art_windarc", "magic_spark2" };
-            _tagPool[PrototypeTag.Thunder]    = new[] { "art_thunderbolt", "magic_lightning", "vfx_elecshield" };
-            _tagPool[PrototypeTag.Earth]      = new[] { "art_earthrock", "magic_dust", "vfx_impact" };
-            _tagPool[PrototypeTag.Metal]      = new[] { "art_metalslash", "magic_spark4", "art_blade" };
-            _tagPool[PrototypeTag.Light]      = new[] { "art_holylight", "vfx_puffstars", "magic_spark4" };
-            _tagPool[PrototypeTag.Shadow]     = new[] { "art_shadowwave", "magic_darkbolt", "vfx_vortex" };
+            // ---- 攻击标签池（v0.19.12 程序化意象图元：每个标签有符合大众认知的专属自生成特效）----
+            _tagPool[PrototypeTag.Burn]       = new[] { "art_glyph_fire", "vfx_fastfire", "magic_fireball" };
+            _tagPool[PrototypeTag.Plasma]     = new[] { "art_glyph_fire", "spx_explosion", "vfx_explosion2" };
+            _tagPool[PrototypeTag.Frost]      = new[] { "art_glyph_ice", "magic_ice_b", "magic_ice_a" };
+            _tagPool[PrototypeTag.Frostbite]  = new[] { "art_glyph_ice", "magic_ice_c", "magic_ice_b" };
+            _tagPool[PrototypeTag.TimeSlow]   = new[] { "art_glyph_hourglass", "magic_spark4", "art_burst" };
+            _tagPool[PrototypeTag.Stun]       = new[] { "art_glyph_lightning", "vfx_impact", "magic_spark" };
+            _tagPool[PrototypeTag.Crit]       = new[] { "art_glyph_star", "magic_spark4", "vfx_impact" };   // v0.19.8 暴击=重击闪光，不是爆炸
+            _tagPool[PrototypeTag.Telekinesis]= new[] { "art_glyph_rings", "vfx_constellation", "magic_spark4" };
+            _tagPool[PrototypeTag.Poison]     = new[] { "art_glyph_poison", "bub_toxic", "magic_dust" };
+            _tagPool[PrototypeTag.Curse]      = new[] { "art_glyph_shadow", "magic_darkbolt", "vfx_vortex" };
+            _tagPool[PrototypeTag.Fear]       = new[] { "art_glyph_shadow", "vfx_vortex", "magic_darkbolt" };
+            _tagPool[PrototypeTag.Slow]       = new[] { "art_glyph_water", "magic_ice_a", "bub_ice" };
+            _tagPool[PrototypeTag.Lifesteal]  = new[] { "art_glyph_blood", "blood_vfx1", "bub_blood" };
+            _tagPool[PrototypeTag.Drain]      = new[] { "art_glyph_blood", "blood_vfx2", "blood_vfx3" };
+            _tagPool[PrototypeTag.Blood]      = new[] { "art_glyph_blood", "blood_vfx1", "blood_vfx3" };
+            _tagPool[PrototypeTag.Soul]       = new[] { "art_glyph_eye", "art_soulflame", "magic_darkbolt" };
+            _tagPool[PrototypeTag.Heal]       = new[] { "art_glyph_heart", "vfx_puffstars", "magic_spark4" };
+            _tagPool[PrototypeTag.Chain]      = new[] { "art_glyph_rings", "magic_lightning", "magic_bolt" };
+            _tagPool[PrototypeTag.Knockback]  = new[] { "art_glyph_rings", "vfx_smallhit", "magic_spark" };
+            _tagPool[PrototypeTag.Gravity]    = new[] { "art_glyph_rings", "vfx_vortex", "magic_dust" };
+            _tagPool[PrototypeTag.Berserk]    = new[] { "art_glyph_fire", "vfx_magma", "vfx_fastfire" };
+            _tagPool[PrototypeTag.Entangle]   = new[] { "art_glyph_vine", "art_woodvine", "vfx_tentacles" };
+            _tagPool[PrototypeTag.Petrify]    = new[] { "art_glyph_earth", "magic_dust", "magic_smoke" };
+            _tagPool[PrototypeTag.Aging]      = new[] { "art_glyph_bone", "magic_darkbolt", "vfx_vortex" };
+            _tagPool[PrototypeTag.Weakness]   = new[] { "art_glyph_bone", "magic_darkbolt", "bub_purple" };
+            _tagPool[PrototypeTag.ArmorBreak] = new[] { "art_glyph_metal", "magic_spark", "magic_spark4" };
+            _tagPool[PrototypeTag.Execute]    = new[] { "art_glyph_scythe", "vfx_explosion2", "blood_vfx1" };   // v0.19.7 剔除KABOOM美漫文字
+            _tagPool[PrototypeTag.Sleep]      = new[] { "art_glyph_moon", "magic_spark4", "magic_spark2" };
+            _tagPool[PrototypeTag.MultiShot]  = new[] { "art_glyph_star", "magic_spark2", "spx_splatter" };
+            _tagPool[PrototypeTag.HealAlly]   = new[] { "art_glyph_heart", "vfx_puffstars", "bub_green2" };
+            _tagPool[PrototypeTag.Summon]     = new[] { "art_glyph_claw", "vfx_vortex", "art_burst" };
+            // ---- 元素细分标签池（v0.19.8 专属程序化图元 + v0.19.12 意象图元）----
+            _tagPool[PrototypeTag.Water]      = new[] { "art_glyph_water", "art_waterwave", "bub_water1" };
+            _tagPool[PrototypeTag.Wind]       = new[] { "art_glyph_wind", "art_windblade", "art_windarc" };
+            _tagPool[PrototypeTag.Thunder]    = new[] { "art_glyph_lightning", "art_thunderbolt", "magic_lightning" };
+            _tagPool[PrototypeTag.Earth]      = new[] { "art_glyph_earth", "art_earthrock", "magic_dust" };
+            _tagPool[PrototypeTag.Metal]      = new[] { "art_glyph_metal", "art_metalslash", "magic_spark4" };
+            _tagPool[PrototypeTag.Light]      = new[] { "art_glyph_holy", "art_holylight", "vfx_puffstars" };
+            _tagPool[PrototypeTag.Shadow]     = new[] { "art_glyph_shadow", "art_shadowwave", "magic_darkbolt" };
 
             // ---- 防守标签池 ----
             _tagPool[PrototypeTag.Shield]         = new[] { "art_arcaneshield" };   // v0.19.5 奥术光膜（替代网格贴图盾）
@@ -142,13 +142,20 @@ namespace Code.Combat.Fx
                 {
                     CombatFxArt.EnsureInit();
                     var art = CombatFxArt.Get(effectId);
-                    if (art == null)
+                    if (art != null)
                     {
-                        _cache[effectId] = new Sprite[0];
-                        return null;
+                        _cache[effectId] = new[] { art };
+                        return _cache[effectId];
                     }
-                    _cache[effectId] = new[] { art };
-                    return _cache[effectId];
+                    // v0.19.12 程序化意象图元（art_glyph_*：标签专属，参考 unit_gifs 自生成路线）
+                    var glyph = CombatFxGlyphs.Get(effectId);
+                    if (glyph != null)
+                    {
+                        _cache[effectId] = new[] { glyph };
+                        return _cache[effectId];
+                    }
+                    _cache[effectId] = new Sprite[0];
+                    return null;
                 }
                 var sprites = Resources.LoadAll<Sprite>("effects/" + effectId);
                 if (sprites == null || sprites.Length == 0)
@@ -185,6 +192,14 @@ namespace Code.Combat.Fx
                 // 奥术光膜护盾（罩全身≈1.1 倍单位宽，持续环绕）；符环=领域环（v0.19.5 回调 0.62）
                 if (id == "art_arcaneshield") { size = 0.28f; life = 2.0f; return; }
                 if (id == "art_rune") { size = 0.62f; life = 0.8f; return; }
+                // v0.19.12 程序化意象图元尺寸分级（对齐原版特效：64px 帧 / 命中贴体）
+                if (id.StartsWith("art_glyph_"))
+                {
+                    if (id == "art_glyph_shield") { size = 0.28f; life = 2.0f; return; }        // 持续护罩
+                    if (id == "art_glyph_ghost") { size = 0.32f; life = 0.5f; return; }         // 虚影瞬闪
+                    if (id == "art_glyph_pulse") { size = 0.62f; life = 0.8f; return; }         // 领域脉冲
+                    size = 0.34f; life = 0.55f; return;                                        // 命中意象贴体（1.4 倍单位宽）
+                }
                 size = 0.38f; life = 0.55f; return;                                     // v0.19.7 图元回调：1.5 倍单位宽贴体
             }
             if (id.StartsWith("shield_")) { size = 0.28f; life = 2.0f; return; }      // 兼容旧引用（池已切奥术光膜）

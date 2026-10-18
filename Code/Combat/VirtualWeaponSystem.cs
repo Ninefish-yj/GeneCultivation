@@ -105,8 +105,30 @@ namespace Code.Combat
                 // 加载失败 frames 为空数组 → QuantumSpriteLibrary.drawProjectiles 取 frames[0] 越界刷屏）。
                 // 这里主动加载并赋给 asset.frames，保证渲染链路拿到真实帧。
                 var projFrames = SpriteTextureLoader.getSpriteList("effects/projectiles/" + asset.texture);
-                asset.frames = projFrames;
-                _projectileFramesReady = projFrames != null && projFrames.Length > 0;
+                // v0.19.12：兜底防御——若专属纹理帧加载失败（资源缺失/卸载残留），
+                // 回退原版通用投射物帧，绝不让 asset.frames 以空数组入库（原版 drawProjectiles 无空帧防护）。
+                if (projFrames == null || projFrames.Length == 0)
+                {
+                    DSDebug.Verbose("[虚拟武器] 能量刃帧缺失，回退原版通用投射物帧");
+                    projFrames = SpriteTextureLoader.getSpriteList("effects/projectiles/arrow");
+                    if (projFrames != null && projFrames.Length > 0)
+                    {
+                        asset.frames = projFrames;
+                        asset.animated = true; // 通用帧为动画序列，按帧驱动避免 frames[0] 语义错误
+                    }
+                    else
+                    {
+                        // 连回退帧都没有：不注册资产，避免任何引用方拿到空 frames 的资产
+                        DSDebug.Verbose("[虚拟武器] 回退帧也缺失，跳过投射物注册");
+                        _projectileFramesReady = false;
+                        return;
+                    }
+                }
+                else
+                {
+                    asset.frames = projFrames;
+                }
+                _projectileFramesReady = projFrames.Length > 0;
                 DSDebug.Verbose($"[虚拟武器] 能量刃投射物注册成功 frames={(_projectileFramesReady ? projFrames.Length.ToString() : "缺失")}");
             }
             catch (Exception e)

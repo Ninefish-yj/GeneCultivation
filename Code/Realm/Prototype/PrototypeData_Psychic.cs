@@ -1,4 +1,4 @@
-﻿// ============================================================
+// ============================================================
 // 异能数据 · 精神系（v0.18.0）
 // 大类：精神系 | 小类：念力/心灵/意志/预知/催眠/操控/幻象
 // 描述 = 真实机制（由主/副标签组合表达），不含虚假效果。
@@ -20,7 +20,7 @@ namespace Code.Realm.Prototype
             new PrototypeDef("ps_psycho_03", "力场", "攻击重力压制目标，溅射波及", "精神系", "念力",
                 PrototypeTag.Gravity, PrototypeTag.Chain, 4, 9),
             // ---- 心灵 ----
-            new PrototypeDef("ps_mind_01", "共感", "攻击概率回复生命，闪避免伤", "精神系", "心灵",
+            new PrototypeDef("ps_mind_01", "心感", "攻击概率回复生命，闪避免伤", "精神系", "心灵",
                 PrototypeTag.Heal, PrototypeTag.Dodge, 3, 3),
             new PrototypeDef("ps_mind_02", "心爆", "攻击恐惧眩晕目标，附加诅咒", "精神系", "心灵",
                 PrototypeTag.Fear, PrototypeTag.Curse, 3, 6),

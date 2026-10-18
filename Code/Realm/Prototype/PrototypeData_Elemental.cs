@@ -1,4 +1,4 @@
-﻿// ============================================================
+// ============================================================
 // 异能数据 · 元素系（v0.18.0）
 // 大类：元素系 | 小类：火/水/风/雷/冰/土/木/光/暗/金属
 // 注意：fire/water/… 10 个 id 为 v0.17.0 旧档异能，禁止改名/删（旧档 ds_prototype 兼容）。
@@ -72,7 +72,7 @@ namespace Code.Realm.Prototype
             new PrototypeDef("el_lightning_03", "磁场", "受击麻痹攻击者，攻击眩晕", "元素系", "雷",
                 PrototypeTag.Thunder, PrototypeTag.Stun, 6, 9),
             // ---- 雷（v0.18.99 补满 9 档）----
-            new PrototypeDef("el_lightning_04", "雷暴", "攻击溅射连锁，斩杀重伤", "元素系", "雷",
+            new PrototypeDef("el_lightning_04", "惊雷", "攻击溅射连锁，斩杀重伤", "元素系", "雷",
                 PrototypeTag.Thunder, PrototypeTag.Execute, 6, 1),
             new PrototypeDef("el_lightning_05", "天雷", "灼烧附加，斩杀重伤", "元素系", "雷",
                 PrototypeTag.Thunder, PrototypeTag.Execute, 6, 2),
@@ -86,7 +86,7 @@ namespace Code.Realm.Prototype
                 PrototypeTag.Thunder, PrototypeTag.Stun, 6, 8),
             // ---- 冰 ----
             new PrototypeDef("ice", "霜降", "减速冻结目标，附加持续灼伤", "元素系", "冰",
-                PrototypeTag.Slow, PrototypeTag.Burn, 4, 1),
+                PrototypeTag.Frostbite, PrototypeTag.Slow, 4, 1),
             new PrototypeDef("el_ice_02", "暴风雪", "深度冰冻目标，当次攻击+5%寒霜微伤", "元素系", "冰",
                 PrototypeTag.Frostbite, PrototypeTag.Frost, 4, 5),
             new PrototypeDef("el_ice_03", "冰甲", "护盾减伤，受击反击震慑攻击者", "元素系", "冰",
@@ -110,9 +110,9 @@ namespace Code.Realm.Prototype
                 PrototypeTag.Earth, PrototypeTag.ElementResist, 2, 5),
             new PrototypeDef("el_earth_03", "山崩", "攻击重力压制目标，溅射波及", "元素系", "土",
                 PrototypeTag.Earth, PrototypeTag.Chain, 2, 9),
-            new PrototypeDef("el_earth_04", "沙暴", "攻击波及周围，减速目标", "元素系", "土",
+            new PrototypeDef("el_earth_04", "扬沙", "攻击波及周围，减速目标", "元素系", "土",
                 PrototypeTag.Earth, PrototypeTag.Slow, 2, 2),
-            new PrototypeDef("el_earth_05", "磐石", "护盾减伤，受击反弹", "元素系", "土",
+            new PrototypeDef("el_earth_05", "巨石", "护盾减伤，受击反弹", "元素系", "土",
                 PrototypeTag.Earth, PrototypeTag.Thorns, 2, 3),
             new PrototypeDef("el_earth_06", "地陷", "重力压制，眩晕定身", "元素系", "土",
                 PrototypeTag.Earth, PrototypeTag.Stun, 2, 4),
@@ -131,7 +131,7 @@ namespace Code.Realm.Prototype
                 PrototypeTag.Stun, PrototypeTag.Slow, 2, 9),
             new PrototypeDef("el_wood_04", "萌芽", "受击自愈，净化负面", "元素系", "木",
                 PrototypeTag.Regeneration, PrototypeTag.Cleanse, 2, 2),
-            new PrototypeDef("el_wood_05", "荆棘", "受击反弹，减速目标", "元素系", "木",
+            new PrototypeDef("el_wood_05", "棘刺", "受击反弹，减速目标", "元素系", "木",
                 PrototypeTag.Thorns, PrototypeTag.Slow, 2, 3),
             new PrototypeDef("el_wood_06", "藤蔓", "缠绕定身，附加中毒", "元素系", "木",
                 PrototypeTag.Entangle, PrototypeTag.Poison, 2, 4),
