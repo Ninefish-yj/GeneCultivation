@@ -57,7 +57,7 @@ namespace Code.Combat.Fx
                 Color c = TierColor(tier);
                 // 中心光斑（快速收缩；px=0.08×帧宽21→1.68×size，目标 0.8→0.3 世界单位）
                 CombatFxCore.Spawn(CombatFxArt.Burst, pos, 0.08f, 0.25f, FxLayer.Over, 30)
-                    .Color(c, new Color(c.r, c.g, c.b, 0f)).Sized(0.06f, 0.03f);
+                    .Color(c, new Color(c.r, c.g, c.b, 0f)).Sized(0.1f, 0.06f);
                 // 命中星 2-3 颗（旋转发散；px=0.1×帧宽17→1.7×size，目标 0.5→0.2）
                 int stars = 2 + Mathf.Min(1, tier / 6);
                 for (int i = 0; i < stars; i++)
@@ -79,7 +79,7 @@ namespace Code.Combat.Fx
                     CombatFxCore.Spawn(CombatFxArt.Sparks[UnityEngine.Random.Range(0, CombatFxArt.Sparks.Length)],
                         pos, 0.1f, life, FxLayer.Top, 45)
                         .Color(c, new Color(c.r, c.g, c.b, 0f))
-                        .Sized(0.02f, 0.008f)
+                        .Sized(0.01f, 0.005f)
                         .Moving(new Vector2(Mathf.Cos(ang), Mathf.Sin(ang)) * spd, UnityEngine.Random.Range(1f, 3f), 1.5f, 0f);
                 }
                 CombatFxSound.Play(tier >= 6 ? CombatFxSound.Powerup : CombatFxSound.Whoosh, pos);
@@ -141,7 +141,7 @@ namespace Code.Combat.Fx
                     float spd = UnityEngine.Random.Range(3f, 6f + scale * 6f);
                     CombatFxCore.Spawn(CombatFxArt.Sparks[UnityEngine.Random.Range(0, CombatFxArt.Sparks.Length)],
                         pos, 0.1f, UnityEngine.Random.Range(0.15f, 0.4f), FxLayer.Top, 45)
-                        .Color(c, new Color(c.r, c.g, c.b, 0f)).Sized(0.037f, 0.017f)
+                        .Color(c, new Color(c.r, c.g, c.b, 0f)).Sized(0.01f, 0.005f)
                         .Moving(new Vector2(Mathf.Cos(ang), Mathf.Sin(ang)) * spd, UnityEngine.Random.Range(1f, 3f), 1.5f, 0f);
                 }
                 // 大伤害追加碎石 + 击停（px=0.09×帧宽11→0.99×size，目标 0.5→0.28）
@@ -177,7 +177,7 @@ namespace Code.Combat.Fx
                 if (!CanFull(pos)) return;
                 float cap = Mathf.Min(radius, 60f); // 演出尺寸封顶（v0.18.88 40→60，破坏规模同步放大，特效跟上破坏力）
             // v0.21.30 尺寸重标：Sized=世界宽起止，px×100 换算后命中爆炸环 1.2~3 世界单位（掀地不遮屏）
-            float capW = Mathf.Min(3f, 1f + cap * 0.15f);
+            float capW = Mathf.Min(4f, 1.4f + cap * 0.2f);
                 // 地面细环（扩张淡出）
                 int ringIdx = cap >= 25f ? 2 : (cap >= 12f ? 1 : 0);
                 CombatFxCore.Spawn(CombatFxArt.Rings[ringIdx], pos, 0.1f, 0.55f, FxLayer.Ground, 10)
@@ -195,7 +195,7 @@ namespace Code.Combat.Fx
                     float spd = UnityEngine.Random.Range(1.5f, 4f);
                     CombatFxCore.Spawn(CombatFxArt.Debris[UnityEngine.Random.Range(0, CombatFxArt.Debris.Length)],
                         pos, 0.09f, UnityEngine.Random.Range(0.3f, 0.7f), FxLayer.Top, 40)
-                        .Color(new Color(0.7f, 0.6f, 0.45f)).Sized(0.12f, 0.05f)
+                        .Color(new Color(0.7f, 0.6f, 0.45f)).Sized(0.06f, 0.03f)
                         .Moving(new Vector2(Mathf.Cos(ang), Mathf.Sin(ang)) * spd, UnityEngine.Random.Range(3f, 7f), 0.8f, 8f);
                 }
                 // 尘土软斑
@@ -350,7 +350,7 @@ namespace Code.Combat.Fx
                     CombatFxCore.Spawn(CombatFxArt.Debris[UnityEngine.Random.Range(0, CombatFxArt.Debris.Length)],
                         targetPos, 0.1f, 0.55f, FxLayer.Top, 40)
                         .Color(c, new Color(c.r, c.g, c.b, 0f))
-                        .Sized(0.09f, 0.035f)
+                        .Sized(0.05f, 0.02f)
                         .Moving(new Vector2(Mathf.Cos(a), Mathf.Sin(a)) * spd, UnityEngine.Random.Range(2f, 4f), 2f, -4f);
                 }
                 CombatFxSound.Play(CombatFxSound.DropImpact, targetPos);
