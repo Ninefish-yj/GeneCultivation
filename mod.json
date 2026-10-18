@@ -1,9 +1,9 @@
 {
   "name": "基因修炼",
   "author": "阿鱼要吃书",
-  "version": "0.19.13",
+  "version": "0.19.14",
   "GUID": "GeneCultivation",
-  "description": "素材特效全面回接：12个特效压缩包图检确认后接入全部标签池/防守池/家族氛围池；新增FX_CONTENT_MAP对照表；程序化图元撤出主池；soul十元素+magic投射弹尺寸分级",
+  "description": "崩溃修复：地形破坏渲染安全门（IsTileRenderSafe/CanDecrease）——连续降格与岩浆化前校验 tile 图形完整，杜绝 SetTiles null 引发的周期性 ArgumentNullException；升格仅可降时执行、岩浆化排除液体",
   "homepage": "https://github.com/Ninefish-yj/GeneCultivation",
   "repository": "https://github.com/Ninefish-yj/GeneCultivation.git",
   "tags": [

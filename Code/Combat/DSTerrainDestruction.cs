@@ -129,6 +129,55 @@ namespace Code.Combat
         // 内部方法
         // ============================================================
 
+        // ============================================================
+        // 渲染安全校验（v0.19.14 崩溃修复）
+        // 原版 WorldTilemap.renderTile → getVariation 依赖 tile.Type.sprites / main_type.sprites；
+        // 若图形缺失返回 null，TilemapExtended.redraw → SetTiles 数组含 null →
+        // Unity 2022.3.60f1 RefreshTile → NativeArray.CopySafe(source=null) → ArgumentNullException 周期崩溃。
+        // 所有破坏步骤前先校验，避免把 tile 弄进"类型有效但图形缺失"的渲染死区。
+        // ============================================================
+
+        /// <summary>
+        /// tile 是否处于可安全渲染状态（Type/main_type 及对应 sprites 均非空）。
+        /// 任一图形缺失即为渲染死区，禁止继续破坏。
+        /// </summary>
+        private static bool IsTileRenderSafe(WorldTile tile)
+        {
+            if (tile == null) return false;
+            try
+            {
+                if (tile.Type == null) return false;
+                if (tile.Type.sprites == null) return false;
+                if (tile.main_type != null && tile.main_type.sprites == null) return false;
+                return true;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// tile 是否还能继续降格（有 decrease_to 且非液体，避免降到"无图形"边界）。
+        /// </summary>
+        private static bool CanDecrease(WorldTile tile)
+        {
+            if (!IsTileRenderSafe(tile)) return false;
+            if (tile.Type.liquid) return false;
+            if (tile.Type.decrease_to == null) return false;
+            return true;
+        }
+
+        /// <summary>
+        /// 从世界重新取该格最新 tile（explodeTile/decreaseTile 后原引用数据可能已变化）。
+        /// </summary>
+        private static WorldTile RefreshTileRef(WorldTile tile)
+        {
+            if (tile == null) return null;
+            try { return World.world.GetTileSimple(tile.pos.x, tile.pos.y); }
+            catch (Exception) { return tile; }
+        }
+
         /// <summary>
         /// 构建地形改造配置
         /// v0.18.77：爆炸化——explode_tile 炸树/炸坑、damage_buildings 炸全部建筑（原版 applyTileDamage 处理），
@@ -217,6 +266,13 @@ namespace Code.Combat
                     }
                 }
 
+                // v0.19.14 渲染安全门：图形缺失的 tile 不做任何破坏（见 IsTileRenderSafe 注释）
+                if (!IsTileRenderSafe(tile))
+                {
+                    Code.Core.DSDebug.Verbose("[地形破坏] 跳过渲染不安全地块: " + tile.pos.x + "," + tile.pos.y);
+                    return false;
+                }
+
                 // 应用地形破坏（v0.18.77：原版 explodeTile 中心格全强度——
                 // 单位爆炸伤害 + 炸树(explodable) + 炸坑(decreaseTile) + 烧焦 + 随机火）
                 MapAction.explodeTile(tile, 0f, 1f, tile, options);
@@ -228,7 +284,7 @@ namespace Code.Combat
                 }
 
                 // 固定点火（参考西幻世界：fire_timestamp + setFireData）
-                if (options.set_fire && !tile.Type.liquid)
+                if (options.set_fire && tile.Type != null && !tile.Type.liquid)
                 {
                     try { tile.data.fire_timestamp = World.world.getCurWorldTime(); tile.setFireData(true); } catch { }
                 }
@@ -250,10 +306,19 @@ namespace Code.Combat
                 {
                     case TerrainDestructionType.DimensionalStrike:
                         // 维度打击：降低地块高度（v0.19.6 连续两次降格=陆地打没，露沙/水）
-                        try { MapAction.decreaseTile(tile, false, "flash"); } catch (Exception ex) { Code.Core.DSDebug.Warning("[GeneCultivation] 操作失败: " + ex.Message); }
-                        try { MapAction.decreaseTile(tile, false, "flash"); } catch (Exception ex) { Code.Core.DSDebug.Warning("[GeneCultivation] 操作失败: " + ex.Message); }
-                        // 维度打击：部分地块涌出岩浆（v0.19.6 真神级"打出岩浆"观感）
-                        if (UnityEngine.Random.value < 0.4f)
+                        // v0.19.14：每步降格前重新取格并校验——还能降才降，杜绝把 tile 降进渲染死区
+                        if (CanDecrease(tile))
+                        {
+                            try { MapAction.decreaseTile(tile, false, "flash"); } catch (Exception ex) { Code.Core.DSDebug.Warning("[GeneCultivation] 操作失败: " + ex.Message); }
+                            tile = RefreshTileRef(tile);
+                        }
+                        if (tile != null && CanDecrease(tile))
+                        {
+                            try { MapAction.decreaseTile(tile, false, "flash"); } catch (Exception ex) { Code.Core.DSDebug.Warning("[GeneCultivation] 操作失败: " + ex.Message); }
+                            tile = RefreshTileRef(tile);
+                        }
+                        // 维度打击：部分地块涌出岩浆（v0.19.6 真神级"打出岩浆"观感；v0.19.14 排除液体与渲染死区）
+                        if (tile != null && IsTileRenderSafe(tile) && !tile.Type.liquid && UnityEngine.Random.value < 0.4f)
                         {
                             try { LavaHelper.addLava(tile); } catch (Exception ex) { Code.Core.DSDebug.Warning("[GeneCultivation] 岩浆化失败: " + ex.Message); }
                         }
@@ -263,8 +328,13 @@ namespace Code.Combat
                         // 神罚：额外加热
                         try { World.world.heat.addTile(tile, 10); } catch (Exception ex) { Code.Core.DSDebug.Warning("[GeneCultivation] 操作失败: " + ex.Message); }
                         // v0.19.6 超神神罚：陆地打没 + 高概率岩浆化（战斗之神把陆地打出岩浆）
-                        try { MapAction.decreaseTile(tile, false, "flash"); } catch (Exception ex) { Code.Core.DSDebug.Warning("[GeneCultivation] 操作失败: " + ex.Message); }
-                        if (UnityEngine.Random.value < 0.55f)
+                        // v0.19.14：降格前校验
+                        if (CanDecrease(tile))
+                        {
+                            try { MapAction.decreaseTile(tile, false, "flash"); } catch (Exception ex) { Code.Core.DSDebug.Warning("[GeneCultivation] 操作失败: " + ex.Message); }
+                            tile = RefreshTileRef(tile);
+                        }
+                        if (tile != null && IsTileRenderSafe(tile) && !tile.Type.liquid && UnityEngine.Random.value < 0.55f)
                         {
                             try { LavaHelper.addLava(tile); } catch (Exception ex) { Code.Core.DSDebug.Warning("[GeneCultivation] 岩浆化失败: " + ex.Message); }
                         }
@@ -272,7 +342,8 @@ namespace Code.Combat
 
                     case TerrainDestructionType.EnergyStorm:
                         // v0.19.6 登神能量风暴：部分地块岩浆化（能量宣泄灼烧大地成岩浆）
-                        if (UnityEngine.Random.value < 0.3f)
+                        // v0.19.14：排除液体与渲染死区
+                        if (IsTileRenderSafe(tile) && !tile.Type.liquid && UnityEngine.Random.value < 0.3f)
                         {
                             try { LavaHelper.addLava(tile); } catch (Exception ex) { Code.Core.DSDebug.Warning("[GeneCultivation] 岩浆化失败: " + ex.Message); }
                         }
