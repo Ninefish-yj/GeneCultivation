@@ -420,16 +420,13 @@ namespace Code.Combat.Fx
                 }
                 else if (!string.IsNullOrEmpty(mainFx))
                 {
-                    // v0.21.24 命中处不再播原版素材层（magic_ice_a/vfx_fastfire 等=用户点名的
-                    // "大冰块/大火焰"千篇一律来源）——专属图元命中爆做唯一主体：
-                    // 每异能独立形态×专属色×seed 变体，20 个冰系=20 种冰晶爆，不再共用冰块素材。
-                    // 仅护盾类素材保留（盾=套身环绕语义，非命中贴图）。
+                    // v0.21.25 命中处 = 原版素材主演出（PickTagFx 按标签组合从原版素材池取变体，
+                    // 冰系→magic_ice_a/b/c、火系→vfx_fastfire/magic_fireball…原版帧动画本就动态，
+                    // 非贴图）。用户原话"调用原版就行了"。
                     bool shieldFx = mainFx.StartsWith("shield_") || mainFx == "art_arcaneshield";
-                    if (shieldFx)
-                    {
-                        SpawnFx(mainFx, pos, FxLayer.Top, 25, true, scale, 0f, anchor, tint: tint);
-                    }
-                    // v0.21.6 每异能独立特效：专属图元爆发（形态可辨每异能）
+                    SpawnFx(mainFx, pos, FxLayer.Top, shieldFx ? 25 : 35, true, scale, 0f,
+                        shieldFx ? anchor : null, tint: tint);
+                    // 命中粒子爆（纯粒子层，无整图——白闪/爆星/小星/冲击环/小碎片/速度线）
                     Sprite[] glyph = PrototypeFramesFor(def);
                     if (glyph != null) SpawnGlyphBurst(glyph, pos, scale, tint, StableSeed(def.Id));
                 }
@@ -472,27 +469,10 @@ namespace Code.Combat.Fx
             }
             else
             {
-                // ---- 防守：特效绑定单位跟随 ----
-                // v0.21.24 素材跟随仅保留护盾类（奥术光膜=套身环绕语义）；
-                // 冰/火/其他系防守不再把 magic_ice_a/vfx_fastfire 等原版素材挂单位身上
-                // （"大冰块/大火焰附着单位"来源），统一只留下方异能专属图元弱环。
-                if (!string.IsNullOrEmpty(mainFx) &&
-                    (mainFx.StartsWith("shield_") || mainFx == "art_arcaneshield"))
+                // ---- 防守：原版素材绑定单位跟随（调用原版；护盾/再生/祝福/净化环绕）----
+                if (!string.IsNullOrEmpty(mainFx))
                 {
                     SpawnFx(mainFx, pos, FxLayer.Over, 25, true, scale, 0f, self, tint: tint);
-                }
-                // v0.21.6 防守印记：弱化专属图元环贴自身（护盾/闪避时异能印记可辨，不遮人）
-                Sprite[] glyph = PrototypeFramesFor(def);
-                if (glyph != null)
-                {
-                    var g = CombatFxCore.Spawn(glyph, pos + new Vector2(0f, 0.17f * scale),
-                        1f / 64f, 0.35f, FxLayer.Over, 22);
-                    if (g != null)
-                    {
-                        g.Sized(0.2f * scale, 0.26f * scale);         // 微扩散环（0.8~1 倍单位宽）
-                        g.Spin = ((StableSeed(def.Id) % 2 == 0) ? 1f : -1f) * 0.9f;  // 慢转 51°/s
-                        g.Color(new Color(tint.r, tint.g, tint.b, 0.5f), new Color(tint.r, tint.g, tint.b, 0f));
-                    }
                 }
             }
 
@@ -703,17 +683,9 @@ namespace Code.Combat.Fx
                                 new Color(tint.r, tint.g, tint.b, 0.6f),
                                 new Color(tint.r, tint.g, tint.b, 0f));
                 }
-                // ③ 异能核心：放大 0.12→0.16，白→专属色→淡出（形态辨识主体）
-                var core = CombatFxCore.Spawn(glyph, center, 1f / 64f, 0.45f, FxLayer.Top, 35);
-                if (core != null)
-                {
-                    core.Sized(0.16f * scale * sizeVar, 0.12f * scale * sizeVar);
-                    core.Spin = ((seed % 2 == 0) ? 1f : -1f) * (1.4f + (seed % 4) * 0.25f);
-                    core.Color(new Color(1f, 1f, 1f, 1f),
-                                new Color(tint.r, tint.g, tint.b, 1f),
-                                new Color(tint.r, tint.g, tint.b, 0.25f));
-                }
-                // ④ 小星飞散：HitStars 4~6 颗随机方向（短命点缀，同战斗之神 punch stars）
+                // ③ 异能核心整图：v0.21.25 移除——用户原话"为什么还要加贴图"。
+                // 整张异能图元贴命中处 0.45s 就是"贴图感"根源；命中观感由原版素材层+
+                // 纯粒子层承担。④ 小星飞散：HitStars 4~6 颗随机方向（短命点缀，同战斗之神 punch stars）
                 int stars = 4 + (seed % 3);
                 for (int i = 0; i < stars; i++)
                 {
