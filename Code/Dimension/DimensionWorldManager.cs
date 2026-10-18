@@ -155,16 +155,26 @@ namespace Code.Dimension
                 }
 
                 // ③ 化身重建：确保每个随行单位在空间地图都有同 id 化身
+                // v0.21.16 生成新空间地图时（异步生成中）不立即放单位——缓存 travelers，
+                // 等地图生成完成（TickPendingSave 存档成功后）再重建，避免撞未就绪地图。
                 int spawned = 0;
-                foreach (Actor t in travelers)
+                if (_pendingSpaceSave)
                 {
-                    if (t == null || !t.isAlive()) continue;
-                    if (FindActorById(t.getID()) == null)
-                    {
-                        if (SpawnTraveler(t)) spawned++;
-                    }
+                    _pendingTravelers = travelers;
+                    DSDebug.Verbose($"[维度空间] 空间地图生成中，{travelers.Count} 名随行居民延迟重建");
                 }
-                DSDebug.Verbose($"[维度空间] 空间化身重建完成，新建 {spawned} 个");
+                else
+                {
+                    foreach (Actor t in travelers)
+                    {
+                        if (t == null || !t.isAlive()) continue;
+                        if (FindActorById(t.getID()) == null)
+                        {
+                            if (SpawnTraveler(t)) spawned++;
+                        }
+                    }
+                    DSDebug.Verbose($"[维度空间] 空间化身重建完成，新建 {spawned} 个");
+                }
 
                 // ④ 状态切换
                 IsInDimensionWorld = true;
@@ -311,7 +321,10 @@ namespace Code.Dimension
             }
         }
 
-        /// <summary>生成全新维度空间地图（随后立即存档）</summary>
+        /// <summary>生成全新维度空间地图（v0.21.16：不再立即存档——
+        /// generateNewMap 是异步的（SmoothLoader 队列驱动，红绘在队列动作里），
+        /// 生成未完成就存档/放单位会在 0.51.4 下撞"红绘未就绪 tile"NRE（TilemapExtended.redraw→RefreshTile）。
+        /// 改为标记延迟存档：地图生成完成后（SmoothLoader 空闲）由 TickPendingSave 存一次。）</summary>
         private static bool GenerateSpaceWorld()
         {
             try
@@ -324,15 +337,98 @@ namespace Code.Dimension
                     MapBox.instance.generateNewMap();
                 }
 
-                // 立即存档（首进即有存档，避免空地图状态下崩溃丢状态）
-                SaveManager.saveWorldToDirectory(SpaceDir, true, false);
-                DSDebug.Verbose("[维度空间] 新维度空间地图生成完成");
+                // 标记延迟存档（等 SmoothLoader 空闲/超时后执行一次）
+                _pendingSpaceSave = true;
+                _pendingSince = Time.unscaledTime;
+                _spaceSaved = false;
+                DSDebug.Verbose("[维度空间] 新维度空间地图生成已投递，等待生成完成后再存档");
                 return true;
             }
             catch (Exception e)
             {
                 DSDebug.Warning("[维度空间] 生成维度空间地图失败: " + e.Message);
                 return false;
+            }
+        }
+
+        // ============================================================
+        // v0.21.16 延迟存档：generateNewMap 异步生成，等 SmoothLoader 空闲再存档
+        // ============================================================
+        private static bool _pendingSpaceSave = false;
+        private static float _pendingSince = 0f;
+        private static bool _spaceSaved = false;
+        private static List<Actor> _pendingTravelers = null;
+
+        /// <summary>每帧驱动（由 CombatFxFramePatch 挂接）：地图生成完成后存档一次。</summary>
+        public static void TickPendingSave(float deltaTime)
+        {
+            if (!_pendingSpaceSave || _spaceSaved) return;
+            try
+            {
+                // 生成未完成（SmoothLoader 动作队列非空）→ 等待；超时 6s 兜底强制存档
+                if (SmoothLoaderBusy() && Time.unscaledTime - _pendingSince < 6f) return;
+
+                SaveManager.saveWorldToDirectory(SpaceDir, true, false);
+                _spaceSaved = true;
+                _pendingSpaceSave = false;
+                DSDebug.Verbose("[维度空间] 维度空间地图生成完成，延迟存档成功");
+
+                // 地图就绪后重建随行化身（延迟缓存）
+                if (_pendingTravelers != null && _pendingTravelers.Count > 0)
+                {
+                    int rebuilt = 0;
+                    foreach (Actor t in _pendingTravelers)
+                    {
+                        if (t == null || !t.isAlive()) continue;
+                        if (FindActorById(t.getID()) == null)
+                        {
+                            if (SpawnTraveler(t)) rebuilt++;
+                        }
+                    }
+                    DSDebug.Verbose($"[维度空间] 延迟化身重建完成，新建 {rebuilt} 个");
+                    _pendingTravelers = null;
+                }
+            }
+            catch (Exception e)
+            {
+                DSDebug.Warning("[维度空间] 延迟存档失败: " + e.Message);
+                // 存档失败不阻塞流程；下次进入时 HasSave=false 会重新生成
+                _pendingSpaceSave = false;
+            }
+        }
+
+        /// <summary>SmoothLoader 是否仍在处理动作队列（地图生成中）。字段名反射探测，找不到则保守返回 true。</summary>
+        private static bool SmoothLoaderBusy()
+        {
+            try
+            {
+                var slType = Type.GetType("SmoothLoader, Assembly-CSharp");
+                if (slType == null) return true;
+                object inst = null;
+                foreach (var fieldName in new[] { "instance", "_instance", "self" })
+                {
+                    var f = slType.GetField(fieldName, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static);
+                    if (f != null) { inst = f.GetValue(null); break; }
+                }
+                if (inst == null && slType.IsAbstract == false)
+                {
+                    var any = slType.GetField("actions", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+                    // 静态类则无实例
+                    inst = any != null ? null : null;
+                }
+                foreach (var fieldName in new[] { "actions", "_actions", "actionList", "ActionQueue", "queue" })
+                {
+                    var f = slType.GetField(fieldName, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static);
+                    if (f == null) continue;
+                    var v = f.GetValue(inst);
+                    if (v is System.Collections.ICollection c) return c.Count > 0;
+                    if (v is System.Collections.IEnumerable e) { var en = e.GetEnumerator(); bool any2 = en.MoveNext(); (en as IDisposable)?.Dispose(); return any2; }
+                }
+                return true; // 找不到队列字段：保守等待
+            }
+            catch (Exception)
+            {
+                return true;
             }
         }
 

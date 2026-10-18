@@ -60,6 +60,7 @@ namespace Code.Combat.Fx
                 Code.Realm.Prototype.SummonEngine.Tick(dt);   // v0.18.99 召唤物生命周期（与演出同节奏）
                 Code.Combat.Moves.CombatMoveDirector.Tick(dt);  // v0.21.0 招式冷却
                 Code.Combat.AI.CombatBrain.Tick(dt);            // v0.21.0 战斗AI决策（节流）
+                Code.Dimension.DimensionWorldManager.TickPendingSave(dt); // v0.21.16 维度空间延迟存档（等地图生成完成）
                 // 世界已销毁/存档切换：懒清理演出（新世界由业务重新触发演出）
                 if (World.world == null && CombatFxCore.Live > 0)
                 {
