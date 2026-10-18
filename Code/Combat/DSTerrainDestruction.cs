@@ -358,5 +358,188 @@ namespace Code.Combat
                 return false;
             }
         }
+
+        // ============================================================
+        // v0.21.0 战斗之神级破坏增强（分级力度 + 圆形岩浆坑 + 直线裂缝 + 脚下保护）
+        // 设计参考「战斗之神」Ruin 的机制思路（境界×招式轻重→破坏力分级，
+        // 重击才炸坑、终极才出岩浆），API 组合/参数/流程均为本项目原创。
+        // ============================================================
+
+        /// <summary>招式轻重（与招式编排语义一致，独立定义避免跨命名空间耦合）。</summary>
+        public enum DestructionScale { Light = 0, Heavy = 1, Ultimate = 2 }
+
+        /// <summary>境界 tier → 基础破坏力（0..4）。档位映射按超神机械师世界观。</summary>
+        public static int ForceForTier(int tier)
+        {
+            if (tier >= 13) return 4;   // 真神/超神：天地崩裂
+            if (tier >= 11) return 3;   // 登神：焚山煮海
+            if (tier >= 9) return 2;    // 圣：地裂
+            if (tier >= 6) return 1;    // 灵/使徒：焦痕
+            return 0;                   // 凡/玄：不动大地
+        }
+
+        /// <summary>最终破坏力（基础 + 轻重调整，夹到 0..4）。</summary>
+        public static int FinalForce(int tier, DestructionScale scale, int extra = 0)
+        {
+            int f = ForceForTier(tier);
+            switch (scale)
+            {
+                case DestructionScale.Light: f--; break;
+                case DestructionScale.Heavy: f++; break;
+                case DestructionScale.Ultimate: f += 2; break;
+            }
+            return Mathf.Clamp(f + extra, 0, 4);
+        }
+
+        /// <summary>影响范围缩放：境界与轻重共同决定（参考 Ruin 半径乘子思路，参数自定）。</summary>
+        private static float ScaleRadius(int tier, DestructionScale scale, float baseR)
+        {
+            float k = scale == DestructionScale.Light ? 0.7f : scale == DestructionScale.Heavy ? 1.3f : 1.8f;
+            float tierK = tier >= 13 ? 1.7f : tier >= 11 ? 1.4f : tier >= 9 ? 1.25f : tier >= 6 ? 1.12f : 1f;
+            return Mathf.Clamp(baseR * tierK * k, 0.6f, 16f);
+        }
+
+        /// <summary>
+        /// 圆形破坏（Blast）：force≥1 才动手；force 2+ 炸坑降格，3+ 岩浆化（fire 且非液体），
+        /// 4 二次降格（"陆地打没"）。keep 为施法者脚下——只烧焦、绝不挖/岩浆（保护立足）。
+        /// </summary>
+        public static int Blast(Actor by, Vector2 at, float baseRadius, DestructionScale scale,
+            Vector2? keep = null, bool fire = true, int extra = 0)
+        {
+            if (World.world == null) return 0;
+            int tier = by != null ? Code.Data.CultivationData.GetRealmTier(by) : 0;
+            int force = FinalForce(tier, scale, extra);
+            if (force <= 0) return 0;
+            float r = ScaleRadius(tier, scale, baseRadius);
+            int count = 0;
+            int minX = Mathf.Max(0, (int)(at.x - r));
+            int maxX = Mathf.Min(MapBox.width - 1, (int)(at.x + r));
+            int minY = Mathf.Max(0, (int)(at.y - r));
+            int maxY = Mathf.Min(MapBox.height - 1, (int)(at.y + r));
+            bool magma = fire && force >= 3;
+            for (int x = minX; x <= maxX; x++)
+            {
+                for (int y = minY; y <= maxY; y++)
+                {
+                    if (Vector2.Distance(at, new Vector2(x, y)) > r) continue;
+                    // 边缘衰减：轻击只在近中心动手
+                    float edge = 1f - Vector2.Distance(at, new Vector2(x, y)) / r;
+                    if (force <= 1 && UnityEngine.Random.value > 0.4f + edge * 0.6f) continue;
+                    if (keep.HasValue && Vector2.Distance(keep.Value, new Vector2(x, y)) < 1.2f) continue;
+                    if (ApplyForceToTile(x, y, force, magma)) count++;
+                }
+            }
+            if (count > 0)
+            {
+                try { World.world.resetRedrawTimer(); } catch { }
+                Quake(force, at);
+            }
+            return count;
+        }
+
+        /// <summary>
+        /// 直线裂缝（Furrow）：从 a 到 b 沿线裂开成沟壑（十字采样，宽≈width），
+        /// 土/空间/重击系专属。keep 脚下保护。
+        /// </summary>
+        public static int Furrow(Actor by, Vector2 a, Vector2 b, float width, DestructionScale scale,
+            Vector2? keep = null, int extra = 0)
+        {
+            if (World.world == null) return 0;
+            int tier = by != null ? Code.Data.CultivationData.GetRealmTier(by) : 0;
+            int force = FinalForce(tier, scale, extra);
+            if (force <= 0) return 0;
+            float w = Mathf.Clamp(width * (tier >= 13 ? 1.7f : tier >= 11 ? 1.4f : tier >= 9 ? 1.25f : 1f), 0.5f, 6f);
+            Vector2 dir = b - a;
+            float dist = dir.magnitude;
+            if (dist < 0.5f) dist = 1f;
+            dir /= dist;
+            int steps = Mathf.CeilToInt(dist / w);
+            bool magma = force >= 3;
+            int count = 0;
+            for (int i = 0; i <= steps; i++)
+            {
+                Vector2 p = a + dir * (w * i);
+                for (int ox = -1; ox <= 1; ox++)
+                {
+                    for (int oy = -1; oy <= 1; oy++)
+                    {
+                        if (ox != 0 && oy != 0) continue;   // 十字采样成线
+                        int x = (int)(p.x + ox);
+                        int y = (int)(p.y + oy);
+                        if (x < 0 || y < 0 || x >= MapBox.width || y >= MapBox.height) continue;
+                        if (keep.HasValue && Vector2.Distance(keep.Value, new Vector2(x, y)) < 1.2f) continue;
+                        // 裂缝主体比 Blast 深一档（开沟），岩浆随 force
+                        if (ApplyForceToTile(x, y, Mathf.Max(1, force), magma)) count++;
+                    }
+                }
+            }
+            if (count > 0)
+            {
+                try { World.world.resetRedrawTimer(); } catch { }
+                Quake(force, a);
+            }
+            return count;
+        }
+
+        /// <summary>相机震动（Quake）：按破坏力分级，只有进入镜头附近才震。</summary>
+        public static void Quake(int force, Vector2 at)
+        {
+            if (World.world == null || force <= 0) return;
+            try
+            {
+                Camera cam = Camera.main;
+                if (cam == null) return;
+                Vector3 sp = cam.WorldToScreenPoint(new Vector3(at.x, at.y, 0f));
+                if (sp.z < 0f || sp.x < -200f || sp.x > Screen.width + 200f ||
+                    sp.y < -200f || sp.y > Screen.height + 200f) return;
+                float intensity = 0.1f + force * 0.14f;      // 0.1→0.66，重击才明显
+                float duration = 0.14f + force * 0.18f;      // 0.14→0.86s
+                World.world.startShake(duration, 0.04f, intensity);
+            }
+            catch (Exception e)
+            {
+                Code.Core.DSDebug.Verbose("[地形破坏] Quake 异常: " + e.Message);
+            }
+        }
+
+        /// <summary>对单格按力度应用破坏（force 2+ 降格、3+ 岩浆、4 二次降格）。</summary>
+        private static bool ApplyForceToTile(int x, int y, int force, bool magma)
+        {
+            WorldTile tile = World.world.GetTileSimple(x, y);
+            if (tile == null || !IsTileRenderSafe(tile)) return false;
+            try { if (!MapAction.checkTileDamageGaiaCovenant(tile, true)) return false; } catch { return false; }
+            if (tile.Type != null && tile.Type.liquid) return false;
+            bool changed = false;
+            if (force >= 1)
+            {
+                try
+                {
+                    // 轻量烧焦（不带 shake：震动由 Blast/Furrow 统一 Quake 触发）
+                    TerraformOptions opt = new TerraformOptions
+                    {
+                        explode_tile = true,
+                        damage_buildings = true,
+                        add_burned = true,
+                        add_heat = 8 + force * 4
+                    };
+                    MapAction.explodeTile(tile, 0f, 1f, tile, opt);
+                    changed = true;
+                }
+                catch { }
+            }
+            if (force >= 2 && CanDecrease(tile))
+            {
+                try { MapAction.decreaseTile(tile, false, "flash"); tile = RefreshTileRef(tile); changed = true; } catch { }
+            }
+            if (magma && tile != null && IsTileRenderSafe(tile) && !tile.Type.liquid && UnityEngine.Random.value < 0.45f)
+            {
+                try { LavaHelper.addLava(tile); changed = true; } catch { }
+            }
+            if (force >= 4 && tile != null && CanDecrease(tile))
+            {
+                try { MapAction.decreaseTile(tile, false, "flash"); changed = true; } catch { }
+            }
+            return changed;
+        }
     }
 }
