@@ -249,13 +249,33 @@ namespace Code.Combat
                 switch (destructionType)
                 {
                     case TerrainDestructionType.DimensionalStrike:
-                        // 维度打击：降低地块高度
-                        try { MapAction.decreaseTile(tile, true, "flash"); } catch (Exception ex) { Code.Core.DSDebug.Warning("[GeneCultivation] 操作失败: " + ex.Message); }
+                        // 维度打击：降低地块高度（v0.19.6 连续两次降格=陆地打没，露沙/水）
+                        try { MapAction.decreaseTile(tile, false, "flash"); } catch (Exception ex) { Code.Core.DSDebug.Warning("[GeneCultivation] 操作失败: " + ex.Message); }
+                        try { MapAction.decreaseTile(tile, false, "flash"); } catch (Exception ex) { Code.Core.DSDebug.Warning("[GeneCultivation] 操作失败: " + ex.Message); }
+                        // 维度打击：部分地块涌出岩浆（v0.19.6 真神级"打出岩浆"观感）
+                        if (UnityEngine.Random.value < 0.4f)
+                        {
+                            try { LavaHelper.addLava(tile); } catch (Exception ex) { Code.Core.DSDebug.Warning("[GeneCultivation] 岩浆化失败: " + ex.Message); }
+                        }
                         break;
 
                     case TerrainDestructionType.DivinePunishment:
                         // 神罚：额外加热
                         try { World.world.heat.addTile(tile, 10); } catch (Exception ex) { Code.Core.DSDebug.Warning("[GeneCultivation] 操作失败: " + ex.Message); }
+                        // v0.19.6 超神神罚：陆地打没 + 高概率岩浆化（战斗之神把陆地打出岩浆）
+                        try { MapAction.decreaseTile(tile, false, "flash"); } catch (Exception ex) { Code.Core.DSDebug.Warning("[GeneCultivation] 操作失败: " + ex.Message); }
+                        if (UnityEngine.Random.value < 0.55f)
+                        {
+                            try { LavaHelper.addLava(tile); } catch (Exception ex) { Code.Core.DSDebug.Warning("[GeneCultivation] 岩浆化失败: " + ex.Message); }
+                        }
+                        break;
+
+                    case TerrainDestructionType.EnergyStorm:
+                        // v0.19.6 登神能量风暴：部分地块岩浆化（能量宣泄灼烧大地成岩浆）
+                        if (UnityEngine.Random.value < 0.3f)
+                        {
+                            try { LavaHelper.addLava(tile); } catch (Exception ex) { Code.Core.DSDebug.Warning("[GeneCultivation] 岩浆化失败: " + ex.Message); }
+                        }
                         break;
                 }
 

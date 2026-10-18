@@ -1,9 +1,9 @@
 {
   "name": "基因修炼",
   "author": "阿鱼要吃书",
-  "version": "0.19.5",
+  "version": "0.19.6",
   "GUID": "GeneCultivation",
-  "description": "护盾改奥术光膜(程序化淡罩替代网格盾)+领域/大爆尺寸回调防遮挡",
+  "description": "高境界大招地形破坏升级：登神/真神/超神释放技能时把陆地打出岩浆+打没陆地(维度打击连续降格)",
   "homepage": "https://github.com/Ninefish-yj/GeneCultivation",
   "repository": "https://github.com/Ninefish-yj/GeneCultivation.git",
   "tags": [
