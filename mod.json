@@ -1,9 +1,9 @@
 {
   "name": "基因修炼",
   "author": "阿鱼要吃书",
-  "version": "0.19.10",
+  "version": "0.19.11",
   "GUID": "GeneCultivation",
-  "description": "泡泡去滥用+缩半：bub_缩小至0.52倍单位宽；治疗/祝福/催眠/诅咒/预知/隐身/净化/时缓等23池+11家庭氛围换非泡素材(星芒/灵魂火/暗影波/圣光/星座/风弧)，泡泡只留水泡/冰晶/血滴/毒泡真意象",
+  "description": "泡泡缩至粒子级：bub_ 0.13→0.08(0.32倍单位宽)，状态泡如小光点贴身",
   "homepage": "https://github.com/Ninefish-yj/GeneCultivation",
   "repository": "https://github.com/Ninefish-yj/GeneCultivation.git",
   "tags": [

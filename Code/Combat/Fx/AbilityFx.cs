@@ -188,7 +188,7 @@ namespace Code.Combat.Fx
                 size = 0.38f; life = 0.55f; return;                                     // v0.19.7 图元回调：1.5 倍单位宽贴体
             }
             if (id.StartsWith("shield_")) { size = 0.28f; life = 2.0f; return; }      // 兼容旧引用（池已切奥术光膜）
-            if (id.StartsWith("bub_")) { size = 0.13f; life = 0.55f; return; }        // v0.19.9 状态泡回调：0.52 倍单位宽（半单位宽小标记，不再大球罩身）
+            if (id.StartsWith("bub_")) { size = 0.08f; life = 0.55f; return; }        // v0.19.11 状态泡回调：0.32 倍单位宽（粒子级小光点，贴身不显眼）
             if (id.StartsWith("spx_") || id.StartsWith("magic_spark") || id == "magic_flash"
                 || id == "magic_dust" || id == "vfx_impact" || id == "vfx_smallhit"
                 || id == "vfx_ditheredfire" || id == "vfx_fastfire" || id == "vfx_bloodimpact"
