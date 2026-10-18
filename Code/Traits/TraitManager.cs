@@ -403,12 +403,12 @@ namespace Code.Traits
             if (unlockedElements == null || unlockedElements.Count == 0) return false;
 
             // 成神条件（纯基因系统）：
-            // 条件1：深度觉醒经验 >= 50000（对超越的深度理解）
+            // 条件1：深度觉醒经验 >= 500000（v0.19.16 西幻级难度，原50000）
             // 条件2：失控指数 < 50（成神需要稳定的精神状态）
             // 条件3：至少拥有12个基因（基因觉醒达到一定程度）
             if (CultivationData.GetTurbulence(actor) >= 50f) return false;
             if (unlockedElements.Count < 12) return false;
-            return CultivationData.GetEnlightenmentExp(actor) >= 50000f;
+            return CultivationData.GetEnlightenmentExp(actor) >= 500000f;
         }
         /// <summary>注册异能组织特质</summary>
         private static void RegisterSectTrait(string id, string name, string desc, bool canBeRemoved)

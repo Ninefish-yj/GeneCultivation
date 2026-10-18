@@ -46,11 +46,13 @@ namespace Code.Realm
         // ============================================================
         //  13阶异能能量门槛（对应文档8.1节）
         // ============================================================
+        // v0.19.16 西幻级难度曲线：每阶能量需求4~5倍增长（原2.5~3倍），
+        // 13阶超神需50亿（原1000万）；上限=当前阶门槛×10，12阶上限1500亿≥13阶门槛500亿 ✓
         private static readonly float[] _qiThresholds =
         {
-            0f, 100f, 300f, 800f, 2000f, 5000f, 12000f,
-            30000f, 80000f, 200000f, 500000f, 1500000f,
-            4000000f, 10000000f
+            0f, 100f, 500f, 2500f, 12000f, 60000f, 300000f,
+            1500000f, 7000000f, 30000000f, 120000000f, 450000000f,
+            1500000000f, 5000000000f
         };
 
         public static float GetQiThreshold(int tier)
@@ -1151,21 +1153,22 @@ namespace Code.Realm
             }
 
             // 条件4：高阶突破需要深度觉醒经验（8阶以上）
-            if (nextTier >= 8 && CultivationData.GetEnlightenmentExp(actor) < 5000f)
+            // v0.19.16 西幻级难度：8阶5万、10阶20万、12阶100万（原5千/3万/20万）
+            if (nextTier >= 8 && CultivationData.GetEnlightenmentExp(actor) < 50000f)
             {
                 failReason = BreakthroughResult.Fail_Enlightenment;
                 return false;
             }
 
             //  条件5：高境界突破门槛增加（10阶以上）
-            // 10阶以上：深度觉醒>=30000
-            if (nextTier >= 10 && CultivationData.GetEnlightenmentExp(actor) < 30000f)
+            // 10阶以上：深度觉醒>=200000
+            if (nextTier >= 10 && CultivationData.GetEnlightenmentExp(actor) < 200000f)
             {
                 failReason = BreakthroughResult.Fail_Enlightenment;
                 return false;
             }
-            // 12阶以上：深度觉醒>=200000
-            if (nextTier >= 12 && CultivationData.GetEnlightenmentExp(actor) < 200000f)
+            // 12阶以上：深度觉醒>=1000000
+            if (nextTier >= 12 && CultivationData.GetEnlightenmentExp(actor) < 1000000f)
             {
                 failReason = BreakthroughResult.Fail_Enlightenment;
                 return false;
@@ -1243,6 +1246,7 @@ namespace Code.Realm
                 return reason;
 
             int nextTier = CultivationData.GetRealmTier(actor) + 1;
+            int currentTier = nextTier - 1;
 
             //  突破风险判定（现代异能体系特色）
             // 境界越高，突破风险越大；失控指数越高，失败概率越大
@@ -1252,51 +1256,43 @@ namespace Code.Realm
             float eraBreakBonus = Code.Core.GeneEnergyCalculator.GetEraBreakthroughBonus();
             if (eraBreakBonus > 0f) riskChance = Mathf.Max(0f, riskChance - eraBreakBonus);
 
-            //  境界特色突破修正
-            // 4阶突变者：基因稳定，突破成功率+10%（风险-10%），仅对4-6阶生效（7阶以上基因稳定性递减）
-            int currentTier = CultivationData.GetRealmTier(actor);
-            if (currentTier >= 4 && currentTier <= 6)
-            {
-                riskChance -= 0.10f;
-            }
-
             //  13阶超神级全局影响：全球异能者突破成功率+5%（风险-5%），仅对9阶以下生效（高阶突破不应被真神光环大幅稀释难度）
             if (RealmFeatures.HasTrueGodInWorld() && currentTier <= 9)
             {
                 riskChance -= 0.05f;
             }
 
-            riskChance = Mathf.Clamp(riskChance, 0.01f, 0.8f); // 最低1%失败率，最高80%
+            riskChance = Mathf.Clamp(riskChance, 0.03f, 0.95f); // v0.19.16 最低3%失败率，最高95%
 
             if (UnityEngine.Random.value < riskChance)
             {
-                //  突破失败惩罚（按境界阶梯式加重）
+                //  突破失败惩罚（v0.19.16 西幻级阶梯式加重：高阶失败九死一生）
                 float currentTurb = CultivationData.GetTurbulence(actor);
                 float currentEnergy = CultivationData.GetEnergy(actor);
                 float currentMastery = CultivationData.GetMastery(actor);
 
                 if (nextTier <= 5)
                 {
-                    // 低阶（1-5）：失控+10，能量-20%
-                    CultivationData.SetTurbulence(actor, currentTurb + 10f);
-                    CultivationData.SetEnergy(actor, currentEnergy * 0.8f);
+                    // 低阶（1-5）：失控+15，能量-30%
+                    CultivationData.SetTurbulence(actor, currentTurb + 15f);
+                    CultivationData.SetEnergy(actor, currentEnergy * 0.7f);
                 }
                 else if (nextTier <= 9)
                 {
-                    // 中阶（6-9）：失控+20，能量-30%，掌控度-10
-                    CultivationData.SetTurbulence(actor, currentTurb + 20f);
-                    CultivationData.SetEnergy(actor, currentEnergy * 0.7f);
-                    CultivationData.SetMastery(actor, Mathf.Max(0f, currentMastery - 10f));
+                    // 中阶（6-9）：失控+30，能量-50%，掌控度-15
+                    CultivationData.SetTurbulence(actor, currentTurb + 30f);
+                    CultivationData.SetEnergy(actor, currentEnergy * 0.5f);
+                    CultivationData.SetMastery(actor, Mathf.Max(0f, currentMastery - 15f));
                 }
                 else if (nextTier <= 12)
                 {
-                    // 高阶（10-12）：失控+30，能量-50%，掌控度-20，10%概率境界跌落
-                    CultivationData.SetTurbulence(actor, currentTurb + 30f);
-                    CultivationData.SetEnergy(actor, currentEnergy * 0.5f);
-                    CultivationData.SetMastery(actor, Mathf.Max(0f, currentMastery - 20f));
-                    if (UnityEngine.Random.value <= 0.1f && nextTier > 1)
+                    // 高阶（10-12）：失控+50，能量-70%，掌控度-30，30%概率境界跌落
+                    CultivationData.SetTurbulence(actor, currentTurb + 50f);
+                    CultivationData.SetEnergy(actor, currentEnergy * 0.3f);
+                    CultivationData.SetMastery(actor, Mathf.Max(0f, currentMastery - 30f));
+                    if (UnityEngine.Random.value <= 0.30f && nextTier > 1)
                     {
-                        // 10%概率境界跌落
+                        // 30%概率境界跌落（原10%）
                         int fallenTier = nextTier - 2;
                         CultivationData.SetRealmTier(actor, fallenTier);
                         TraitManager.SetRealmTrait(actor, fallenTier);
@@ -1305,11 +1301,25 @@ namespace Code.Realm
                 }
                 else
                 {
-                    // 13阶（超神级）：失控+50，能量-80%，深度觉醒-50%
-                    CultivationData.SetTurbulence(actor, currentTurb + 50f);
-                    CultivationData.SetEnergy(actor, currentEnergy * 0.2f);
+                    // 13阶（超神级）：失控+80，能量-90%，深度觉醒-70%，50%概率掉阶，20%概率死亡
+                    CultivationData.SetTurbulence(actor, currentTurb + 80f);
+                    CultivationData.SetEnergy(actor, currentEnergy * 0.1f);
                     float enlightExp = CultivationData.GetEnlightenmentExp(actor);
-                    CultivationData.SetEnlightenmentExp(actor, enlightExp * 0.5f);
+                    CultivationData.SetEnlightenmentExp(actor, enlightExp * 0.3f);
+                    if (UnityEngine.Random.value <= 0.50f && nextTier > 1)
+                    {
+                        int fallenTier = nextTier - 2;
+                        CultivationData.SetRealmTier(actor, fallenTier);
+                        TraitManager.SetRealmTrait(actor, fallenTier);
+                        DSDebug.Verbose($"[GeneCultivation] {actor.getName()} 超神突破失败导致境界跌落至{fallenTier}阶！");
+                    }
+                    if (UnityEngine.Random.value <= 0.20f)
+                    {
+                        // 20%概率突破失败死亡（逆天而行遭天谴）
+                        try { actor.dieSimpleNone(); } catch { }
+                        DSDebug.Verbose($"[GeneCultivation] {actor.getName()} 超神突破失败·天谴死亡！");
+                        return BreakthroughResult.Fail_Risk;
+                    }
                 }
 
                 DSDebug.Verbose($"[GeneCultivation] {actor.getName()} 突破到{nextTier}阶失败！惩罚按境界阶梯式加重");
@@ -1498,25 +1508,28 @@ namespace Code.Realm
         /// <summary>计算突破失败概率（现代异能体系特色）</summary>
         public static float GetBreakthroughRiskChance(int targetTier, float turbulence)
         {
-            // 基础风险：1-3阶5%，4-6阶10%，7-9阶15%，10-13阶20%
-            float baseRisk = 0.05f;
-            if (targetTier >= 4) baseRisk = 0.10f;
-            if (targetTier >= 7) baseRisk = 0.15f;
-            if (targetTier >= 10) baseRisk = 0.20f;
+            // v0.19.16 西幻级突破风险：高阶突破九死一生
+            // 1-3阶8%，4-6阶18%，7-9阶35%，10-11阶55%，12阶70%，13阶85%（原最高仅20%）
+            float baseRisk = 0.08f;
+            if (targetTier >= 4) baseRisk = 0.18f;
+            if (targetTier >= 7) baseRisk = 0.35f;
+            if (targetTier >= 10) baseRisk = 0.55f;
+            if (targetTier >= 12) baseRisk = 0.70f;
+            if (targetTier >= 13) baseRisk = 0.85f;
 
-            // 失控指数加成：每10点失控增加2%失败概率
-            float turbulenceBonus = (turbulence / 10f) * 0.02f;
+            // 失控指数加成：每10点失控增加3%失败概率（原2%）
+            float turbulenceBonus = (turbulence / 10f) * 0.03f;
 
-            // 后期制约：同境界存活者越多，突破到该境界的失败概率越大（只对高阶8阶+生效，抑制高阶泛滥与突破刷屏）
-            // 突破到X阶时看当前存活X阶单位数，每多一个失败概率+2%（比"8阶+总量"更精确：10阶饱和不影响8阶突破）
+            // 后期制约：同境界存活者越多，突破到该境界的失败概率越大（8阶+生效）
+            // 突破到X阶时看当前存活X阶单位数，每多一个失败概率+4%（原2%）
             int crowdingBonus = 0;
             if (targetTier >= 8)
             {
                 int sameTierCount = CountAliveActorsAtTier(targetTier);
-                crowdingBonus = sameTierCount * 2;
+                crowdingBonus = sameTierCount * 4;
             }
 
-            return Mathf.Clamp(baseRisk + turbulenceBonus + crowdingBonus / 100f, 0f, 0.8f);
+            return Mathf.Clamp(baseRisk + turbulenceBonus + crowdingBonus / 100f, 0f, 0.95f);
         }
 
         /// <summary>统计世界上存活且境界恰好为指定境界的异能者数量</summary>

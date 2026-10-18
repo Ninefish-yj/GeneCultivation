@@ -913,8 +913,10 @@ namespace Code.Core
             }
 
             // 深度觉醒经验足够则尝试深度觉醒突破
+            // v0.19.16 西幻级难度：替代路径门槛=5000×阶²（8阶32万、10阶50万、12阶72万、13阶84.5万），
+            // 高于正规路径的深度觉醒要求（绕过基因/能量条件需更深领悟）
             int nextTier = tier + 1;
-            if (CultivationData.GetEnlightenmentExp(actor) >= 500f * nextTier)
+            if (CultivationData.GetEnlightenmentExp(actor) >= 5000f * nextTier * nextTier)
             {
                 RealmJudge.DoEnlightenmentBreakthrough(actor);
             }
