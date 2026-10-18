@@ -71,7 +71,8 @@ namespace Code.Combat.Fx
             _tagPool[PrototypeTag.Shadow]     = new[] { "soul_yin", "magic_darkbolt", "vfx_vortex" };
 
             // ---- 防守标签池（v0.19.13 全素材，剔除 art_windarc/art_burst/art_holylight/art_woodvine 程序化残留）----
-            _tagPool[PrototypeTag.Shield]         = new[] { "art_arcaneshield" };   // v0.19.5 奥术光膜（替代网格贴图盾）
+            // v0.19.13b 网格护盾回归：用户澄清从未否决网格盾，问题只在尺寸过大——现统一 0.28 罩全身（与奥术光膜同级）
+            _tagPool[PrototypeTag.Shield]         = new[] { "art_arcaneshield", "shield_blue_loop", "shield_green_loop" };
             _tagPool[PrototypeTag.Dodge]          = new[] { "soul_wind", "magic_spark2" };
             _tagPool[PrototypeTag.Illusion]       = new[] { "magic_spark4", "soul_wind" };
             _tagPool[PrototypeTag.Invisibility]   = new[] { "magic_spark2", "soul_yin" };
@@ -83,7 +84,7 @@ namespace Code.Combat.Fx
             _tagPool[PrototypeTag.Vibration]      = new[] { "vfx_smallhit", "vfx_impact" };
             _tagPool[PrototypeTag.Sound]          = new[] { "vfx_powerchords", "vfx_impact", "magic_spark2" };   // v0.19.8 声波=音爆波纹，不是爆炸
             _tagPool[PrototypeTag.Thorns]         = new[] { "magic_spark", "spx_splatter", "vfx_impact" };
-            _tagPool[PrototypeTag.ElementResist]  = new[] { "art_arcaneshield" };   // v0.19.5 奥术光膜（元素抗性=同款淡罩）
+            _tagPool[PrototypeTag.ElementResist]  = new[] { "art_arcaneshield", "shield_bw_loop", "shield_blue_loop" };   // 元素抗性=同款淡罩
             _tagPool[PrototypeTag.Cleanse]        = new[] { "magic_spark4", "vfx_puffstars" };
 
             // ---- 家族氛围（大类/小类 → 特效）----
