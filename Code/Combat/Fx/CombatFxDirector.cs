@@ -57,7 +57,7 @@ namespace Code.Combat.Fx
                 Color c = TierColor(tier);
                 // 中心光斑（快速收缩；px=0.08×帧宽21→1.68×size，目标 0.8→0.3 世界单位）
                 CombatFxCore.Spawn(CombatFxArt.Burst, pos, 0.08f, 0.25f, FxLayer.Over, 30)
-                    .Color(c, new Color(c.r, c.g, c.b, 0f)).Sized(0.48f, 0.18f);
+                    .Color(c, new Color(c.r, c.g, c.b, 0f)).Sized(0.06f, 0.03f);
                 // 命中星 2-3 颗（旋转发散；px=0.1×帧宽17→1.7×size，目标 0.5→0.2）
                 int stars = 2 + Mathf.Min(1, tier / 6);
                 for (int i = 0; i < stars; i++)
@@ -66,7 +66,7 @@ namespace Code.Combat.Fx
                     float spd = UnityEngine.Random.Range(4f, 9f);
                     CombatFxCore.Spawn(CombatFxArt.HitStars[UnityEngine.Random.Range(0, CombatFxArt.HitStars.Length)],
                         pos, 0.1f, 0.4f, FxLayer.Top, 40)
-                        .Color(c).Sized(0.29f, 0.12f)
+                        .Color(c).Sized(0.029f, 0.012f)
                         .Moving(new Vector2(Mathf.Cos(ang), Mathf.Sin(ang)) * spd, 0f, 2f, 0f);
                 }
                 // 火花迸发（数量随境界；px=0.1×帧宽9→0.9×size，目标 0.35→0.15）
@@ -79,7 +79,7 @@ namespace Code.Combat.Fx
                     CombatFxCore.Spawn(CombatFxArt.Sparks[UnityEngine.Random.Range(0, CombatFxArt.Sparks.Length)],
                         pos, 0.1f, life, FxLayer.Top, 45)
                         .Color(c, new Color(c.r, c.g, c.b, 0f))
-                        .Sized(0.39f, 0.17f)
+                        .Sized(0.02f, 0.008f)
                         .Moving(new Vector2(Mathf.Cos(ang), Mathf.Sin(ang)) * spd, UnityEngine.Random.Range(1f, 3f), 1.5f, 0f);
                 }
                 CombatFxSound.Play(tier >= 6 ? CombatFxSound.Powerup : CombatFxSound.Whoosh, pos);
@@ -130,7 +130,7 @@ namespace Code.Combat.Fx
                 {
                     float ang = UnityEngine.Random.Range(0f, Mathf.PI * 2f);
                     CombatFxCore.Spawn(CombatFxArt.HitStars[stars - 1], pos, 0.1f, 0.3f, FxLayer.Top, 40)
-                        .Color(c, new Color(c.r, c.g, c.b, 0f)).Sized(0.24f, 0.11f)
+                        .Color(c, new Color(c.r, c.g, c.b, 0f)).Sized(0.024f, 0.011f)
                         .Moving(new Vector2(Mathf.Cos(ang), Mathf.Sin(ang)) * 6f, 0f, 2f, 0f);
                 }
                 // 火花（低伤害 1-2 颗，规模线性；px=0.1×帧宽9→0.9×size，目标 0.33→0.15）
@@ -141,7 +141,7 @@ namespace Code.Combat.Fx
                     float spd = UnityEngine.Random.Range(3f, 6f + scale * 6f);
                     CombatFxCore.Spawn(CombatFxArt.Sparks[UnityEngine.Random.Range(0, CombatFxArt.Sparks.Length)],
                         pos, 0.1f, UnityEngine.Random.Range(0.15f, 0.4f), FxLayer.Top, 45)
-                        .Color(c, new Color(c.r, c.g, c.b, 0f)).Sized(0.37f, 0.17f)
+                        .Color(c, new Color(c.r, c.g, c.b, 0f)).Sized(0.037f, 0.017f)
                         .Moving(new Vector2(Mathf.Cos(ang), Mathf.Sin(ang)) * spd, UnityEngine.Random.Range(1f, 3f), 1.5f, 0f);
                 }
                 // 大伤害追加碎石 + 击停（px=0.09×帧宽11→0.99×size，目标 0.5→0.28）
@@ -153,7 +153,7 @@ namespace Code.Combat.Fx
                         float spd = UnityEngine.Random.Range(2f, 5f);
                         CombatFxCore.Spawn(CombatFxArt.Debris[UnityEngine.Random.Range(0, CombatFxArt.Debris.Length)],
                             pos, 0.09f, UnityEngine.Random.Range(0.25f, 0.5f), FxLayer.Top, 46)
-                            .Color(new Color(0.75f, 0.7f, 0.55f)).Sized(0.5f, 0.28f)
+                            .Color(new Color(0.75f, 0.7f, 0.55f)).Sized(0.05f, 0.028f)
                             .Moving(new Vector2(Mathf.Cos(ang), Mathf.Sin(ang)) * spd, UnityEngine.Random.Range(2f, 5f), 1f, 6f);
                     }
                     CombatFxHitStop.Request(pos, Mathf.Min(0.22f, 0.05f + damage / 40000f));
@@ -176,16 +176,18 @@ namespace Code.Combat.Fx
                 EnsureArt();
                 if (!CanFull(pos)) return;
                 float cap = Mathf.Min(radius, 60f); // 演出尺寸封顶（v0.18.88 40→60，破坏规模同步放大，特效跟上破坏力）
+            // v0.21.30 尺寸重标：Sized=世界宽起止，px×100 换算后命中爆炸环 1.2~3 世界单位（掀地不遮屏）
+            float capW = Mathf.Min(3f, 1f + cap * 0.15f);
                 // 地面细环（扩张淡出）
                 int ringIdx = cap >= 25f ? 2 : (cap >= 12f ? 1 : 0);
                 CombatFxCore.Spawn(CombatFxArt.Rings[ringIdx], pos, 0.1f, 0.55f, FxLayer.Ground, 10)
                     .Color(new Color(0.85f, 0.75f, 0.5f, 0f), new Color(0.6f, 0.5f, 0.3f, 0f))
-                    .Sized(0.4f + cap * 0.12f, 0.9f + cap * 0.16f);
+                    .Sized(capW * 0.1f, capW * 0.16f);
                 // 粗冲击环（高亮、快速扩张）
                 int shkIdx = cap >= 25f ? 2 : (cap >= 12f ? 1 : 0);
                 CombatFxCore.Spawn(CombatFxArt.Shocks[shkIdx], pos, 0.1f, 0.4f, FxLayer.Top, 30)
                     .Color(new Color(1f, 0.95f, 0.6f), new Color(1f, 0.75f, 0.3f, 0f))
-                    .Sized(0.3f + cap * 0.1f, 0.7f + cap * 0.14f);
+                    .Sized(capW * 0.1f, capW * 0.15f);
                 // 碎石扬起（带重力回落）
                 for (int i = 0; i < 6 + (int)(cap * 0.4f); i++)
                 {
@@ -193,13 +195,13 @@ namespace Code.Combat.Fx
                     float spd = UnityEngine.Random.Range(1.5f, 4f);
                     CombatFxCore.Spawn(CombatFxArt.Debris[UnityEngine.Random.Range(0, CombatFxArt.Debris.Length)],
                         pos, 0.09f, UnityEngine.Random.Range(0.3f, 0.7f), FxLayer.Top, 40)
-                        .Color(new Color(0.7f, 0.6f, 0.45f)).Sized(1f, 0.5f)
+                        .Color(new Color(0.7f, 0.6f, 0.45f)).Sized(0.12f, 0.05f)
                         .Moving(new Vector2(Mathf.Cos(ang), Mathf.Sin(ang)) * spd, UnityEngine.Random.Range(3f, 7f), 0.8f, 8f);
                 }
                 // 尘土软斑
                 CombatFxCore.Spawn(CombatFxArt.Dust[3], pos, 0.1f, 0.7f, FxLayer.Behind, 5)
                     .Color(new Color(0.8f, 0.75f, 0.65f, 0f), new Color(0.6f, 0.55f, 0.45f, 0f))
-                    .Sized(0.5f + cap * 0.12f, 1.2f + cap * 0.2f);
+                    .Sized(capW * 0.1f, capW * 0.2f);
                 CombatFxSound.Play(radius >= 20f ? CombatFxSound.ExplosionSmall : CombatFxSound.DropImpact, pos);
                 if (radius >= 20f) CombatFxHitStop.Request(pos, 0.12f);
             }
@@ -247,11 +249,11 @@ namespace Code.Combat.Fx
                     Vector2 gpos = from - dir * (0.4f + i * 0.35f);
                     CombatFxCore.Spawn(CombatFxArt.Burst, gpos, 0.07f, 0.35f - i * 0.1f, FxLayer.Behind, 4)
                         .Color(new Color(c.r, c.g, c.b, 0.28f), new Color(c.r, c.g, c.b, 0f))
-                        .Sized(0.54f - i * 0.11f, 0.2f);
+                        .Sized(0.077f - i * 0.016f, 0.03f);
                 }
                 // 目标命中环（扩张淡出；px=0.09×帧宽17→1.53×size，目标 1.0→0.4）
                 CombatFxCore.Spawn(CombatFxArt.Rings[0], targetPos, 0.09f, 0.35f, FxLayer.Top, 30)
-                    .Color(c, new Color(c.r, c.g, c.b, 0f)).Sized(0.65f, 0.26f);
+                    .Color(c, new Color(c.r, c.g, c.b, 0f)).Sized(0.072f, 0.029f);
                 CombatFxSound.Play(CombatFxSound.Whoosh, targetPos);
                 // 真突进：攻击者本体朝目标前冲（视觉偏移，AI 无感）
                 ActorDash(attacker, targetPos - from, Mathf.Min(0.55f, dist * 0.35f));
@@ -292,7 +294,7 @@ namespace Code.Combat.Fx
                     float t = i / 3f;
                     var arc = CombatFxCore.Spawn(CombatFxArt.Slash, mid, 0.08f, 0.3f - t * 0.1f, FxLayer.Over, 32);
                     if (arc == null) continue;
-                    arc.Color(c, new Color(c.r, c.g, c.b, 0f)).Sized(0.38f, 0.16f);
+                    arc.Color(c, new Color(c.r, c.g, c.b, 0f)).Sized(0.13f, 0.05f);
                     arc.Rot = baseAng - 90f + (t - 0.5f) * 70f;     // 弧面朝向目标，从一侧扫向另一侧
                     arc.Spin = (1f - t) * 55f;
                 }
@@ -306,7 +308,7 @@ namespace Code.Combat.Fx
                     if (bDir.magnitude < 0.2f) bDir = dir;
                     var blade = CombatFxCore.Spawn(CombatFxArt.Blade, bFrom, 0.1f, 0.42f, FxLayer.Over, 35);
                     if (blade == null) continue;
-                    blade.Color(c, new Color(c.r, c.g, c.b, 0f)).Sized(0.42f, 0.16f)
+                    blade.Color(c, new Color(c.r, c.g, c.b, 0f)).Sized(0.042f, 0.016f)
                          .Moving(bDir.normalized * (Mathf.Max(0.6f, bDir.magnitude) / 0.4f), 0f, 1.2f, 0f);
                     blade.Rot = Mathf.Atan2(bDir.y, bDir.x) * Mathf.Rad2Deg - 90f;
                 }
@@ -336,10 +338,10 @@ namespace Code.Combat.Fx
                 CombatFxHitStop.Request(targetPos, 0.1f);
                 // 地面裂纹（贴地 Behind 层，淡出）
                 CombatFxCore.Spawn(CombatFxArt.Crack, targetPos, 0.09f, 0.7f, FxLayer.Behind, 2)
-                    .Color(c, new Color(c.r, c.g, c.b, 0f)).Sized(0.42f, 0.28f);
+                    .Color(c, new Color(c.r, c.g, c.b, 0f)).Sized(0.089f, 0.056f);
                 // 粗冲击波环（扩张淡出）
                 CombatFxCore.Spawn(CombatFxArt.Shocks[2], targetPos, 0.09f, 0.55f, FxLayer.Over, 30)
-                    .Color(c, new Color(c.r, c.g, c.b, 0f)).Sized(0.24f, 0.5f);
+                    .Color(c, new Color(c.r, c.g, c.b, 0f)).Sized(0.12f, 0.26f);
                 // 碎石飞溅（4 块，抛物线）
                 for (int i = 0; i < 4; i++)
                 {
@@ -348,7 +350,7 @@ namespace Code.Combat.Fx
                     CombatFxCore.Spawn(CombatFxArt.Debris[UnityEngine.Random.Range(0, CombatFxArt.Debris.Length)],
                         targetPos, 0.1f, 0.55f, FxLayer.Top, 40)
                         .Color(c, new Color(c.r, c.g, c.b, 0f))
-                        .Sized(0.9f, 0.35f)
+                        .Sized(0.09f, 0.035f)
                         .Moving(new Vector2(Mathf.Cos(a), Mathf.Sin(a)) * spd, UnityEngine.Random.Range(2f, 4f), 2f, -4f);
                 }
                 CombatFxSound.Play(CombatFxSound.DropImpact, targetPos);
@@ -405,7 +407,7 @@ namespace Code.Combat.Fx
             Vector2 dir = d / dist;
             var zap = CombatFxCore.Spawn(CombatFxArt.Zap, (from + to) * 0.5f, 0.09f, 0.22f, FxLayer.Over, 36);
             if (zap == null) return;
-            zap.Color(c, new Color(c.r, c.g, c.b, 0f)).Sized(dist * 0.17f, dist * 0.34f);
+            zap.Color(c, new Color(c.r, c.g, c.b, 0f)).Sized(dist / 9f, dist * 0.05f);
             zap.Rot = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg - 90f;
         }
 
@@ -425,13 +427,13 @@ namespace Code.Combat.Fx
                 // 中心光斑（快速扩散淡出）
                 CombatFxCore.Spawn(CombatFxArt.Burst, pos, 0.08f, 0.5f, FxLayer.Behind, 3)
                     .Color(new Color(c.r, c.g, c.b, 0.4f), new Color(c.r, c.g, c.b, 0f))
-                    .Sized(0.4f, radius * 0.45f);
+                    .Sized(0.19f, radius * 0.056f);
                 // 符文环 2 波（旋转扩散）
                 for (int w = 0; w < 2; w++)
                 {
                     var ring = CombatFxCore.Spawn(CombatFxArt.RuneRing, pos, 0.09f, 0.65f, FxLayer.Over, 26);
                     if (ring == null) continue;
-                    ring.Color(c, new Color(c.r, c.g, c.b, 0f)).Sized(radius * 0.2f, radius * 0.45f);
+                    ring.Color(c, new Color(c.r, c.g, c.b, 0f)).Sized(radius * 0.22f, radius * 0.26f);
                     ring.Rot = w * 15f;
                     ring.Spin = 30f;
                 }
@@ -443,7 +445,7 @@ namespace Code.Combat.Fx
                     var beam = CombatFxCore.Spawn(CombatFxArt.Blade, bp, 0.08f, 0.7f, FxLayer.Behind, 4);
                     if (beam == null) continue;
                     beam.Color(new Color(c.r, c.g, c.b, 0.32f), new Color(c.r, c.g, c.b, 0f))
-                             .Sized(radius * 0.42f, 0.1f);
+                             .Sized(radius * 0.06f, radius * 0.02f);
                     beam.Rot = a;                                    // Blade 横向 → 旋转成竖/斜光柱
                 }
                 CombatFxSound.Play(CombatFxSound.Powerup, pos);
@@ -490,7 +492,7 @@ namespace Code.Combat.Fx
                     float spd = UnityEngine.Random.Range(3f, 8f);
                     CombatFxCore.Spawn(CombatFxArt.HitStars[UnityEngine.Random.Range(0, CombatFxArt.HitStars.Length)],
                         pos, 0.1f, UnityEngine.Random.Range(0.5f, 0.9f), FxLayer.Cine, 20)
-                        .Color(gold, new Color(gold.r, gold.g, gold.b, 0f)).Sized(0.35f, 0.12f)
+                        .Color(gold, new Color(gold.r, gold.g, gold.b, 0f)).Sized(0.035f, 0.012f)
                         .Moving(new Vector2(Mathf.Cos(ang), Mathf.Sin(ang)) * spd, UnityEngine.Random.Range(2f, 5f), 0.5f, 0f);
                 }
                 CombatFxSound.Play(CombatFxSound.Inspiration, pos);

@@ -124,7 +124,8 @@ namespace Code.Combat.Moves
             if (!CanFull(pos)) return;
             pos.y += 0.17f;
             Color c = TierColor(tier);
-            float chargeSize = move.Weight == MoveWeight.Ultimate ? 0.32f : 0.2f;
+            // v0.21.30 蓄势光斑重标：px0.08×100×size → 世界宽 0.32/0.2（单位 0.9 宽的三分之一，小光斑）
+            float chargeSize = move.Weight == MoveWeight.Ultimate ? 0.04f : 0.025f;
             CombatFxCore.Spawn(CombatFxArt.Burst, pos, 0.08f, 0.3f, FxLayer.Over, 28)
                 .Color(c, new Color(c.r, c.g, c.b, 0f))
                 .Sized(chargeSize, chargeSize * 0.38f);

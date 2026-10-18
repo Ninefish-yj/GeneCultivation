@@ -943,7 +943,8 @@ namespace Code.Combat.Fx
             var w = CombatFxCore.Spawn(new[] { CombatFxArt.Shocks[0] }, pos, 1f / 64f, 0.5f, FxLayer.Top, 40);
             if (w != null)
             {
-                w.Sized(0.25f * worldWidth, worldWidth);
+                // v0.21.30 尺寸重标：px=1/64 → 世界宽=1.5625×size；目标掀地环 2.6→1.4 世界单位（真神级）
+                w.Sized(0.276f * worldWidth, 0.15f * worldWidth);
                 w.Spin = 0f;
                 w.Color(new Color(tint.r, tint.g, tint.b, 0.9f), new Color(tint.r, tint.g, tint.b, 0f));
             }
