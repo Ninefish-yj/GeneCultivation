@@ -53,6 +53,14 @@ namespace Code.Realm.Prototype
                 case PrototypeTag.MultiShot: return "fx_slash";              // 多重：连续斩
                 case PrototypeTag.HealAlly: return "fx_cast_ground_green";   // 群疗：绿光
                 case PrototypeTag.Summon: return "fx_teleport_singularity";  // 召唤：扭曲传送门（v0.18.99）
+                // ---- 元素细分标签（v0.19.8：原版命中特效）----
+                case PrototypeTag.Water: return "fx_cast_top_blue";          // 水：蓝光
+                case PrototypeTag.Wind: return "fx_dodge";                   // 风：风闪
+                case PrototypeTag.Thunder: return "fx_lightning_medium";     // 雷：闪电
+                case PrototypeTag.Earth: return "fx_boulder_impact";         // 土：落石
+                case PrototypeTag.Metal: return "fx_slash";                  // 金：斩击
+                case PrototypeTag.Light: return "fx_cast_ground_green";      // 光：圣辉绿光
+                case PrototypeTag.Shadow: return "fx_cast_ground_purple";    // 暗：暗紫光
                 default: return null;
             }
         }

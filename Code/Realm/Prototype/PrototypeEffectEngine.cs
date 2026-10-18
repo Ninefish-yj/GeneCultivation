@@ -284,6 +284,33 @@ namespace Code.Realm.Prototype
                         if (proto != null) SummonEngine.TrySummon(attacker, target, proto);
                     }
                     break;
+                // ---- 元素细分标签（v0.19.8：复用既有机制组合，意象与效果一致）----
+                case PrototypeTag.Water:
+                    TryAddStatus(attacker, target, "frozen", tag, 5f, multiplier, 0.10f);   // 湿润减速
+                    if (UnityEngine.Random.value < 0.2f + multiplier * 0.05f) TryHeal(attacker, damage * 0.12f);
+                    break;
+                case PrototypeTag.Wind:
+                    TryAddStatus(attacker, target, "stunned", tag, 1.5f, multiplier, 0.05f); // 风刃击退短暂定身
+                    break;
+                case PrototypeTag.Thunder:
+                    TryAddStatus(attacker, target, "stunned", tag, 2f, multiplier, 0.07f);  // 雷麻痹
+                    TryChainSplash(attacker, target, damage, 0.25f);                        // 雷连锁
+                    break;
+                case PrototypeTag.Earth:
+                    TryAddStatus(attacker, target, "stunned", tag, 3f, multiplier, 0.06f);  // 土石化定身
+                    break;
+                case PrototypeTag.Metal:
+                    if (UnityEngine.Random.value < Mathf.Min(def.MaxChance, def.BaseChance + GeneAffinityBridge.GetTagAffinity(attacker, tag) * 0.05f))
+                        damage *= 1.8f;                                                     // 金属破甲暴击
+                    break;
+                case PrototypeTag.Light:
+                    TryHeal(attacker, damage * 0.2f);                                       // 圣光回馈
+                    TryCleanse(attacker);
+                    break;
+                case PrototypeTag.Shadow:
+                    TryAddStatus(attacker, target, "poisoned", tag, 4f, multiplier, 0.06f); // 暗影侵蚀
+                    TryLifesteal(attacker, tag, damage);
+                    break;
                 default:
                     break;
             }

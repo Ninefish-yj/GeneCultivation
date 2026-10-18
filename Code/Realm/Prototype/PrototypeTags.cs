@@ -85,7 +85,15 @@ namespace Code.Realm.Prototype
         Cleanse,      // 净化：受击概率清除自身负面状态
         Teleport,     // 瞬移：受击概率遁走免伤（闪避最高）
         // ---- 大众认知补充标签（v0.18.99 兽化/命运/召唤/强化体系扩展）----
-        Summon        // 召唤：攻击概率召唤灵兽助战（短暂作战后消散，召唤物攻击当前目标）
+        Summon,       // 召唤：攻击概率召唤灵兽助战（短暂作战后消散，召唤物攻击当前目标）
+        // ---- 元素细分标签（v0.19.8：元素系意象独立化——水/风/雷/土/金/光/暗）----
+        Water,        // 水：攻击附加湿润减速+概率治疗（水波意象）
+        Wind,         // 风：攻击概率击退+自身闪避提升（风刃意象）
+        Thunder,      // 雷：攻击概率麻痹目标+连锁溅射（雷闪意象）
+        Earth,        // 土：攻击概率破甲+石化定身（土块意象）
+        Metal,        // 金：攻击概率暴击+破甲穿透（金属刃意象）
+        Light,        // 光：攻击概率净化负面+治疗（圣光意象）
+        Shadow        // 暗：攻击附加诅咒+吸血（暗影意象）
     }
 
     /// <summary>标签静态定义（数据驱动）</summary>
@@ -169,6 +177,14 @@ namespace Code.Realm.Prototype
             Add(new PrototypeTagDef(PrototypeTag.Teleport, "瞬移", "受击概率遁走免伤（闪避最高）", false, 1f, 1f, 0.35f));
             // ---- 大众认知补充标签（v0.18.99 召唤体系）----
             Add(new PrototypeTagDef(PrototypeTag.Summon, "召唤", "攻击概率召唤灵兽助战（短暂作战后消散）", true, 0.25f, 0.60f, 1f));
+            // ---- 元素细分标签（v0.19.8：元素系意象独立化）----
+            Add(new PrototypeTagDef(PrototypeTag.Water, "水", "攻击附加湿润减速，概率治疗自身（水波）", true, 0.20f, 0.50f, 1f));
+            Add(new PrototypeTagDef(PrototypeTag.Wind, "风", "攻击概率击退目标，提升自身闪避（风刃）", true, 0.18f, 0.45f, 1.2f));
+            Add(new PrototypeTagDef(PrototypeTag.Thunder, "雷", "攻击概率麻痹目标并连锁溅射（雷闪）", true, 0.15f, 0.40f, 1.3f));
+            Add(new PrototypeTagDef(PrototypeTag.Earth, "土", "攻击概率破甲并石化定身（土块）", true, 0.20f, 0.50f, 1.1f));
+            Add(new PrototypeTagDef(PrototypeTag.Metal, "金", "攻击概率暴击并破甲穿透（金属刃）", true, 0.15f, 0.45f, 1.2f));
+            Add(new PrototypeTagDef(PrototypeTag.Light, "光", "攻击概率净化负面并治疗自身（圣光）", true, 0.20f, 0.50f, 1f));
+            Add(new PrototypeTagDef(PrototypeTag.Shadow, "暗", "攻击附加诅咒并吸血（暗影）", true, 0.22f, 0.55f, 1f));
         }
 
         private static void Add(PrototypeTagDef def)

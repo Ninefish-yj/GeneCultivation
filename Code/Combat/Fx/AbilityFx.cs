@@ -61,6 +61,14 @@ namespace Code.Combat.Fx
             _tagPool[PrototypeTag.MultiShot]  = new[] { "magic_spark2", "magic_spark4", "spx_splatter" };
             _tagPool[PrototypeTag.HealAlly]   = new[] { "bub_green2", "bub_gold", "vfx_puffstars" };
             _tagPool[PrototypeTag.Summon]     = new[] { "vfx_vortex", "bub_mana", "magic_darkbolt" };
+            // ---- 元素细分标签池（v0.19.8：专属程序化图元，意象独立）----
+            _tagPool[PrototypeTag.Water]      = new[] { "art_waterwave", "bub_water1", "bub_water2" };
+            _tagPool[PrototypeTag.Wind]       = new[] { "art_windblade", "art_windarc", "magic_spark2" };
+            _tagPool[PrototypeTag.Thunder]    = new[] { "art_thunderbolt", "magic_lightning", "vfx_elecshield" };
+            _tagPool[PrototypeTag.Earth]      = new[] { "art_earthrock", "magic_dust", "vfx_impact" };
+            _tagPool[PrototypeTag.Metal]      = new[] { "art_metalslash", "magic_spark4", "art_blade" };
+            _tagPool[PrototypeTag.Light]      = new[] { "art_holylight", "bub_gold", "vfx_puffstars" };
+            _tagPool[PrototypeTag.Shadow]     = new[] { "art_shadowwave", "bub_black", "magic_darkbolt" };
 
             // ---- 防守标签池 ----
             _tagPool[PrototypeTag.Shield]         = new[] { "art_arcaneshield" };   // v0.19.5 奥术光膜（替代网格贴图盾）
@@ -283,6 +291,14 @@ namespace Code.Combat.Fx
                 case PrototypeTag.Cleanse:       return new Color(0.75f, 0.9f, 0.95f);// 淡青白
                 case PrototypeTag.Teleport:      return new Color(0.6f, 0.45f, 0.9f); // 紫
                 case PrototypeTag.Summon:        return new Color(0.55f, 0.4f, 0.85f);// 召唤紫（v0.18.99）
+                // ---- 元素细分基准色（v0.19.8）----
+                case PrototypeTag.Water:         return new Color(0.25f, 0.55f, 0.95f);// 水蓝
+                case PrototypeTag.Wind:          return new Color(0.35f, 0.85f, 0.75f);// 风青
+                case PrototypeTag.Thunder:       return new Color(0.95f, 0.82f, 0.15f);// 雷黄
+                case PrototypeTag.Earth:         return new Color(0.62f, 0.45f, 0.28f);// 土褐
+                case PrototypeTag.Metal:         return new Color(0.78f, 0.8f, 0.85f); // 金属银
+                case PrototypeTag.Light:         return new Color(1f, 0.92f, 0.55f);  // 圣光金
+                case PrototypeTag.Shadow:        return new Color(0.42f, 0.25f, 0.6f);// 暗影紫
                 default:                         return new Color(1f, 1f, 1f);
             }
         }

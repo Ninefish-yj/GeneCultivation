@@ -54,6 +54,15 @@ namespace Code.Combat.Fx
         /// <summary>奥术光膜（西幻奥术护盾观感：淡光膜罩全身，替代网格贴图盾）。</summary>
         internal static Sprite ArcaneShield;
 
+        // ---- v0.19.8 元素细分图元 ----
+        internal static Sprite WaterWave;    // 水波（波纹扩散）
+        internal static Sprite WindBlade;    // 风刃（双弧刃）
+        internal static Sprite ThunderBolt;  // 雷闪（锯齿闪电）
+        internal static Sprite EarthRock;    // 土块（碎石岩块）
+        internal static Sprite MetalSlash;   // 金属斩刃（冷刃弧）
+        internal static Sprite HolyLight;    // 圣光（光柱光环）
+        internal static Sprite ShadowWave;   // 暗影波（暗波扩散）
+
         private static bool _ready;
 
         /// <summary>幂等初始化：任意消费方调用均安全，仅首次真正生成。</summary>
@@ -81,6 +90,14 @@ namespace Code.Combat.Fx
                 case "art_blade":     return Blade;
                 case "art_slash":     return Slash;
                 case "art_arcaneshield": return ArcaneShield;   // v0.19.5 奥术光膜护盾（西幻观感）
+                // ---- v0.19.8 元素细分图元（水/风/雷/土/金/光/暗）----
+                case "art_waterwave":   return WaterWave;
+                case "art_windblade":   return WindBlade;
+                case "art_thunderbolt": return ThunderBolt;
+                case "art_earthrock":   return EarthRock;
+                case "art_metalslash":  return MetalSlash;
+                case "art_holylight":   return HolyLight;
+                case "art_shadowwave":  return ShadowWave;
                 default:              return null;
             }
         }
@@ -144,6 +161,14 @@ namespace Code.Combat.Fx
                 WoodVine = Make(21, 35, (x, y) => WoodVineAt(x, y, 21, 35));
                 // v0.19.5 奥术光膜护盾（西幻奥术护盾观感：淡光膜罩全身，替代网格贴图盾）
                 ArcaneShield = Make(49, 49, (x, y) => ArcaneShieldAt(x, y, 49, 49));
+                // v0.19.8 元素细分图元（水/风/雷/土/金/光/暗 专属意象）
+                WaterWave    = Make(33, 33, (x, y) => WaterWaveAt(x, y, 33, 33));
+                WindBlade    = Make(33, 33, (x, y) => WindBladeAt(x, y, 33, 33));
+                ThunderBolt  = Make(33, 33, (x, y) => ThunderBoltAt(x, y, 33, 33));
+                EarthRock    = Make(33, 33, (x, y) => EarthRockAt(x, y, 33, 33));
+                MetalSlash   = Make(33, 33, (x, y) => MetalSlashAt(x, y, 33, 33));
+                HolyLight    = Make(33, 33, (x, y) => HolyLightAt(x, y, 33, 33));
+                ShadowWave   = Make(33, 33, (x, y) => ShadowWaveAt(x, y, 33, 33));
             }
             catch (Exception e)
             {
@@ -255,6 +280,151 @@ namespace Code.Combat.Fx
             if (nd < 0.78f) return 0.12f;                                   // 内部淡膜
             if (nd < 1.0f) return 0.12f + 0.48f * (nd - 0.78f) / 0.22f;    // 光边渐强
             return 0.60f * (1.18f - nd) / 0.18f;                            // 外缘微晕渐隐
+        }
+
+        // ---------------------------------------------------------- 元素细分图元（v0.19.8）--
+
+        /// <summary>水波：内外双圈扩散环 + 少量水珠点（水系意象，圆形扩散不旋转）。</summary>
+        private static float WaterWaveAt(int x, int y, int w, int h)
+        {
+            float dx = x - (w - 1) * 0.5f;
+            float dy = y - (h - 1) * 0.5f;
+            float dist = Mathf.Sqrt(dx * dx + dy * dy);
+            float nd = dist / ((w - 1) * 0.5f);
+            // 外圈（0.62~0.95）+ 内圈（0.30~0.45）扩散环，柔边
+            float a = 0f;
+            if (nd > 0.62f && nd < 0.95f) a = 0.7f * Mathf.Min(1f, 0.95f - nd) * Mathf.Min(1f, nd - 0.62f) * 9f;
+            if (nd > 0.30f && nd < 0.45f) a = Mathf.Max(a, 0.5f * Mathf.Min(1f, 0.45f - nd) * Mathf.Min(1f, nd - 0.30f) * 9f);
+            // 水珠点
+            if (nd < 0.22f) { float s = Mathf.Sin(x * 7.31f + y * 13.7f) * 0.5f + 0.5f; if (s > 0.75f) a = Mathf.Max(a, 0.4f); }
+            return Mathf.Clamp01(a);
+        }
+
+        /// <summary>风刃：双交叉弧形刃（绕中心 45° 双弧，风系切割意象）。</summary>
+        private static float WindBladeAt(int x, int y, int w, int h)
+        {
+            float dx = x - (w - 1) * 0.5f;
+            float dy = y - (h - 1) * 0.5f;
+            float dist = Mathf.Sqrt(dx * dx + dy * dy);
+            if (dist > (w - 1) * 0.48f) return 0f;
+            // 双弧：|dx|≈|dy| 斜带（两条 45° 交叉弧）
+            float u = Mathf.Abs(dx - dy);
+            float v = Mathf.Abs(dx + dy);
+            float a = 0f;
+            // 弧带 1
+            if (u < 2.6f && dist > 4f) a = Mathf.Max(a, 1f - u / 2.6f);
+            // 弧带 2（垂直交叉）
+            if (v < 2.6f && dist > 4f) a = Mathf.Max(a, 1f - v / 2.6f);
+            // 边缘柔化
+            float edge = (w - 1) * 0.48f - dist;
+            if (edge < 2f) a *= Mathf.Clamp01(edge);
+            return Mathf.Clamp01(a * 0.9f);
+        }
+
+        /// <summary>雷闪：主锯齿闪电（Z 字形折线，雷系击穿意象）。</summary>
+        private static float ThunderBoltAt(int x, int y, int w, int h)
+        {
+            float cx = (w - 1) * 0.5f;
+            float cy = (h - 1) * 0.5f;
+            float t = (x - cx) / (w - 1) * 2f;      // -1~1
+            float yy = (y - cy) / (h - 1) * 2f;     // -1~1
+            // 主闪电：x 从 -0.3 到 0.3 的锯齿折线，粗 1.6px
+            float a = 0f;
+            float target = 0.5f * Mathf.Sin(t * 9f + 1.3f) * Mathf.Clamp01(1f - Mathf.Abs(t) * 1.5f);
+            if (Mathf.Abs(t) < 0.45f)
+            {
+                float d = Mathf.Abs(yy - target);
+                if (d < 0.08f) a = Mathf.Max(a, 1f - d / 0.08f);
+            }
+            // 分支小叉
+            float bt = 0.22f;
+            if (Mathf.Abs(t - bt) < 0.1f)
+            {
+                float d = Mathf.Abs(yy - (target + 0.28f));
+                if (d < 0.05f) a = Mathf.Max(a, 1f - d / 0.05f);
+            }
+            if (Mathf.Abs(t + bt) < 0.1f)
+            {
+                float d = Mathf.Abs(yy - (target - 0.28f));
+                if (d < 0.05f) a = Mathf.Max(a, 1f - d / 0.05f);
+            }
+            return Mathf.Clamp01(a);
+        }
+
+        /// <summary>土块：碎石岩块（随机斑点团，土系厚重意象）。</summary>
+        private static float EarthRockAt(int x, int y, int w, int h)
+        {
+            float dx = x - (w - 1) * 0.5f;
+            float dy = y - (h - 1) * 0.5f;
+            float dist = Mathf.Sqrt(dx * dx + dy * dy);
+            if (dist > (w - 1) * 0.46f) return 0f;
+            // 主体圆团 + 棱角（用菱形距离）
+            float q = Mathf.Abs(dx) + Mathf.Abs(dy);
+            float a = Mathf.Clamp01(1f - q / ((w - 1) * 0.46f));
+            if (a < 0.05f) return 0f;
+            // 岩缝（暗线）：q≈某值的窄缝
+            float crack = Mathf.Abs(q - (w - 1) * 0.28f);
+            if (crack < 1.2f) a *= 0.35f;
+            return Mathf.Clamp01(a * 0.85f);
+        }
+
+        /// <summary>金属斩刃：月牙金属刃弧（金系锐利意象，与御剑 Blade 区分：更宽弧刃）。</summary>
+        private static float MetalSlashAt(int x, int y, int w, int h)
+        {
+            float dx = x - (w - 1) * 0.5f;
+            float dy = y - (h - 1) * 0.5f;
+            float dist = Mathf.Sqrt(dx * dx + dy * dy);
+            // 月牙弧：半径带 + 角度带
+            if (dist < 6f || dist > (w - 1) * 0.48f) return 0f;
+            float ang = Mathf.Atan2(dy, dx);       // -π~π
+            float a = 0f;
+            // 主弧：角度在 [0.15π, 0.62π]（右上方月牙）
+            if (ang > 0.15f * Mathf.PI && ang < 0.62f * Mathf.PI)
+            {
+                float edge = Mathf.Min(dist - 6f, (w - 1) * 0.48f - dist);
+                a = Mathf.Clamp01(edge / 3f) * 0.95f;
+            }
+            return a;
+        }
+
+        /// <summary>圣光：竖向光柱 + 顶部光环（光明系神圣意象）。</summary>
+        private static float HolyLightAt(int x, int y, int w, int h)
+        {
+            float cx = (w - 1) * 0.5f;
+            float dx = x - cx;
+            float dy = y - (h - 1) * 0.5f;
+            float a = 0f;
+            // 光柱（中央窄带，纵向渐隐）
+            if (Mathf.Abs(dx) < 4f)
+            {
+                float v = Mathf.Clamp01((h - 1) * 0.48f - Mathf.Abs(dy)) / ((h - 1) * 0.48f);
+                a = Mathf.Max(a, (1f - Mathf.Abs(dx) / 4f) * v * 0.9f);
+            }
+            // 顶部光环（半径 8~13 的圆环）
+            float dist = Mathf.Sqrt(dx * dx + (dy + (h - 1) * 0.42f) * (dy + (h - 1) * 0.42f));
+            if (dist > 7f && dist < 13f)
+            {
+                float edge = Mathf.Min(dist - 7f, 13f - dist);
+                a = Mathf.Max(a, Mathf.Clamp01(edge / 2.5f) * 0.8f);
+            }
+            return Mathf.Clamp01(a);
+        }
+
+        /// <summary>暗影波：中心暗核 + 外扩暗波（黑暗系吞噬意象，圆形扩散）。</summary>
+        private static float ShadowWaveAt(int x, int y, int w, int h)
+        {
+            float dx = x - (w - 1) * 0.5f;
+            float dy = y - (h - 1) * 0.5f;
+            float dist = Mathf.Sqrt(dx * dx + dy * dy);
+            float nd = dist / ((w - 1) * 0.5f);
+            if (nd > 1.0f) return 0f;
+            float a = 0f;
+            // 暗核（中心实心，柔和）
+            if (nd < 0.28f) a = 0.95f * (1f - nd / 0.28f);
+            // 外扩波环（0.45~0.85 双环）
+            if (nd > 0.45f && nd < 0.60f) a = Mathf.Max(a, 0.6f * Mathf.Min(1f, 0.60f - nd) * 8f);
+            if (nd > 0.68f && nd < 0.85f) a = Mathf.Max(a, 0.4f * Mathf.Min(1f, 0.85f - nd) * 8f);
+            return Mathf.Clamp01(a);
         }
 
         /// <summary>十字闪光：细十字。</summary>
