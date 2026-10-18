@@ -522,7 +522,11 @@ namespace Code.Combat.Fx
             var p = CombatFxCore.Spawn(frames, from + new Vector2(0f, 0.17f * scale), px, fly, FxLayer.Top, 34);
             if (p == null) return;
             Color tc = tint ?? Color.white;
-            p.Sized(0.45f * scale, 0.28f * scale)
+            // v0.21.4 尺寸对齐原版投射物（反编译 0.51.x 定标）：
+            //   原版魔法弹 scale_target=0.2、施法/命中特效 scale=stats["scale"]（人类 0.25）
+            //   → 投射物 = 0.8× 施法特效（0.2/0.25），且投射物应比命中特效略小。
+            //   v0.21.2 误用 0.45（比命中特效 0.42 还大，违反原版比例）→ 修正 0.34（贴体命中同级的 0.8）。
+            p.Sized(0.34f * scale, 0.22f * scale)
              .Color(new Color(tc.r, tc.g, tc.b, 0.7f), new Color(tc.r, tc.g, tc.b, 0f))
              .Moving(dir * (dist / fly), 0f, 0.5f, 0f);
             p.FaceVel = true;

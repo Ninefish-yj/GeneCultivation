@@ -96,8 +96,12 @@ namespace Code.Combat.Fx
             p.FollowActor = target;
             p.FollowOffset = new Vector2(0f, 0.17f * scale);
             p.Loop = true;   // 帧动画循环（燃烧持续冒火）
-            // 贴体尺寸：0.45×体型（罩住身体周围），低透明不挡视野
-            float s = 0.45f * scale;
+            // v0.21.4 尺寸对齐原版状态附着（反编译 0.51.x 定标）：
+            //   原版 drawStatusEffectFor → setScale(current_scale.y × asset.scale)，
+            //   人类 current_scale.y≈0.25、frozen/burning 的 asset.scale=1 → 附着≈1.0×单位视觉宽
+            //   （≈0.25 世界单位，与我方护盾 0.28"罩全身"同级别）。
+            //   v0.21.3 误用 0.45（≈1.8 倍单位宽，比原版大 80%）→ 修正 0.26。
+            float s = 0.26f * scale;
             p.Sized(s, s * 0.9f);
             p.Color(new Color(1f, 1f, 1f, alpha), new Color(1f, 1f, 1f, alpha * 0.5f));
         }
