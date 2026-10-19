@@ -368,17 +368,19 @@ namespace Code.Combat
         /// <summary>招式轻重（与招式编排语义一致，独立定义避免跨命名空间耦合）。</summary>
         public enum DestructionScale { Light = 0, Heavy = 1, Ultimate = 2 }
 
-        /// <summary>境界 tier → 基础破坏力（0..4）。档位映射按超神机械师世界观。</summary>
+        /// <summary>境界 tier → 基础破坏深度（0..4）。按《基因修炼》13 档境界体系设计：
+        /// 深度语义 = 烧焦(1) → 炸坑降格(2) → 地裂(3) → 岩浆/崩裂(4)；
+        /// 13 档差异化由「深度 × 13 档范围乘子 × 岩浆阈值(11 阶起)」共同实现，每档可感知递进。</summary>
         public static int ForceForTier(int tier)
         {
             // v0.21.15 门槛下调+力度提升（用户反馈"境界太高/力度不够"）：
             //   凡/玄 4 阶起即有焦痕（不再是 6 阶前完全无破坏），6 阶起炸坑、9 阶地裂、11 阶岩浆、13 阶天地崩裂
-            if (tier >= 13) return 4;   // 真神/超神：天地崩裂
-            if (tier >= 11) return 4;   // 登神：焚山煮海（顶格）
-            if (tier >= 9) return 3;    // 圣：地裂（原 2 → 3）
-            if (tier >= 6) return 2;    // 灵/使徒：炸坑（原 1 → 2）
-            if (tier >= 4) return 1;    // 凡/玄后段：焦痕（原 6 阶前无破坏 → 4 阶起）
-            return 0;                   // 凡/玄前段（1~3 阶）：不动大地
+            if (tier >= 13) return 4;   // 13 超神：天地崩裂
+            if (tier >= 11) return 4;   // 11-12 登神/真神：焚山煮海（岩浆起步，force 顶格）
+            if (tier >= 9) return 3;    // 9-10 圣体：地裂（force 3=深烧焦+降格，无岩浆——岩浆 11 阶才解锁）
+            if (tier >= 6) return 2;    // 6-8 灵体/使徒：炸坑
+            if (tier >= 4) return 1;    // 4-5 突变者/玄体：焦痕
+            return 0;                   // 1-3 凡体聚气：不动大地
         }
 
         /// <summary>最终破坏力（基础 + 轻重调整，夹到 0..4）。</summary>
@@ -394,17 +396,32 @@ namespace Code.Combat
             return Mathf.Clamp(f + extra, 0, 4);
         }
 
-        /// <summary>影响范围缩放：境界与轻重共同决定（参考 Ruin 半径乘子思路，参数自定）。</summary>
+        /// <summary>13 档境界 → 破坏半径乘子（每档递增，1-3 聚气无破坏）。
+        /// 差异化：4-5 焦痕 1.05→1.15；6-8 炸坑 1.25→1.45；9-10 地裂 1.55→1.70；
+        /// 11 登神 1.85 → 12 真神 2.00 → 13 超神 2.20（天地崩裂，clamp 16 格上限）。</summary>
+        private static readonly float[] TierRadiusMul =
+        {
+            1.00f, 1.00f, 1.00f,   // 1-3 凡体
+            1.05f, 1.15f,          // 4-5 突变者/玄体
+            1.25f, 1.35f, 1.45f,   // 6-8 灵体/使徒
+            1.55f, 1.70f,          // 9-10 圣体
+            1.85f, 2.00f, 2.20f    // 11-13 登神/真神/超神
+        };
+
+        /// <summary>影响范围缩放：13 档境界乘子与轻重共同决定（半径随档位每档递增）。</summary>
         private static float ScaleRadius(int tier, DestructionScale scale, float baseR)
         {
             float k = scale == DestructionScale.Light ? 0.7f : scale == DestructionScale.Heavy ? 1.3f : 1.8f;
-            float tierK = tier >= 13 ? 1.7f : tier >= 11 ? 1.4f : tier >= 9 ? 1.25f : tier >= 6 ? 1.12f : 1f;
+            float tierK = TierRadiusMul[Mathf.Clamp(tier - 1, 0, 12)];
             return Mathf.Clamp(baseR * tierK * k, 0.6f, 16f);
         }
 
+        /// <summary>岩浆解锁门槛：11 阶（登神）起才岩浆化——9-10 圣体地裂但不动地火，符合世界观。</summary>
+        private static bool MagmaUnlocked(int tier) { return tier >= 11; }
+
         /// <summary>
-        /// 圆形破坏（Blast）：force≥1 才动手；force 2+ 炸坑降格，3+ 岩浆化（fire 且非液体），
-        /// 4 二次降格（"陆地打没"）。keep 为施法者脚下——只烧焦、绝不挖/岩浆（保护立足）。
+        /// 圆形破坏（Blast）：force≥1 才动手；force 2+ 炸坑降格，3+ 地裂，4 二次降格（"陆地打没"）；
+        /// 岩浆化需 fire 且 force≥3 且境界≥11（登神解锁地火）。keep 为施法者脚下——只烧焦、绝不挖/岩浆（保护立足）。
         /// </summary>
         public static int Blast(Actor by, Vector2 at, float baseRadius, DestructionScale scale,
             Vector2? keep = null, bool fire = true, int extra = 0)
@@ -419,7 +436,7 @@ namespace Code.Combat
             int maxX = Mathf.Min(MapBox.width - 1, (int)(at.x + r));
             int minY = Mathf.Max(0, (int)(at.y - r));
             int maxY = Mathf.Min(MapBox.height - 1, (int)(at.y + r));
-            bool magma = fire && force >= 3;
+            bool magma = fire && force >= 3 && MagmaUnlocked(tier);
             for (int x = minX; x <= maxX; x++)
             {
                 for (int y = minY; y <= maxY; y++)
@@ -457,7 +474,7 @@ namespace Code.Combat
             if (dist < 0.5f) dist = 1f;
             dir /= dist;
             int steps = Mathf.CeilToInt(dist / w);
-            bool magma = force >= 3;
+            bool magma = force >= 3 && MagmaUnlocked(tier);
             int count = 0;
             for (int i = 0; i <= steps; i++)
             {
