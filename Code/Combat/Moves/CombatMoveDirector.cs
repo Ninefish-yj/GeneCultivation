@@ -133,6 +133,9 @@ namespace Code.Combat.Moves
             CombatFxCore.Spawn(CombatFxArt.Burst, pos, 1f / 21f, 0.3f, FxLayer.Over, 28)
                 .Color(c, new Color(c.r, c.g, c.b, 0f))
                 .Sized(chargeSize, chargeSize * 0.38f);
+            // v0.21.40 读招反击·打断蓄势：大招起手窗口可被附近敌对方打断（小额伤害+失衡）
+            try { Code.Combat.AI.CombatRead.NotifyCharge(by, pos, tier); }
+            catch (System.Exception dsExI) { Code.Core.DSDebug.Verbose("[Interrupt] " + dsExI.Message); }
         }
 
         /// <summary>主击：动作姿态 + 按动作类型分派到现有动作 + 地形破坏。</summary>

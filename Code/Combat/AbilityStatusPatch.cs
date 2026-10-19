@@ -80,6 +80,19 @@ namespace Code.Combat
                     catch (System.Exception dsExL) { Code.Core.DSDebug.Verbose("[LinkBonus] " + dsExL.Message); }
                 }
 
+                // v0.21.40 读招反击·反震格挡：受击方境界≥攻击者 → 概率格挡卸力（伤害×0.6）
+                //   并开后撤格挡姿态+反击窗口（世界观：高境界"接下"来势，拆完反打）
+                if (from != null && damage > 0f)
+                {
+                    try
+                    {
+                        float mul = Code.Combat.AI.CombatRead.TryBlock(__instance, from, damage,
+                            __instance.getMaxHealth());
+                        if (mul < 1f) pDamage = damage * mul;
+                    }
+                    catch (System.Exception dsExR) { Code.Core.DSDebug.Verbose("[ReadBlock] " + dsExR.Message); }
+                }
+
                 // 2) 反震：受击方最近用过反震技（圣光反震/引力扭曲）→ 概率弹开攻击者并反伤
                 //    （世界观：护体异能受击时反震——金刚护体弹开刀兵、引力扭曲弹回来袭之势）
                 if (from != null && from.isAlive())

@@ -591,6 +591,7 @@ namespace Code.Combat.Fx
             }
             TickDashes(Time.unscaledDeltaTime);
             CombatSpotlight.Tick();   // v0.21.39 决斗聚焦：焦点标记跟随 + 窗口结束恢复
+            Code.Combat.AI.CombatRead.Tick(Time.unscaledDeltaTime); // v0.21.40 读招反击：窗口后段回敬轻击
         }
 
         /// <summary>世界销毁/存档切换：清空全部演出状态。</summary>

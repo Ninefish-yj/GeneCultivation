@@ -209,8 +209,8 @@ namespace Code.Combat.AI
             return best;
         }
 
-        /// <summary>敌我判断（王国敌对优先，无王国=野生互敌）。</summary>
-        private static bool IsEnemy(Actor a, Actor b)
+        /// <summary>敌我判断（王国敌对优先，无王国=野生互敌）。v0.21.40 改 public：CombatRead 打断蓄势复用。</summary>
+        public static bool IsEnemy(Actor a, Actor b)
         {
             try
             {
