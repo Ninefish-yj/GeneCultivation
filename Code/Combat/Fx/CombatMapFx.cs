@@ -135,9 +135,10 @@ namespace Code.Combat.Fx
                 m = 15;   // GlyphMoonAt（环状旋涡）
                 spin = true;
             }
-            // 领域类（召唤/分身）：Burn 火环意象（seed 区分，贴地铺展成发光领域）
+            // 领域类（召唤/分身）：v0.21.42 禁用火环意象（不再调用火焰特效图），
+            // 改月亮法阵环（seed 区分，贴地铺展成发光领域）
             if (main == PrototypeTag.Summon || main == PrototypeTag.Clone)
-                m = 0;    // GlyphFlameAt（领域=持续燃烧的发光环）
+                m = 15;    // GlyphMoonAt（领域=法阵发光环）
             int s2 = -1;
             if (sub != main)
             {

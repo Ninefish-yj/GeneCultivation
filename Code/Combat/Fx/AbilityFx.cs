@@ -34,10 +34,12 @@ namespace Code.Combat.Fx
         static AbilityFx()
         {
             // ---- 攻击标签池（v0.19.13 素材全面回接：12 素材包图检确认接入，意象对位见 VFXSource/FX_CONTENT_MAP.md）----
-            _tagPool[PrototypeTag.Burn]       = new[] { "vfx_fastfire", "vfx_ditheredfire", "magic_fireball" };
-            _tagPool[PrototypeTag.Plasma]     = new[] { "magic_firebomb", "vfx_explosion2", "spx_explosion" };
-            _tagPool[PrototypeTag.Frost]      = new[] { "magic_ice_a", "magic_ice_b", "magic_ice_c" };
-            _tagPool[PrototypeTag.Frostbite]  = new[] { "magic_ice_c", "magic_ice_b", "magic_ice_a" };
+            // v0.21.42 冰/火标签池禁用火焰/冰块粒子：效果走原版状态机制（burning/frozen）
+            // （本池当前仅作引用审计收集，未参与命中播放；仍清空火焰/冰块意象防回接）
+            _tagPool[PrototypeTag.Burn]       = new[] { "vfx_smallhit", "magic_spark", "vfx_impact" };
+            _tagPool[PrototypeTag.Plasma]     = new[] { "magic_spark2", "magic_spark4", "spx_splatter" };
+            _tagPool[PrototypeTag.Frost]      = new[] { "magic_dust", "magic_spark", "vfx_smallhit" };
+            _tagPool[PrototypeTag.Frostbite]  = new[] { "vfx_smallhit", "magic_spark4", "magic_dust" };
             _tagPool[PrototypeTag.TimeSlow]   = new[] { "vfx_eldenring", "soul_kong", "magic_spark4" };   // 时间环意象
             _tagPool[PrototypeTag.Stun]       = new[] { "magic_lightning", "vfx_impact", "magic_spark" };
             _tagPool[PrototypeTag.Crit]       = new[] { "vfx_bighit", "magic_spark4", "vfx_smallhit" };   // 暴击=重击大闪（v0.19.8 定，非爆炸）
@@ -45,7 +47,7 @@ namespace Code.Combat.Fx
             _tagPool[PrototypeTag.Poison]     = new[] { "bub_toxic", "magic_smoke", "magic_dust" };
             _tagPool[PrototypeTag.Curse]      = new[] { "soul_yin", "magic_darkbolt", "vfx_vortex" };
             _tagPool[PrototypeTag.Fear]       = new[] { "vfx_vortex", "soul_yin", "magic_darkbolt" };
-            _tagPool[PrototypeTag.Slow]       = new[] { "magic_ice_b", "magic_ice_a", "bub_ice" };
+            _tagPool[PrototypeTag.Slow]       = new[] { "magic_dust", "magic_spark4", "vfx_smallhit" };
             _tagPool[PrototypeTag.Lifesteal]  = new[] { "blood_vfx1", "blood_vfx3", "bub_blood" };
             _tagPool[PrototypeTag.Drain]      = new[] { "blood_vfx2", "blood_vfx1", "blood_vfx3" };
             _tagPool[PrototypeTag.Blood]      = new[] { "blood_vfx3", "blood_vfx1", "bub_blood" };
@@ -54,7 +56,7 @@ namespace Code.Combat.Fx
             _tagPool[PrototypeTag.Chain]      = new[] { "magic_lightning", "magic_bolt", "vfx_elecshield" };
             _tagPool[PrototypeTag.Knockback]  = new[] { "vfx_smallhit", "magic_spark", "vfx_impact" };
             _tagPool[PrototypeTag.Gravity]    = new[] { "vfx_vortex", "soul_kong", "magic_dust" };
-            _tagPool[PrototypeTag.Berserk]    = new[] { "vfx_magma", "vfx_fastfire", "spx_explosion" };
+            _tagPool[PrototypeTag.Berserk]    = new[] { "blood_vfx1", "blood_vfx3", "spx_explosion" };
             _tagPool[PrototypeTag.Entangle]   = new[] { "vfx_tentacles", "soul_wood", "bub_green1" };
             _tagPool[PrototypeTag.Petrify]    = new[] { "soul_earth", "magic_dust", "vfx_impact" };
             _tagPool[PrototypeTag.Aging]      = new[] { "soul_yin", "magic_darkbolt", "bub_purple" };
@@ -577,10 +579,10 @@ namespace Code.Combat.Fx
             {
                 case PrototypeTag.Burn:
                 case PrototypeTag.Plasma:
-                case PrototypeTag.Berserk: return 0;    // 火苗
+                case PrototypeTag.Berserk: return 20;   // v0.21.42 禁用火苗形态整图：效果走原版 burning 状态机制
                 case PrototypeTag.Frost:
                 case PrototypeTag.Frostbite:
-                case PrototypeTag.Slow: return 1;   // 冰晶
+                case PrototypeTag.Slow: return 22;      // v0.21.42 禁用冰晶形态整图：效果走原版 frozen 状态机制
                 case PrototypeTag.TimeSlow: return 14; // 沙漏（v0.21.15 时缓=时间意象，不再用冰晶）
                 case PrototypeTag.Thunder:
                 case PrototypeTag.Chain:
