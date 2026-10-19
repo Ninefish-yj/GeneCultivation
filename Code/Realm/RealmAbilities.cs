@@ -1063,8 +1063,9 @@ namespace Code.Realm
                     _ => 10f
                 };
 
-                // 使用技能ID作为状态效果ID，添加到状态栏
-                DSReflectionHelper.SafeAddStatusEffect(actor, abilityId, duration, true);
+                // 技能ID即状态ID：DSStatusAsset.Init() 已把每个境界技能注册为真状态资产（v0.21.34 直连修复），
+                // 因此 addStatusEffect(abilityId) 不再静默失败——技能 Buff 加成（GetDamageBonus 等）生效
+                Code.Core.DSStatusManager.SafeAddStatusEffect(actor, abilityId, duration, true);
 
                 DSDebug.Verbose($"[GeneCultivation] {actor.getName()} 释放技能【{ability.Name}】，状态效果已添加到状态栏（持续{duration}秒）");
             }

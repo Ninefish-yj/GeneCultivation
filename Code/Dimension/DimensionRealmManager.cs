@@ -453,7 +453,7 @@ namespace Code.Dimension
             // 获得临时属性加成（持续1年）
             try
             {
-                DSReflectionHelper.SafeAddStatusEffect(actor, "ds_energy_lifeform", 60f, true);
+                DSReflectionHelper.SafeAddStatusEffect(actor, Code.Core.DSStatusManager.STATUS_ENERGY_LIFEFORM, 60f, true);
             }
             catch (System.Exception dsEx) { Code.Core.DSDebug.Warning("[GeneCultivation] CreateEnergyLifeform 异常: " + dsEx.Message); }
 

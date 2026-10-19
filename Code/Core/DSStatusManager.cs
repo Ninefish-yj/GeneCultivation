@@ -21,6 +21,12 @@ namespace Code.Core
         public const string STATUS_VOID_CORRUPTION = "ds_void_corruption";      // 虚空侵蚀
         public const string STATUS_FOUNDATION_DAMAGED = "ds_foundation_damaged"; // 能力根基受损
         public const string STATUS_ERA_DOMINATOR = "ds_era_dominator";          // 真神纪元主宰加成
+        public const string STATUS_SKILL_BUFF = "ds_skill_buff";                // 境界技能生效中（通用展示状态）
+        public const string STATUS_ENERGY_LIFEFORM = "ds_energy_lifeform";      // 维度能量生命形态
+        // 异能引擎战斗负面：原版无 weakened/slow 状态资产，v0.21.34 已由
+        // DSStatusRegistry 注册为真状态（状态栏显示 + base_stats 生效）
+        public const string STATUS_WEAKENED = "weakened";
+        public const string STATUS_SLOW = "slow";
 
         // ============================================================
         //  状态效果持续时间（秒，游戏内时间）
@@ -43,6 +49,9 @@ namespace Code.Core
             if (actor == null) return;
             try
             {
+                // v0.21.34 自定义状态资产注册（weakened/slow/ds_* 在原版无定义，
+                // 先注册进原版 StatusLibrary，addStatusEffect 才不静默失败）
+                DSStatusRegistry.EnsureRegistered();
                 // 直接调用addStatusEffect方法
                 actor.addStatusEffect(statusId, duration, addToUI);
                 // v0.21.19 状态生效回读诊断：0.51.x 无效状态 id 会静默失败

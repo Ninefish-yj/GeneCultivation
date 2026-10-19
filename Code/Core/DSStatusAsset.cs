@@ -196,70 +196,32 @@ namespace Code.Core
         {
             try
             {
-                // 使用反射创建StatusAsset（因为运行时可能是internal）
-                System.Type statusAssetType = System.Type.GetType("StatusAsset, Assembly-CSharp");
-                if (statusAssetType == null)
+                // v0.21.34 直连注册（模组引用 Assembly-CSharp-Publicized，StatusAsset 全 public）。
+                // 原反射路径 GetType("StatusAsset, Assembly-CSharp") 在部分环境取不到类型，
+                // 导致 17 个状态从未注册 → addStatusEffect 静默失败、技能 Buff 加成
+                // （GetDamageBonus/GetDamageReduction 等 hasStatus 判定）一直不生效。
+                if (AssetManager.status == null) return;
+                if (AssetManager.status.get(id) != null) return;   // 幂等（重载/多次初始化安全）
+                var a = new StatusAsset
                 {
-                    DSDebug.Warning("[GeneCultivation] 未找到StatusAsset类型，状态效果注册跳过: " + id);
-                    return;
-                }
-
-                object statusAsset = System.Activator.CreateInstance(statusAssetType);
-
-                // 设置字段
-                SetField(statusAsset, "id", id);
-                SetField(statusAsset, "path_icon", iconPath);
-                SetField(statusAsset, "locale_id", localeId);
-                SetField(statusAsset, "locale_description", localeDesc);
-                SetField(statusAsset, "allow_timer_reset", false);
-
-                // 添加到AssetManager.status
-                System.Type assetManagerType = System.Type.GetType("AssetManager, Assembly-CSharp");
-                if (assetManagerType != null)
-                {
-                    var statusField = assetManagerType.GetField("status", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static);
-                    if (statusField != null)
-                    {
-                        object statusLibrary = statusField.GetValue(null);
-                        var addMethod = statusLibrary.GetType().GetMethod("add", new[] { statusAssetType });
-                        if (addMethod != null)
-                        {
-                            addMethod.Invoke(statusLibrary, new[] { statusAsset });
-                            DSDebug.Verbose("[GeneCultivation] 状态效果注册成功: " + id);
-                        }
-                        else
-                        {
-                            DSDebug.Warning("[GeneCultivation] 未找到status.add方法: " + id);
-                        }
-                    }
-                }
+                    id = id,
+                    path_icon = iconPath,
+                    locale_id = localeId,
+                    locale_description = localeDesc,
+                    allow_timer_reset = false,
+                    duration = defaultDuration,
+                    animated = false,
+                    can_be_cured = false,
+                    loop = true,
+                    scale = 1f
+                };
+                AssetManager.status.add(a);
+                DSDebug.Verbose("[GeneCultivation] 状态效果注册成功: " + id);
             }
             catch (System.Exception e)
             {
                 DSDebug.Warning("[GeneCultivation] 状态效果注册失败 " + id + ": " + e.Message);
             }
-        }
-
-        /// <summary>使用反射设置字段值</summary>
-        private static void SetField(object obj, string fieldName, object value)
-        {
-            try
-            {
-                var field = obj.GetType().GetField(fieldName, System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
-                if (field != null)
-                {
-                    field.SetValue(obj, value);
-                }
-                else
-                {
-                    var prop = obj.GetType().GetProperty(fieldName, System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
-                    if (prop != null && prop.CanWrite)
-                    {
-                        prop.SetValue(obj, value);
-                    }
-                }
-            }
-            catch { }
         }
 
         // ============================================================

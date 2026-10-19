@@ -360,10 +360,11 @@ namespace Code.Core
             {
                 if (UnityEngine.Random.value < 0.3f)
                 {
-                    // 通过原生status_effect系统施加虚弱
+                    // 通过原生status_effect系统施加虚弱（v0.21.34 走统一入口，
+                    // 触发 DSStatusRegistry 注册 weakened 真状态，避免 addStatusEffect 静默失败）
                     try
                     {
-                        actor.addStatusEffect("weakened", 365f, true);
+                        Code.Core.DSStatusManager.SafeAddStatusEffect(actor, Code.Core.DSStatusManager.STATUS_WEAKENED, 365f, true);
                     }
                     catch (System.Exception dsEx) { Code.Core.DSDebug.Warning("[GeneCultivation] ApplyTurbulencePenalties 异常: " + dsEx.Message); }
                 }
