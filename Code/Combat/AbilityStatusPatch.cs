@@ -333,6 +333,14 @@ namespace Code.Combat
                 }
                 catch (System.Exception dsFxEx) { Code.Core.DSDebug.Verbose("[GeneCultivation] 命中演出失败: " + dsFxEx.Message); }
 
+                // v0.21.43 战斗叙事层：全部伤害计算完成后，按情境触发
+                //   觉醒对峙/绝境爆发/斩杀终幕/援护救援（纯表现层，零每帧成本）
+                if (from != null)
+                {
+                    try { Code.Combat.Fx.CombatNarrative.OnHit(from, __instance, damage); }
+                    catch (System.Exception dsNEx) { Code.Core.DSDebug.Verbose("[GeneCultivation] 叙事演出失败: " + dsNEx.Message); }
+                }
+
                 pDamage = damage;
             }
             catch (Exception dsEx)
