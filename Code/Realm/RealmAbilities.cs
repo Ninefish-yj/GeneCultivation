@@ -886,18 +886,34 @@ namespace Code.Realm
             try
             {
                 // 陨石雨（登神起）：数量随境界上升
+                // v0.21.37 尺寸门禁：原版 spawnAtTile 的 scale 是纯精灵缩放倍数
+                // （世界宽=scale×帧宽/PPU，0.9×256/100≈2.3 世界宽≈9 倍人类单位，即"大特效"根因）。
+                // 改为 spawn + prepare + 帧宽归一化：陨石目标世界宽 0.75（3 倍人类单位宽），天灾感但非巨物。
                 int meteors = 4 + (tier - 10) * 2;
                 for (int i = 0; i < meteors; i++)
                 {
                     var t = World.world.GetTileSimple(center.x + r.Next(-9, 10), center.y + r.Next(-9, 10));
                     if (t == null) continue;
-                    EffectsLibrary.spawnAtTile("fx_meteorite", t, 0.9f);
+                    var fx = EffectsLibrary.spawn("fx_meteorite", t, null, null, 0f, -1f, -1f, null);
+                    if (fx != null)
+                    {
+                        fx.prepare(new Vector2(t.pos.x + 0.5f, t.pos.y), 1f);
+                        Code.Combat.Fx.CombatFxCore.ScaleFxToWorldWidth(fx, 0.75f);
+                    }
                 }
                 // 龙卷风（真神起）
                 if (tier >= 12)
                 {
                     var t = World.world.GetTileSimple(center.x + r.Next(-3, 4), center.y + r.Next(-3, 4));
-                    if (t != null) EffectsLibrary.spawnAtTile("fx_tornado", t, 0.7f);
+                    if (t != null)
+                    {
+                        var fx = EffectsLibrary.spawn("fx_tornado", t, null, null, 0f, -1f, -1f, null);
+                        if (fx != null)
+                        {
+                            fx.prepare(new Vector2(t.pos.x + 0.5f, t.pos.y), 1f);
+                            Code.Combat.Fx.CombatFxCore.ScaleFxToWorldWidth(fx, 0.7f);
+                        }
+                    }
                 }
                 // 雷暴群（超神）
                 if (tier >= 13)
@@ -906,7 +922,12 @@ namespace Code.Realm
                     {
                         var t = World.world.GetTileSimple(center.x + r.Next(-12, 13), center.y + r.Next(-12, 13));
                         if (t == null) continue;
-                        EffectsLibrary.spawnAtTile("fx_lightning_medium", t, 0.8f);
+                        var fx = EffectsLibrary.spawn("fx_lightning_medium", t, null, null, 0f, -1f, -1f, null);
+                        if (fx != null)
+                        {
+                            fx.prepare(new Vector2(t.pos.x + 0.5f, t.pos.y), 1f);
+                            Code.Combat.Fx.CombatFxCore.ScaleFxToWorldWidth(fx, 0.6f);
+                        }
                     }
                 }
             }

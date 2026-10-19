@@ -169,15 +169,17 @@ namespace Code.Realm
                     new OriginalEffectConfig("fx_heal", 1.0f),
                 }},
 
-                // 8阶 能量风暴：火焰+旋风（v0.21.21 用原版大小，不自己缩放）
+                // 8阶 能量风暴：火焰+旋风
+                // v0.21.37 尺寸门禁：Scale=人类单位宽倍数（目标世界宽=Scale×0.25）。
+                // 原 -1 意为"用原版大小"→跳过归一化→原版原生 prepare(1f)=2.56世界宽（10倍人类单位）＝"大火焰"根因。
                 { "ds_ability_energy_storm", new List<OriginalEffectConfig> {
-                    new OriginalEffectConfig("fx_fire", -1f),
-                    new OriginalEffectConfig("fx_storm", -1f, delay: 0.1f),
+                    new OriginalEffectConfig("fx_fire", 2.4f),
+                    new OriginalEffectConfig("fx_storm", 2.8f, delay: 0.1f),
                 }},
 
-                // 9阶 领域展开：能量场域（v0.21.21 用原版大小，不自己缩放）
+                // 9阶 领域展开：能量场域（v0.21.37 归一化，0.8世界宽=3.2倍人类单位，领域感但非巨物）
                 { "ds_ability_domain_expand", new List<OriginalEffectConfig> {
-                    new OriginalEffectConfig("fx_energy_field", -1f),
+                    new OriginalEffectConfig("fx_energy_field", 3.2f),
                 }},
 
                 // 9阶 法则压制：debuff效果
@@ -202,17 +204,17 @@ namespace Code.Realm
                     new OriginalEffectConfig("fx_buff", 1.0f, delay: 0.2f),
                 }},
 
-                // 12阶 维度打击：大爆炸+风暴（v0.21.21 用原版大小，不自己缩放）
+                // 12阶 维度打击：大爆炸+风暴（v0.21.37 归一化，0.9世界宽=3.6倍人类单位，天崩地裂但非巨物）
                 { "ds_ability_dimensional_strike", new List<OriginalEffectConfig> {
-                    new OriginalEffectConfig("fx_explosion", -1f),
-                    new OriginalEffectConfig("fx_storm", -1f, delay: 0.1f),
+                    new OriginalEffectConfig("fx_explosion", 3.6f),
+                    new OriginalEffectConfig("fx_storm", 2.8f, delay: 0.1f),
                 }},
 
-                // 13阶 神罚：超级爆炸+闪电+大爆炸（v0.21.21 用原版大小，不自己缩放）
+                // 13阶 神罚：超级爆炸+闪电+大爆炸（v0.21.37 归一化，同0.9世界宽上限）
                 { "ds_ability_divine_punishment", new List<OriginalEffectConfig> {
-                    new OriginalEffectConfig("fx_explosion", -1f),
-                    new OriginalEffectConfig("fx_lightning", -1f, delay: 0.1f),
-                    new OriginalEffectConfig("fx_bigexplosion", -1f, delay: 0.2f),
+                    new OriginalEffectConfig("fx_explosion", 3.6f),
+                    new OriginalEffectConfig("fx_lightning", 3.6f, delay: 0.1f),
+                    new OriginalEffectConfig("fx_bigexplosion", 3.6f, delay: 0.2f),
                 }},
             };
 
@@ -434,10 +436,12 @@ namespace Code.Realm
                             // v0.18.91：cfg.Scale 语义=「人类单位宽倍数」，目标世界宽 = Scale×0.25
                             // （人类 actor_scale≈0.25→1 倍单位宽≈0.25 世界单位，与西幻奥术护盾 0.24 对齐；
                             //  原 0.55 基准仍达 2.2 倍单位宽，是"原版 fx 特效偏大"残余根因）
-                            // v0.21.21 用户明确要求"用原版大小"：巨型技能原版特效不再自己缩放，
-                            // Scale<=0 跳过目标宽度换算，保持原版 fx_* 原生尺寸（玩家熟悉的原版观感）
-                            if (cfg.Scale > 0f)
-                                Code.Combat.Fx.CombatFxCore.ScaleFxToWorldWidth(fx, cfg.Scale * 0.25f);
+                            // v0.21.37 尺寸门禁：所有原版特效一律帧宽归一化。
+                            // 原 v0.21.21 "用原版大小"→Scale<=0 跳过归一化→原版原生 prepare(1f)
+                            // =2.56 世界宽（≈10 倍人类单位宽），即用户"大冰块/大火焰"根因。
+                            // Scale<=0 兜底 0.5 世界宽（2 倍人类单位宽），杜绝巨物再现。
+                            float targetW = cfg.Scale > 0f ? cfg.Scale * 0.25f : 0.5f;
+                            Code.Combat.Fx.CombatFxCore.ScaleFxToWorldWidth(fx, targetW);
                         }
                     }
                 }
