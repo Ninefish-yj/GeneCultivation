@@ -590,6 +590,7 @@ namespace Code.Combat.Fx
                 }
             }
             TickDashes(Time.unscaledDeltaTime);
+            CombatSpotlight.Tick();   // v0.21.39 决斗聚焦：焦点标记跟随 + 窗口结束恢复
         }
 
         /// <summary>世界销毁/存档切换：清空全部演出状态。</summary>
@@ -598,6 +599,7 @@ namespace Code.Combat.Fx
             CombatFxCore.Clear();
             CombatFxHitStop.Clear();
             CombatFxCinema.Clear();
+            CombatSpotlight.Clear();  // v0.21.39 决斗聚焦：清空焦点标记与暗场
             foreach (var kv in _dashes)
             {
                 if (kv.Key != null)

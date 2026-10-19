@@ -107,6 +107,9 @@ namespace Code.Combat.Moves
                 Charge(move, by, pos, tier);
                 // 主击：动作 + 地形破坏
                 Strike(move, by, pos, targetPos, tier, target);
+                // v0.21.39 决斗聚焦：重招/终极招把交战从混战里"提出来"（暗场+焦点光环）
+                if (move.Weight == MoveWeight.Ultimate) CombatSpotlight.Focus(by, target, 1.8f);
+                else if (move.Weight == MoveWeight.Heavy) CombatSpotlight.Pulse(by, 1.1f);
                 // 收尾：冷却登记
                 PutOnCooldown(by, move.Id, move.Cooldown);
             }
