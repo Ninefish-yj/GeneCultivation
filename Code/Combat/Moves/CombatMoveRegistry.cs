@@ -216,6 +216,52 @@ namespace Code.Combat.Moves
             CombatMove cmPushPalm = Get("mv_push_palm");
             if (cmPushPalm != null) cmPushPalm.LinkOut = LinkState.Down;
 
+            // ---- v0.21.36 防御/状态系招式补全：堵住"0命中走兜底"缺口 ----
+            // 上轮统计：Poison/Stun/Blessing/Dodge/Invisibility/Sleep/Petrify/Vibration/
+            // Mark/ManaDrain/Weakness/ArmorBreak/Clone 主标签无任何招式覆盖，
+            // 对应异能（毒/麻痹/睡眠/石化/幻隐/震/标记/吸能系几十个）选招只能靠副标签或风镰兜底。
+            // 本批用现实武术术语补齐，13 个缺口标签全部有招式可命。
+            Register(new CombatMove("mv_poison_palm", "淬毒掌", MoveWeight.Light, MoveKind.Slash,
+                MoveTerrain.None, 2, 3.5f,
+                "掌中蕴毒，中者蚀骨——毒系异能贴身近战（淬毒/破甲/虚弱）。",
+                "Poison", "ArmorBreak", "Weakness"));
+            CombatMove cmPoison = Get("mv_poison_palm");
+            if (cmPoison != null) cmPoison.LinkOut = LinkState.Stunned;
+            Register(new CombatMove("mv_seal_point", "封穴指", MoveWeight.Light, MoveKind.Slash,
+                MoveTerrain.None, 2, 3f,
+                "指封穴位，中者僵麻昏沉——点穴制敌（麻痹/昏睡/石化）。",
+                "Stun", "Sleep", "Petrify"));
+            CombatMove cmSeal = Get("mv_seal_point");
+            if (cmSeal != null) cmSeal.LinkOut = LinkState.Stunned;
+            Register(new CombatMove("mv_stomp", "震脚", MoveWeight.Heavy, MoveKind.Strike,
+                MoveTerrain.Crater, 4, 6f,
+                "沉脚震地，劲力透土掀翻目标——震击裂地（震动/土系重击）。",
+                "Vibration", "Earth"));
+            CombatMove cmStomp = Get("mv_stomp");
+            if (cmStomp != null) cmStomp.LinkOut = LinkState.Down;
+            Register(new CombatMove("mv_body_shift", "游身步", MoveWeight.Light, MoveKind.Buff,
+                MoveTerrain.None, 3, 5f,
+                "身法游走如影，避实击虚——防御身法（祝福/闪避/隐身/分身）。",
+                "Blessing", "Dodge", "Invisibility", "Clone"));
+            Register(new CombatMove("mv_iron_palm", "铁砂掌", MoveWeight.Heavy, MoveKind.Strike,
+                MoveTerrain.Crater, 4, 7f,
+                "掌若铁石，中者皮开肉绽、僵直难动——硬功重击（石化/麻痹）。",
+                "Petrify", "Earth", "Stun"));
+            CombatMove cmIron = Get("mv_iron_palm");
+            if (cmIron != null) cmIron.LinkOut = LinkState.Stunned;
+            Register(new CombatMove("mv_silk_strength", "缠丝劲", MoveWeight.Light, MoveKind.Slash,
+                MoveTerrain.None, 3, 4.5f,
+                "劲力如丝缠绕，借力吸劲、缠倒目标——太极缠斗（吸能/汲取/束缚）。",
+                "ManaDrain", "Drain", "Entangle"));
+            CombatMove cmSilk = Get("mv_silk_strength");
+            if (cmSilk != null) cmSilk.LinkOut = LinkState.Down;
+            Register(new CombatMove("mv_probe_hand", "探马手", MoveWeight.Light, MoveKind.Slash,
+                MoveTerrain.None, 2, 3f,
+                "探手虚晃，在目标身上留印、泄其气力——标记/破绽（标记/虚弱/破甲）。",
+                "Mark", "Weakness", "ArmorBreak"));
+            CombatMove cmProbe = Get("mv_probe_hand");
+            if (cmProbe != null) cmProbe.LinkOut = LinkState.Stunned;
+
             // ---- v0.21.28 已有招式补失衡属性（原招式保持，只加连招语义）----
             // 大地崩裂：掀地 → 腾空起手
             CombatMove cmEarth = Get("mv_earth_rend");
