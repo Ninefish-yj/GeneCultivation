@@ -46,9 +46,10 @@ namespace Code.Combat.Moves
     public static class CombatImpactPose
     {
         private static readonly Dictionary<Actor, ImpactState> _impacts = new Dictionary<Actor, ImpactState>();
-        /// <summary>受击防抖：同一受击者最近一次触发时刻（真实时间），防倍速/群战高频打飞乱姿态。</summary>
+        /// <summary>受击防抖：同一受击者最近一次触发时刻（真实时间），防倍速/群战高频打飞乱姿态。
+        /// v0.21.35 0.12s→0.07s：命中反应更密——"每刀都有反应"是战斗之神感的节奏来源之一。</summary>
         private static readonly Dictionary<Actor, float> _lastHitAt = new Dictionary<Actor, float>();
-        private const float HitDebounce = 0.12f;
+        private const float HitDebounce = 0.07f;
 
         // ------------------------------------------------------ 对外接口 --
 
@@ -69,8 +70,8 @@ namespace Code.Combat.Moves
 
             ImpactLevel level;
             if (hpPct >= 0.25f || diff >= 3) level = ImpactLevel.Launch;          // 终极技/境界压制：击飞
-            else if (hpPct >= 0.08f || diff >= 1) level = ImpactLevel.Stagger;    // 重击/高一阶：踉跄
-            else if (hpPct >= 0.02f) level = ImpactLevel.Fluster;                 // 轻击：微颤
+            else if (hpPct >= 0.06f || diff >= 1) level = ImpactLevel.Stagger;    // 重击/高一阶：踉跄（v0.21.35 0.08→0.06 放宽）
+            else if (hpPct >= 0.012f) level = ImpactLevel.Fluster;                // 轻击：微颤（v0.21.35 0.02→0.012 放宽）
             else return;                                                          // 刮痧不动
 
             // 防抖：倍速下 getHit 每帧多次，受击姿态只按真实时间 0.12s 一次触发

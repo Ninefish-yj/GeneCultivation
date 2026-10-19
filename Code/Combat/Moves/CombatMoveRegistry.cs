@@ -143,6 +143,79 @@ namespace Code.Combat.Moves
             CombatMove cmGravityWarp = Get("mv_gravity_warp");
             if (cmGravityWarp != null) cmGravityWarp.IsCounter = true;
 
+            // ---- v0.21.35 通用格斗招扩充：现实格斗逻辑（近战系异能选招不再走兜底）----
+            // 挑空/倒地/震慑三态闭环：勾拳挑空→飞踢追击→扫堂腿绊倒→背摔压制。
+            // 命名全部为现实格斗术语（刺拳/摆拳/勾拳/扫堂腿/侧踢/回旋踢/肩撞/背摔/头槌/推掌），
+            // 与「战斗之神」招式名（BlurDash/CrescentFang 等）无撞名；全程序化零素材。
+            Register(new CombatMove("mv_jab", "刺拳", MoveWeight.Light, MoveKind.Slash,
+                MoveTerrain.None, 2, 2.5f,
+                "试探刺拳，快而轻，为连招开路（近战通用轻击）。",
+                "Metal", "Blood", "Beast", "Berserk", "Drain", "Execute", "Sound"));
+            Register(new CombatMove("mv_double_jab", "连刺", MoveWeight.Light, MoveKind.Chain,
+                MoveTerrain.None, 3, 4.5f,
+                "左右连刺，拳影重叠，压制破防（近战连击）。",
+                "Metal", "Blood", "Beast", "Sound", "MultiShot"));
+            Register(new CombatMove("mv_cross", "摆拳", MoveWeight.Heavy, MoveKind.Strike,
+                MoveTerrain.Crater, 4, 7f,
+                "拧腰蓄力摆拳横扫，重创砸地（近战重击）。",
+                "Metal", "Blood", "Beast", "Berserk", "Execute"));
+            CombatMove cmCross = Get("mv_cross");
+            if (cmCross != null) cmCross.LinkOut = LinkState.Down;
+            Register(new CombatMove("mv_hook", "勾拳", MoveWeight.Light, MoveKind.Slash,
+                MoveTerrain.None, 3, 4f,
+                "贴身勾拳自下而上，挑离地面——连招起手（近战通用挑空）。",
+                "Metal", "Blood", "Beast", "Berserk"));
+            CombatMove cmHook = Get("mv_hook");
+            if (cmHook != null) cmHook.LinkOut = LinkState.Launched;
+            Register(new CombatMove("mv_shoulder_charge", "肩撞", MoveWeight.Light, MoveKind.Lunge,
+                MoveTerrain.None, 2, 3f,
+                "沉肩猛撞，把目标撞个趔趄失衡（近战突进撞倒）。",
+                "Beast", "Berserk", "Blood", "Metal"));
+            CombatMove cmCharge = Get("mv_shoulder_charge");
+            if (cmCharge != null) cmCharge.LinkOut = LinkState.Down;
+            Register(new CombatMove("mv_leg_sweep", "扫堂腿", MoveWeight.Light, MoveKind.Slash,
+                MoveTerrain.None, 2, 3.5f,
+                "低扫绊腿，令目标失去重心倒地（近战倒地起手）。",
+                "Metal", "Blood", "Beast", "Thorns"));
+            CombatMove cmSweep = Get("mv_leg_sweep");
+            if (cmSweep != null) cmSweep.LinkOut = LinkState.Down;
+            Register(new CombatMove("mv_side_kick", "侧踢", MoveWeight.Heavy, MoveKind.Strike,
+                MoveTerrain.Crater, 4, 6f,
+                "侧身蹬踢，劲力透体，把目标踹翻在地（近战重踢）。",
+                "Metal", "Blood", "Beast", "Sound"));
+            CombatMove cmSideKick = Get("mv_side_kick");
+            if (cmSideKick != null) cmSideKick.LinkOut = LinkState.Down;
+            Register(new CombatMove("mv_spin_kick", "回旋踢", MoveWeight.Heavy, MoveKind.Strike,
+                MoveTerrain.Crater, 6, 9f,
+                "旋身回旋踢扫飞目标，砸坑而出（近战重踢挑空）。",
+                "Metal", "Blood", "Beast", "Sound", "Execute"));
+            CombatMove cmSpinKick = Get("mv_spin_kick");
+            if (cmSpinKick != null) cmSpinKick.LinkOut = LinkState.Launched;
+            Register(new CombatMove("mv_flying_kick", "飞踢", MoveWeight.Heavy, MoveKind.Lunge,
+                MoveTerrain.Crater, 5, 7f,
+                "跃起凌空飞踢，把目标踹离地面（突进挑空重击）。",
+                "Beast", "Berserk", "Wind", "Sound"));
+            CombatMove cmFlyKick = Get("mv_flying_kick");
+            if (cmFlyKick != null) cmFlyKick.LinkOut = LinkState.Launched;
+            Register(new CombatMove("mv_body_slam", "背摔", MoveWeight.Heavy, MoveKind.Strike,
+                MoveTerrain.Crater, 5, 8f,
+                "抓握目标借势背摔，砸地压制——倒地目标的压制动作（近战投技）。",
+                "Metal", "Blood", "Earth", "Gravity"));
+            CombatMove cmBodySlam = Get("mv_body_slam");
+            if (cmBodySlam != null) { cmBodySlam.LinkIn = LinkState.Down; cmBodySlam.IsGrapple = true; }
+            Register(new CombatMove("mv_headbutt", "头槌", MoveWeight.Light, MoveKind.Strike,
+                MoveTerrain.None, 2, 3f,
+                "凶悍头槌撞出硬直，震得目标发懵（近战震慑）。",
+                "Beast", "Berserk", "Blood"));
+            CombatMove cmHeadbutt = Get("mv_headbutt");
+            if (cmHeadbutt != null) cmHeadbutt.LinkOut = LinkState.Stunned;
+            Register(new CombatMove("mv_push_palm", "推掌", MoveWeight.Heavy, MoveKind.Strike,
+                MoveTerrain.None, 4, 6f,
+                "沉掌推击，劲力透体将目标推飞失衡（近战击退）。",
+                "Metal", "Blood", "Gravity", "Knockback"));
+            CombatMove cmPushPalm = Get("mv_push_palm");
+            if (cmPushPalm != null) cmPushPalm.LinkOut = LinkState.Down;
+
             // ---- v0.21.28 已有招式补失衡属性（原招式保持，只加连招语义）----
             // 大地崩裂：掀地 → 腾空起手
             CombatMove cmEarth = Get("mv_earth_rend");
