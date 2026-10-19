@@ -20,6 +20,19 @@ namespace Code.Combat.Fx
         private static float _ascendVeilTimer;
         private const float MaxFullZoom = 60f;
 
+        // v0.21.41 单招编排·延迟调度：多段打击节奏（双击/三连/级联）的第二段、第三段特效。
+        private static readonly List<Action> _scheduled = new List<Action>();
+        private static readonly List<float> _scheduledAt = new List<float>();
+
+        /// <summary>延迟调度：delay 秒后执行 fn（Tick 每帧驱动；世界暂停/销毁自动跳过）。</summary>
+        public static void Schedule(float delay, Action fn)
+        {
+            if (fn == null) return;
+            if (World.world == null || World.world.isPaused()) return;
+            _scheduled.Add(fn);
+            _scheduledAt.Add(Time.unscaledTime + Mathf.Max(0.05f, delay));
+        }
+
         private static void EnsureArt()
         {
             CombatFxArt.EnsureInit();
@@ -578,7 +591,7 @@ namespace Code.Combat.Fx
 
         // ---------------------------------------------------------- 驱动 --
 
-        /// <summary>每帧驱动（FramePatch Postfix 调用）：登神暗幕定时恢复 + 突进滑回衰减。</summary>
+        /// <summary>每帧驱动（FramePatch Postfix 调用）：登神暗幕定时恢复 + 突进滑回衰减 + 延迟调度。</summary>
         internal static void Tick()
         {
             if (_ascendVeilTimer > 0f)
@@ -589,14 +602,41 @@ namespace Code.Combat.Fx
                     CombatFxCinema.Undim(0.8f);
                 }
             }
+            TickScheduled();
             TickDashes(Time.unscaledDeltaTime);
             CombatSpotlight.Tick();   // v0.21.39 决斗聚焦：焦点标记跟随 + 窗口结束恢复
             Code.Combat.AI.CombatRead.Tick(Time.unscaledDeltaTime); // v0.21.40 读招反击：窗口后段回敬轻击
         }
 
+        /// <summary>延迟调度到期执行（时间一到就移出队列再执行，异常隔离）。</summary>
+        private static void TickScheduled()
+        {
+            if (_scheduled.Count == 0) return;
+            float now = Time.unscaledTime;
+            List<Action> due = null;
+            for (int i = _scheduled.Count - 1; i >= 0; i--)
+            {
+                if (_scheduledAt[i] <= now)
+                {
+                    if (due == null) due = new List<Action>();
+                    due.Add(_scheduled[i]);
+                    _scheduled.RemoveAt(i);
+                    _scheduledAt.RemoveAt(i);
+                }
+            }
+            if (due == null) return;
+            for (int i = 0; i < due.Count; i++)
+            {
+                try { due[i](); }
+                catch (Exception e) { Code.Core.DSDebug.Verbose("[ScheduledFx] " + e.Message); }
+            }
+        }
+
         /// <summary>世界销毁/存档切换：清空全部演出状态。</summary>
         public static void ClearAll()
         {
+            _scheduled.Clear();       // v0.21.41 单招编排：清空延迟调度队列
+            _scheduledAt.Clear();
             CombatFxCore.Clear();
             CombatFxHitStop.Clear();
             CombatFxCinema.Clear();

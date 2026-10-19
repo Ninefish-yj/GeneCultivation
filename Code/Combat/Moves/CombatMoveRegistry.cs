@@ -24,122 +24,152 @@ namespace Code.Combat.Moves
             // ---- 元素系 ----
             Register(new CombatMove("mv_fire_blast", "焰爆术", MoveWeight.Heavy, MoveKind.Blast,
                 MoveTerrain.Magma, 4, 6f,
-                "凝聚烈焰轰爆大地，灼烧成岩浆（火系重击）。", "Plasma", "Burn"));
+                "凝聚烈焰轰爆大地，灼烧成岩浆（火系重击）。", "Plasma", "Burn")
+                .WithChoreo(PoseVariation.Fierce, FxRhythm.Pulse, HitFeel.Hard));
             Register(new CombatMove("mv_ice_nova", "冰霜新星", MoveWeight.Heavy, MoveKind.Blast,
                 MoveTerrain.Crater, 4, 7f,
-                "冰霜以自身为中心炸开，地面崩裂成坑（冰系重击）。", "Frost", "Frostbite"));
+                "冰霜以自身为中心炸开，地面崩裂成坑（冰系重击）。", "Frost", "Frostbite")
+                .WithChoreo(PoseVariation.Standard, FxRhythm.Pulse, HitFeel.Medium));
             Register(new CombatMove("mv_thunder_judge", "雷劫轰顶", MoveWeight.Heavy, MoveKind.Strike,
                 MoveTerrain.Scorch, 5, 8f,
-                "引天雷劈落，焦痕蔓延（雷系重击）。", "Thunder", "Chain"));
+                "引天雷劈落，焦痕蔓延（雷系重击）。", "Thunder", "Chain")
+                .WithChoreo(PoseVariation.Aerial, FxRhythm.Triple, HitFeel.Hard));
             Register(new CombatMove("mv_earth_rend", "大地崩裂", MoveWeight.Heavy, MoveKind.Strike,
                 MoveTerrain.Furrow, 3, 7f,
-                "一拳砸裂大地，裂缝沿直线蔓延（土系重击）。", "Earth", "Gravity", "Knockback"));
+                "一拳砸裂大地，裂缝沿直线蔓延（土系重击）。", "Earth", "Gravity", "Knockback")
+                .WithChoreo(PoseVariation.Fierce, FxRhythm.Cascade, HitFeel.Hard));
             Register(new CombatMove("mv_wind_reap", "风镰回旋", MoveWeight.Light, MoveKind.Slash,
                 MoveTerrain.None, 2, 3f,
-                "风刃回旋收割，轻快连斩（风系轻击）。", "Wind", "Crit", "MultiShot"));
+                "风刃回旋收割，轻快连斩（风系轻击）。", "Wind", "Crit", "MultiShot")
+                .WithChoreo(PoseVariation.Flow, FxRhythm.Double, HitFeel.Soft));
             Register(new CombatMove("mv_water_prison", "水牢困锁", MoveWeight.Light, MoveKind.Domain,
                 MoveTerrain.None, 2, 4f,
-                "水幕合拢成牢，困锁目标（水系控制）。", "Water", "Entangle", "Slow"));
+                "水幕合拢成牢，困锁目标（水系控制）。", "Water", "Entangle", "Slow")
+                .WithChoreo(PoseVariation.Stealth, FxRhythm.Single, HitFeel.Soft));
             // ---- 血神系 ----
             Register(new CombatMove("mv_blood_moon", "血月斩", MoveWeight.Heavy, MoveKind.Slash,
                 MoveTerrain.Crater, 5, 8f,
-                "血月弯刃横斩，饮血成坑（血神系重击）。", "Blood", "Lifesteal", "Berserk"));
+                "血月弯刃横斩，饮血成坑（血神系重击）。", "Blood", "Lifesteal", "Berserk")
+                .WithChoreo(PoseVariation.Fierce, FxRhythm.Double, HitFeel.Hard));
             // ---- 机械系 ----
             Register(new CombatMove("mv_metal_storm", "机械风暴", MoveWeight.Heavy, MoveKind.Chain,
                 MoveTerrain.Scorch, 4, 7f,
-                "金属碎片风暴连锁扫射（机械系重击）。", "Metal", "Magnetism", "Chain"));
+                "金属碎片风暴连锁扫射（机械系重击）。", "Metal", "Magnetism", "Chain")
+                .WithChoreo(PoseVariation.Flow, FxRhythm.Triple, HitFeel.Medium));
             // ---- 时空系 ----
             Register(new CombatMove("mv_space_tear", "空间撕裂", MoveWeight.Ultimate, MoveKind.Beam,
                 MoveTerrain.Furrow, 9, 20f,
-                "撕裂空间，裂缝吞噬大地（时空系终极）。", "Teleport", "Gravity", "Execute"));
+                "撕裂空间，裂缝吞噬大地（时空系终极）。", "Teleport", "Gravity", "Execute")
+                .WithChoreo(PoseVariation.Fierce, FxRhythm.Cascade, HitFeel.Launcher));
             Register(new CombatMove("mv_time_freeze", "时间凝滞", MoveWeight.Ultimate, MoveKind.Domain,
                 MoveTerrain.None, 9, 22f,
-                "领域内时间凝滞，万物迟滞（时间系终极）。", "TimeSlow", "Domain"));
+                "领域内时间凝滞，万物迟滞（时间系终极）。", "TimeSlow", "Domain")
+                .WithChoreo(PoseVariation.Aerial, FxRhythm.Single, HitFeel.Medium));
             // ---- 召唤系 ----
             Register(new CombatMove("mv_call_legion", "万灵召唤", MoveWeight.Heavy, MoveKind.Summon,
                 MoveTerrain.None, 4, 9f,
-                "开启万灵之门，召出助战军团（召唤系重击）。", "Summon"));
+                "开启万灵之门，召出助战军团（召唤系重击）。", "Summon")
+                .WithChoreo(PoseVariation.Aerial, FxRhythm.Pulse, HitFeel.Medium));
             // ---- 光明/黑暗系 ----
             Register(new CombatMove("mv_holy_judgment", "圣光审判", MoveWeight.Ultimate, MoveKind.Beam,
                 MoveTerrain.Scorch, 10, 24f,
-                "圣光天罚贯穿，焦土百里（光明系终极）。", "Light", "Execute", "Cleanse"));
+                "圣光天罚贯穿，焦土百里（光明系终极）。", "Light", "Execute", "Cleanse")
+                .WithChoreo(PoseVariation.Aerial, FxRhythm.Triple, HitFeel.Hard));
             Register(new CombatMove("mv_shadow_veil", "暗影降临", MoveWeight.Heavy, MoveKind.Domain,
                 MoveTerrain.Crater, 6, 10f,
-                "夜幕笼罩，暗影侵蚀大地（黑暗系重击）。", "Shadow", "Domain", "Fear"));
+                "夜幕笼罩，暗影侵蚀大地（黑暗系重击）。", "Shadow", "Domain", "Fear")
+                .WithChoreo(PoseVariation.Stealth, FxRhythm.Single, HitFeel.Medium));
             // ---- 精神/命运/死亡系 ----
             Register(new CombatMove("mv_mind_storm", "精神风暴", MoveWeight.Heavy, MoveKind.Domain,
                 MoveTerrain.None, 6, 9f,
-                "精神风暴席卷全场（精神系重击）。", "Telekinesis", "Illusion", "Fear"));
+                "精神风暴席卷全场（精神系重击）。", "Telekinesis", "Illusion", "Fear")
+                .WithChoreo(PoseVariation.Flow, FxRhythm.Pulse, HitFeel.Medium));
             Register(new CombatMove("mv_fate_verdict", "命运裁决", MoveWeight.Ultimate, MoveKind.Strike,
                 MoveTerrain.Magma, 11, 26f,
-                "裁决落下，因果崩塌成熔岩（命运系终极）。", "Curse", "Reflect", "Execute"));
+                "裁决落下，因果崩塌成熔岩（命运系终极）。", "Curse", "Reflect", "Execute")
+                .WithChoreo(PoseVariation.Fierce, FxRhythm.Cascade, HitFeel.Launcher));
             Register(new CombatMove("mv_soul_harvest", "灵魂收割", MoveWeight.Heavy, MoveKind.Slash,
                 MoveTerrain.Crater, 7, 11f,
-                "收割灵魂，地面随镰刀崩裂（死亡系重击）。", "Soul", "Execute", "Aging"));
+                "收割灵魂，地面随镰刀崩裂（死亡系重击）。", "Soul", "Execute", "Aging")
+                .WithChoreo(PoseVariation.Flow, FxRhythm.Triple, HitFeel.Hard));
 
             // ---- v0.21.11 补全：强化/血肉/自然系（世界观原创命名）----
             Register(new CombatMove("mv_beast_frenzy", "狂兽冲撞", MoveWeight.Light, MoveKind.Lunge,
                 MoveTerrain.None, 3, 3.5f,
-                "兽性觉醒，四肢伏地猛冲撕咬（强化系突进）。", "Berserk", "MultiShot"));
+                "兽性觉醒，四肢伏地猛冲撕咬（强化系突进）。", "Berserk", "MultiShot")
+                .WithChoreo(PoseVariation.Fierce, FxRhythm.Single, HitFeel.Soft));
             Register(new CombatMove("mv_steel_guard", "金刚护体", MoveWeight.Heavy, MoveKind.Buff,
                 MoveTerrain.None, 4, 8f,
-                "钢铁意志外放，金芒护体震荡（强化/机械系防守）。", "Buff", "Shield", "Metal"));
+                "钢铁意志外放，金芒护体震荡（强化/机械系防守）。", "Buff", "Shield", "Metal")
+                .WithChoreo(PoseVariation.Standard, FxRhythm.Pulse, HitFeel.Soft));
             Register(new CombatMove("mv_blood_sacrifice", "血祭爆发", MoveWeight.Heavy, MoveKind.Blast,
                 MoveTerrain.Crater, 6, 10f,
-                "燃烧自身鲜血引爆周身，血浪成坑（血肉系重击）。", "Blood", "Drain", "Berserk"));
+                "燃烧自身鲜血引爆周身，血浪成坑（血肉系重击）。", "Blood", "Drain", "Berserk")
+                .WithChoreo(PoseVariation.Fierce, FxRhythm.Double, HitFeel.Hard));
             Register(new CombatMove("mv_regen_field", "再生领域", MoveWeight.Light, MoveKind.Domain,
                 MoveTerrain.None, 5, 6f,
-                "脚下藤蔓生根、绿光回涌，领域内快速再生（血肉/自然系领域）。", "Regeneration", "Heal", "HealAlly"));
+                "脚下藤蔓生根、绿光回涌，领域内快速再生（血肉/自然系领域）。", "Regeneration", "Heal", "HealAlly")
+                .WithChoreo(PoseVariation.Stealth, FxRhythm.Pulse, HitFeel.Soft));
             Register(new CombatMove("mv_thorn_bind", "荆棘囚笼", MoveWeight.Heavy, MoveKind.Domain,
                 MoveTerrain.None, 3, 7f,
-                "荆棘破土合拢成笼，困锁目标（自然系控制）。", "Thorns", "Entangle"));
+                "荆棘破土合拢成笼，困锁目标（自然系控制）。", "Thorns", "Entangle")
+                .WithChoreo(PoseVariation.Stealth, FxRhythm.Single, HitFeel.Medium));
             Register(new CombatMove("mv_wood_whiplash", "藤蔓鞭击", MoveWeight.Light, MoveKind.Chain,
                 MoveTerrain.None, 2, 3f,
-                "藤蔓长鞭连抽，缚缠横扫（自然系轻击）。", "Thorns", "Entangle", "Water"));
+                "藤蔓长鞭连抽，缚缠横扫（自然系轻击）。", "Thorns", "Entangle", "Water")
+                .WithChoreo(PoseVariation.Flow, FxRhythm.Double, HitFeel.Soft));
 
             // ---- v0.21.28 战斗本能连击：现实格斗逻辑（挑空起手→追击→擒抱→防反）----
             // 挑空系：命中后把目标送入腾空（Launched）
             Register(new CombatMove("mv_wind_uppercut", "上勾拳", MoveWeight.Light, MoveKind.Slash,
                 MoveTerrain.None, 2, 4f,
-                "贴身近战时自下而上挥拳，将目标挑离地面——腾空失去重心，是连招起手（风系发力加持）。", "Wind", "Crit"));
+                "贴身近战时自下而上挥拳，将目标挑离地面——腾空失去重心，是连招起手（风系发力加持）。", "Wind", "Crit")
+                .WithChoreo(PoseVariation.Flow, FxRhythm.Single, HitFeel.Medium));
             CombatMove cmWindUp = Get("mv_wind_uppercut");
             if (cmWindUp != null) cmWindUp.LinkOut = LinkState.Launched;
             Register(new CombatMove("mv_soul_lift", "顶膝", MoveWeight.Heavy, MoveKind.Slash,
                 MoveTerrain.Crater, 6, 10f,
-                "贴身提膝顶起目标，令其浮空失衡——近战挑空的标准动作（死亡系噬魂催力）。", "Soul", "Execute"));
+                "贴身提膝顶起目标，令其浮空失衡——近战挑空的标准动作（死亡系噬魂催力）。", "Soul", "Execute")
+                .WithChoreo(PoseVariation.Fierce, FxRhythm.Single, HitFeel.Hard));
             CombatMove cmSoulLift = Get("mv_soul_lift");
             if (cmSoulLift != null) cmSoulLift.LinkOut = LinkState.Launched;
             // 追击系：目标处于失衡状态才可衔接（衔击 ×1.5）
             Register(new CombatMove("mv_blade_downfall", "空中肘击", MoveWeight.Ultimate, MoveKind.Strike,
                 MoveTerrain.Crater, 9, 22f,
-                "跃起对腾空目标迎头肘击，砸回地面——空中追击的实战动作（空间系瞬身跃击）。", "Execute", "Teleport", "Space"));
+                "跃起对腾空目标迎头肘击，砸回地面——空中追击的实战动作（空间系瞬身跃击）。", "Execute", "Teleport", "Space")
+                .WithChoreo(PoseVariation.Aerial, FxRhythm.Single, HitFeel.Launcher));
             CombatMove cmBladeDown = Get("mv_blade_downfall");
             if (cmBladeDown != null) cmBladeDown.LinkIn = LinkState.Launched;
             Register(new CombatMove("mv_earth_dent", "抱摔砸地", MoveWeight.Heavy, MoveKind.Strike,
                 MoveTerrain.Crater, 5, 8f,
-                "抓住失衡目标顺势抱起，朝地面砸落——倒地追击的压制动作（土系引力加持）。", "Earth", "Gravity", "Knockback"));
+                "抓住失衡目标顺势抱起，朝地面砸落——倒地追击的压制动作（土系引力加持）。", "Earth", "Gravity", "Knockback")
+                .WithChoreo(PoseVariation.Fierce, FxRhythm.Single, HitFeel.Hard));
             CombatMove cmEarthDent = Get("mv_earth_dent");
             if (cmEarthDent != null) cmEarthDent.LinkIn = LinkState.Down;
             // 擒拿系：抓取目标摔投（控制衔接）
             Register(new CombatMove("mv_thorn_grapple", "擒拿", MoveWeight.Heavy, MoveKind.Chain,
                 MoveTerrain.None, 4, 9f,
-                "藤蔓缠住目标手臂拽近，顺势擒拿制住——近战缠斗抓取（自然系荆棘借力）。", "Thorns", "Entangle"));
+                "藤蔓缠住目标手臂拽近，顺势擒拿制住——近战缠斗抓取（自然系荆棘借力）。", "Thorns", "Entangle")
+                .WithChoreo(PoseVariation.Stealth, FxRhythm.Single, HitFeel.Medium));
             CombatMove cmThornGrab = Get("mv_thorn_grapple");
             if (cmThornGrab != null) cmThornGrab.IsGrapple = true;
             Register(new CombatMove("mv_psychic_grip", "擒抱", MoveWeight.Heavy, MoveKind.Chain,
                 MoveTerrain.None, 6, 10f,
-                "念力化为无形抓手，将目标擒抱拉近抛掷——近战投技（精神系念动力）。", "Telekinesis", "Illusion"));
+                "念力化为无形抓手，将目标擒抱拉近抛掷——近战投技（精神系念动力）。", "Telekinesis", "Illusion")
+                .WithChoreo(PoseVariation.Flow, FxRhythm.Single, HitFeel.Hard));
             CombatMove cmPsychicGrip = Get("mv_psychic_grip");
             if (cmPsychicGrip != null) cmPsychicGrip.IsGrapple = true;
             // 反震系：防御异能受击时弹开攻击并反伤
             Register(new CombatMove("mv_light_reflect", "格挡反击", MoveWeight.Heavy, MoveKind.Buff,
                 MoveTerrain.None, 7, 11f,
-                "正面格挡后立刻反击弹开攻击者——防反实战动作（光明系圣光护体）。", "Light", "Shield", "Buff"));
+                "正面格挡后立刻反击弹开攻击者——防反实战动作（光明系圣光护体）。", "Light", "Shield", "Buff")
+                .WithChoreo(PoseVariation.Stealth, FxRhythm.Single, HitFeel.Medium));
             CombatMove cmLightReflect = Get("mv_light_reflect");
             if (cmLightReflect != null) cmLightReflect.IsCounter = true;
             Register(new CombatMove("mv_gravity_warp", "卸力反震", MoveWeight.Heavy, MoveKind.Buff,
                 MoveTerrain.None, 8, 12f,
-                "以引力扭曲卸掉来势，顺势反震弹开——防反实战动作（时空系卸力）。", "Gravity", "Teleport", "Shield"));
+                "以引力扭曲卸掉来势，顺势反震弹开——防反实战动作（时空系卸力）。", "Gravity", "Teleport", "Shield")
+                .WithChoreo(PoseVariation.Flow, FxRhythm.Single, HitFeel.Medium));
             CombatMove cmGravityWarp = Get("mv_gravity_warp");
             if (cmGravityWarp != null) cmGravityWarp.IsCounter = true;
 
@@ -150,69 +180,81 @@ namespace Code.Combat.Moves
             Register(new CombatMove("mv_jab", "刺拳", MoveWeight.Light, MoveKind.Slash,
                 MoveTerrain.None, 2, 2.5f,
                 "试探刺拳，快而轻，为连招开路（近战通用轻击）。",
-                "Metal", "Blood", "Beast", "Berserk", "Drain", "Execute", "Sound"));
+                "Metal", "Blood", "Beast", "Berserk", "Drain", "Execute", "Sound")
+                .WithChoreo(PoseVariation.Stealth, FxRhythm.Double, HitFeel.Soft));
             Register(new CombatMove("mv_double_jab", "连刺", MoveWeight.Light, MoveKind.Chain,
                 MoveTerrain.None, 3, 4.5f,
                 "左右连刺，拳影重叠，压制破防（近战连击）。",
-                "Metal", "Blood", "Beast", "Sound", "MultiShot"));
+                "Metal", "Blood", "Beast", "Sound", "MultiShot")
+                .WithChoreo(PoseVariation.Flow, FxRhythm.Triple, HitFeel.Soft));
             Register(new CombatMove("mv_cross", "摆拳", MoveWeight.Heavy, MoveKind.Strike,
                 MoveTerrain.Crater, 4, 7f,
                 "拧腰蓄力摆拳横扫，重创砸地（近战重击）。",
-                "Metal", "Blood", "Beast", "Berserk", "Execute"));
+                "Metal", "Blood", "Beast", "Berserk", "Execute")
+                .WithChoreo(PoseVariation.Fierce, FxRhythm.Single, HitFeel.Hard));
             CombatMove cmCross = Get("mv_cross");
             if (cmCross != null) cmCross.LinkOut = LinkState.Down;
             Register(new CombatMove("mv_hook", "勾拳", MoveWeight.Light, MoveKind.Slash,
                 MoveTerrain.None, 3, 4f,
                 "贴身勾拳自下而上，挑离地面——连招起手（近战通用挑空）。",
-                "Metal", "Blood", "Beast", "Berserk"));
+                "Metal", "Blood", "Beast", "Berserk")
+                .WithChoreo(PoseVariation.Flow, FxRhythm.Single, HitFeel.Medium));
             CombatMove cmHook = Get("mv_hook");
             if (cmHook != null) cmHook.LinkOut = LinkState.Launched;
             Register(new CombatMove("mv_shoulder_charge", "肩撞", MoveWeight.Light, MoveKind.Lunge,
                 MoveTerrain.None, 2, 3f,
                 "沉肩猛撞，把目标撞个趔趄失衡（近战突进撞倒）。",
-                "Beast", "Berserk", "Blood", "Metal"));
+                "Beast", "Berserk", "Blood", "Metal")
+                .WithChoreo(PoseVariation.Fierce, FxRhythm.Single, HitFeel.Soft));
             CombatMove cmCharge = Get("mv_shoulder_charge");
             if (cmCharge != null) cmCharge.LinkOut = LinkState.Down;
             Register(new CombatMove("mv_leg_sweep", "扫堂腿", MoveWeight.Light, MoveKind.Slash,
                 MoveTerrain.None, 2, 3.5f,
                 "低扫绊腿，令目标失去重心倒地（近战倒地起手）。",
-                "Metal", "Blood", "Beast", "Thorns"));
+                "Metal", "Blood", "Beast", "Thorns")
+                .WithChoreo(PoseVariation.Stealth, FxRhythm.Single, HitFeel.Soft));
             CombatMove cmSweep = Get("mv_leg_sweep");
             if (cmSweep != null) cmSweep.LinkOut = LinkState.Down;
             Register(new CombatMove("mv_side_kick", "侧踢", MoveWeight.Heavy, MoveKind.Strike,
                 MoveTerrain.Crater, 4, 6f,
                 "侧身蹬踢，劲力透体，把目标踹翻在地（近战重踢）。",
-                "Metal", "Blood", "Beast", "Sound"));
+                "Metal", "Blood", "Beast", "Sound")
+                .WithChoreo(PoseVariation.Fierce, FxRhythm.Single, HitFeel.Hard));
             CombatMove cmSideKick = Get("mv_side_kick");
             if (cmSideKick != null) cmSideKick.LinkOut = LinkState.Down;
             Register(new CombatMove("mv_spin_kick", "回旋踢", MoveWeight.Heavy, MoveKind.Strike,
                 MoveTerrain.Crater, 6, 9f,
                 "旋身回旋踢扫飞目标，砸坑而出（近战重踢挑空）。",
-                "Metal", "Blood", "Beast", "Sound", "Execute"));
+                "Metal", "Blood", "Beast", "Sound", "Execute")
+                .WithChoreo(PoseVariation.Aerial, FxRhythm.Double, HitFeel.Launcher));
             CombatMove cmSpinKick = Get("mv_spin_kick");
             if (cmSpinKick != null) cmSpinKick.LinkOut = LinkState.Launched;
             Register(new CombatMove("mv_flying_kick", "飞踢", MoveWeight.Heavy, MoveKind.Lunge,
                 MoveTerrain.Crater, 5, 7f,
                 "跃起凌空飞踢，把目标踹离地面（突进挑空重击）。",
-                "Beast", "Berserk", "Wind", "Sound"));
+                "Beast", "Berserk", "Wind", "Sound")
+                .WithChoreo(PoseVariation.Aerial, FxRhythm.Single, HitFeel.Launcher));
             CombatMove cmFlyKick = Get("mv_flying_kick");
             if (cmFlyKick != null) cmFlyKick.LinkOut = LinkState.Launched;
             Register(new CombatMove("mv_body_slam", "背摔", MoveWeight.Heavy, MoveKind.Strike,
                 MoveTerrain.Crater, 5, 8f,
                 "抓握目标借势背摔，砸地压制——倒地目标的压制动作（近战投技）。",
-                "Metal", "Blood", "Earth", "Gravity"));
+                "Metal", "Blood", "Earth", "Gravity")
+                .WithChoreo(PoseVariation.Fierce, FxRhythm.Single, HitFeel.Hard));
             CombatMove cmBodySlam = Get("mv_body_slam");
             if (cmBodySlam != null) { cmBodySlam.LinkIn = LinkState.Down; cmBodySlam.IsGrapple = true; }
             Register(new CombatMove("mv_headbutt", "头槌", MoveWeight.Light, MoveKind.Strike,
                 MoveTerrain.None, 2, 3f,
                 "凶悍头槌撞出硬直，震得目标发懵（近战震慑）。",
-                "Beast", "Berserk", "Blood"));
+                "Beast", "Berserk", "Blood")
+                .WithChoreo(PoseVariation.Stealth, FxRhythm.Single, HitFeel.Medium));
             CombatMove cmHeadbutt = Get("mv_headbutt");
             if (cmHeadbutt != null) cmHeadbutt.LinkOut = LinkState.Stunned;
             Register(new CombatMove("mv_push_palm", "推掌", MoveWeight.Heavy, MoveKind.Strike,
                 MoveTerrain.None, 4, 6f,
                 "沉掌推击，劲力透体将目标推飞失衡（近战击退）。",
-                "Metal", "Blood", "Gravity", "Knockback"));
+                "Metal", "Blood", "Gravity", "Knockback")
+                .WithChoreo(PoseVariation.Flow, FxRhythm.Single, HitFeel.Hard));
             CombatMove cmPushPalm = Get("mv_push_palm");
             if (cmPushPalm != null) cmPushPalm.LinkOut = LinkState.Down;
 
@@ -224,41 +266,48 @@ namespace Code.Combat.Moves
             Register(new CombatMove("mv_poison_palm", "淬毒掌", MoveWeight.Light, MoveKind.Slash,
                 MoveTerrain.None, 2, 3.5f,
                 "掌中蕴毒，中者蚀骨——毒系异能贴身近战（淬毒/破甲/虚弱）。",
-                "Poison", "ArmorBreak", "Weakness"));
+                "Poison", "ArmorBreak", "Weakness")
+                .WithChoreo(PoseVariation.Stealth, FxRhythm.Single, HitFeel.Soft));
             CombatMove cmPoison = Get("mv_poison_palm");
             if (cmPoison != null) cmPoison.LinkOut = LinkState.Stunned;
             Register(new CombatMove("mv_seal_point", "封穴指", MoveWeight.Light, MoveKind.Slash,
                 MoveTerrain.None, 2, 3f,
                 "指封穴位，中者僵麻昏沉——点穴制敌（麻痹/昏睡/石化）。",
-                "Stun", "Sleep", "Petrify"));
+                "Stun", "Sleep", "Petrify")
+                .WithChoreo(PoseVariation.Stealth, FxRhythm.Double, HitFeel.Soft));
             CombatMove cmSeal = Get("mv_seal_point");
             if (cmSeal != null) cmSeal.LinkOut = LinkState.Stunned;
             Register(new CombatMove("mv_stomp", "震脚", MoveWeight.Heavy, MoveKind.Strike,
                 MoveTerrain.Crater, 4, 6f,
                 "沉脚震地，劲力透土掀翻目标——震击裂地（震动/土系重击）。",
-                "Vibration", "Earth"));
+                "Vibration", "Earth")
+                .WithChoreo(PoseVariation.Fierce, FxRhythm.Pulse, HitFeel.Hard));
             CombatMove cmStomp = Get("mv_stomp");
             if (cmStomp != null) cmStomp.LinkOut = LinkState.Down;
             Register(new CombatMove("mv_body_shift", "游身步", MoveWeight.Light, MoveKind.Buff,
                 MoveTerrain.None, 3, 5f,
                 "身法游走如影，避实击虚——防御身法（祝福/闪避/隐身/分身）。",
-                "Blessing", "Dodge", "Invisibility", "Clone"));
+                "Blessing", "Dodge", "Invisibility", "Clone")
+                .WithChoreo(PoseVariation.Stealth, FxRhythm.Single, HitFeel.Soft));
             Register(new CombatMove("mv_iron_palm", "铁砂掌", MoveWeight.Heavy, MoveKind.Strike,
                 MoveTerrain.Crater, 4, 7f,
                 "掌若铁石，中者皮开肉绽、僵直难动——硬功重击（石化/麻痹）。",
-                "Petrify", "Earth", "Stun"));
+                "Petrify", "Earth", "Stun")
+                .WithChoreo(PoseVariation.Fierce, FxRhythm.Single, HitFeel.Hard));
             CombatMove cmIron = Get("mv_iron_palm");
             if (cmIron != null) cmIron.LinkOut = LinkState.Stunned;
             Register(new CombatMove("mv_silk_strength", "缠丝劲", MoveWeight.Light, MoveKind.Slash,
                 MoveTerrain.None, 3, 4.5f,
                 "劲力如丝缠绕，借力吸劲、缠倒目标——太极缠斗（吸能/汲取/束缚）。",
-                "ManaDrain", "Drain", "Entangle"));
+                "ManaDrain", "Drain", "Entangle")
+                .WithChoreo(PoseVariation.Flow, FxRhythm.Double, HitFeel.Soft));
             CombatMove cmSilk = Get("mv_silk_strength");
             if (cmSilk != null) cmSilk.LinkOut = LinkState.Down;
             Register(new CombatMove("mv_probe_hand", "探马手", MoveWeight.Light, MoveKind.Slash,
                 MoveTerrain.None, 2, 3f,
                 "探手虚晃，在目标身上留印、泄其气力——标记/破绽（标记/虚弱/破甲）。",
-                "Mark", "Weakness", "ArmorBreak"));
+                "Mark", "Weakness", "ArmorBreak")
+                .WithChoreo(PoseVariation.Stealth, FxRhythm.Single, HitFeel.Soft));
             CombatMove cmProbe = Get("mv_probe_hand");
             if (cmProbe != null) cmProbe.LinkOut = LinkState.Stunned;
 

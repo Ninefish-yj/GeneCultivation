@@ -44,6 +44,39 @@ namespace Code.Combat.Moves
         Magma = 4       // 岩浆（火/血神/超神级）
     }
 
+    // ================= v0.21.41 单招编排（Choreo）=================
+    // 招式差异化三轴：姿势变体（身位）× 打击节奏（多段密度）× 命中手感（停帧/击退）。
+    // 数据驱动：Registry 每招独立组合（5×5×4 组合空间），Director 执行时读参数。
+
+    /// <summary>起手姿势变体（同 Kind 的身位/幅度差异）。</summary>
+    public enum PoseVariation
+    {
+        Standard = 0,   // 标准：模板默认身位
+        Flow = 1,       // 流畅：幅度更大更顺（轻身系/迅捷系）
+        Fierce = 2,     // 狂暴：更重更慢更有顿挫（力量系）
+        Aerial = 3,     // 腾空：起跳施展（御空系）
+        Stealth = 4     // 潜行：紧凑小幅位移（暗影系）
+    }
+
+    /// <summary>打击节奏（特效多段密度——同一招的"几下"手感）。</summary>
+    public enum FxRhythm
+    {
+        Single = 0,     // 单发：一击成型
+        Double = 1,     // 双击：0.12s 后第二段命中
+        Triple = 2,     // 三连：0.1s/0.2s 两段追打
+        Pulse = 3,      // 脉冲：先小后大扩散（蓄→放）
+        Cascade = 4     // 级联：自施法者向目标逐段推进
+    }
+
+    /// <summary>命中手感（停帧/击退档位——同一招的"多重"体验）。</summary>
+    public enum HitFeel
+    {
+        Soft = 0,       // 轻：常规节奏，无额外停帧
+        Medium = 1,     // 中：命中停帧 0.06s（顿挫清晰）
+        Hard = 2,       // 重：停帧 0.09s + 受击踉跄（重击感）
+        Launcher = 3    // 浮空：停帧 + 把目标抛离（击飞系）
+    }
+
     /// <summary>
     /// 招式定义：一条招式 = 动作类型 + 轻重 + 地形破坏形态 + 适配异能标签集。
     /// 数据驱动：新增招式只在此处加一行，执行与 AI 均通过注册表读取。
@@ -90,6 +123,27 @@ namespace Code.Combat.Moves
 
         /// <summary>反震技：防御系异能受击时概率弹开攻击者并反伤（圣光反震/引力扭曲）。</summary>
         public bool IsCounter;
+
+        // ================= v0.21.41 单招编排（Choreo）=================
+        // 世界观：每招都是独立的"打法"——起手姿势、打击节奏、命中手感各不相同，
+        // 同 Kind 不再共用模板。数据驱动：AI/导演只读参数，执行细节在 Director。
+        /// <summary>起手姿势变体（同 Kind 招式的身位/幅度差异）。</summary>
+        public PoseVariation Pose;
+
+        /// <summary>打击节奏（特效多段密度：单发/双击/三连/脉冲/级联）。</summary>
+        public FxRhythm Rhythm;
+
+        /// <summary>命中手感（停帧/击退档位：轻/中/重/浮空）。</summary>
+        public HitFeel Feel;
+
+        /// <summary>流式配置编排参数（Registry 逐招追加）。</summary>
+        public CombatMove WithChoreo(PoseVariation pose, FxRhythm rhythm, HitFeel feel)
+        {
+            Pose = pose;
+            Rhythm = rhythm;
+            Feel = feel;
+            return this;
+        }
 
         public CombatMove(string id, string name, MoveWeight weight, MoveKind kind,
             MoveTerrain terrain, int minTier, float cooldown, string desc, params string[] tags)

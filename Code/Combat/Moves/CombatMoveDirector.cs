@@ -145,6 +145,10 @@ namespace Code.Combat.Moves
             // v0.21.11 动画语言分层：重招/终极给击停+慢动作（神战级顿挫节奏）；
             // 凡级以下（tier<6）只做普通节奏——低境界搏杀、高境界毁天灭地的观感梯度
             CinematicBeat(move, by, targetPos, tier);
+            // v0.21.41 命中手感：Feel 档位 → 额外停帧 + 浮空抛离（Launcher）
+            //   （注意：浮空姿态可能被随后 getHit 的自动受击覆盖——Launcher 主要配
+            //    Heavy/Ultimate 大招，伤害占比本身就触发击飞，停帧保证"重击感"）
+            ApplyFeel(move, targetPos, target, by, visible);
             // v0.21.5 单位本体动作姿态（纯表现不碰 AI）：先让单位"做出动作"再叠特效
             // v0.21.22 动作幅度全面强化（像素游戏 0.2s/0.3格位移根本看不见）+
             //         按异能派系差异化（投射系=后跳拉开距离、近战系=突进贴脸压制）——
@@ -157,60 +161,110 @@ namespace Code.Combat.Moves
             {
                 case MoveKind.Lunge:
                     // 近战突进：幅度×3、时长加长——"贴脸压制"肉眼可见
+                    // v0.21.41 姿势变体：Flow=更远更快（迅捷突袭）/ Fierce=更近更重（蛮牛冲撞）
                     float d1 = Mathf.Min(1.6f, Vector2.Distance(pos, targetPos) * 0.7f);
-                    CombatMovePose.Dash(by, dir, d1, 0.34f);
-                    if (visible) CombatFxDirector.DashStrike(by, targetPos);
+                    float dur1 = 0.34f;
+                    if (move.Pose == PoseVariation.Flow) { d1 *= 1.3f; dur1 *= 0.8f; }
+                    else if (move.Pose == PoseVariation.Fierce) { d1 *= 0.8f; dur1 *= 1.4f; }
+                    CombatMovePose.Dash(by, dir, d1, dur1);
+                    if (visible)
+                    {
+                        CombatFxDirector.DashStrike(by, targetPos);
+                        RhythmExtra(move, () => CombatFxDirector.DashStrike(by, targetPos), pos, targetPos, by, tier);
+                    }
                     break;
                 case MoveKind.Slash:
                     // 挥击：幅度×2；投射系反向后跳（拉开），近战正向挥砍
+                    // v0.21.41 姿势变体：Flow=大回环 / Stealth=紧凑快斩 / Aerial=腾空下劈
                     if (rangedStyle)
                         CombatMovePose.Recoil(by, -dir, 0.45f, 0.28f);
                     else
-                        CombatMovePose.Swing(by, dir, 0.45f, 0.3f);
-                    if (visible) CombatFxDirector.SlashArc(by, targetPos);
+                    {
+                        float sw = 0.45f, swDur = 0.3f;
+                        if (move.Pose == PoseVariation.Flow) { sw = 0.6f; swDur = 0.34f; }
+                        else if (move.Pose == PoseVariation.Stealth) { sw = 0.3f; swDur = 0.2f; }
+                        else if (move.Pose == PoseVariation.Aerial) { CombatMovePose.Lift(by, 0.4f, 0.5f); sw = 0.5f; }
+                        CombatMovePose.Swing(by, dir, sw, swDur);
+                    }
+                    if (visible)
+                    {
+                        CombatFxDirector.SlashArc(by, targetPos);
+                        RhythmExtra(move, () => CombatFxDirector.SlashArc(by, targetPos), pos, targetPos, by, tier);
+                    }
                     break;
                 case MoveKind.Strike:
                     // 下砸：幅度×2.3 + 顿挫
+                    // v0.21.41 姿势变体：Fierce=更重更慢 / Aerial=腾空落锤 / Stealth=贴地短砸
                     float d2 = Mathf.Min(0.9f, Vector2.Distance(pos, targetPos) * 0.55f);
-                    CombatMovePose.Slam(by, dir, d2, 0.34f);
-                    if (visible) CombatFxDirector.GroundSlam(by, targetPos);
+                    float dur2 = 0.34f;
+                    if (move.Pose == PoseVariation.Fierce) { d2 *= 1.2f; dur2 *= 1.3f; }
+                    else if (move.Pose == PoseVariation.Stealth) { d2 *= 0.6f; dur2 *= 0.7f; }
+                    else if (move.Pose == PoseVariation.Aerial) { CombatMovePose.Lift(by, 0.5f, 0.55f); d2 *= 1.1f; }
+                    CombatMovePose.Slam(by, dir, d2, dur2);
+                    if (visible)
+                    {
+                        CombatFxDirector.GroundSlam(by, targetPos);
+                        RhythmExtra(move, () => CombatFxDirector.GroundSlam(by, targetPos), pos, targetPos, by, tier);
+                    }
                     break;
                 case MoveKind.Chain:
                     if (targetPos.y == pos.y && targetPos.x == pos.x) break;
                     // 链式跳跃位移加大（电链/血链的"跳一下"感）
                     CombatMovePose.Nudge(by, dir, 0.2f);
-                    if (visible) CombatFxDirector.ChainArc(by);
+                    if (visible)
+                    {
+                        CombatFxDirector.ChainArc(by);
+                        RhythmExtra(move, () => CombatFxDirector.ChainArc(by), pos, targetPos, by, tier);
+                    }
                     break;
                 case MoveKind.Domain:
                     // 腾空展开领域：更高更长
-                    CombatMovePose.Lift(by, 0.5f, 0.7f);
+                    float liftH = 0.5f, liftD = 0.7f;
+                    if (move.Pose == PoseVariation.Aerial) { liftH = 0.7f; liftD = 0.85f; }
+                    CombatMovePose.Lift(by, liftH, liftD);
                     float r = 1.2f + Mathf.Min(4f, tier * 0.25f);
-                    if (visible) CombatFxDirector.DomainCircle(targetPos, r, TierColor(tier));
+                    if (visible)
+                    {
+                        CombatFxDirector.DomainCircle(targetPos, r, TierColor(tier));
+                        RhythmExtra(move, () => CombatFxDirector.DomainCircle(targetPos, r, TierColor(tier)), pos, targetPos, by, tier);
+                    }
                     break;
                 case MoveKind.Blast:
                     // 起跳引爆 + 反向后坐：投射系后跳幅度更大（远程施法拉开身位）
-                    CombatMovePose.Lift(by, 0.26f, 0.34f);
-                    CombatMovePose.Recoil(by, -dir, rangedStyle ? 0.55f : 0.28f, 0.3f);
+                    // v0.21.41 姿势变体：Fierce=后坐更猛 / Aerial=起跳更高
+                    float liftB = 0.26f, recoilB = rangedStyle ? 0.55f : 0.28f;
+                    if (move.Pose == PoseVariation.Fierce) recoilB *= 1.3f;
+                    else if (move.Pose == PoseVariation.Aerial) { liftB = 0.4f; }
+                    CombatMovePose.Lift(by, liftB, 0.34f);
+                    CombatMovePose.Recoil(by, -dir, recoilB, 0.3f);
                     if (visible)
                     {
                         CombatFxDirector.Shockwave(targetPos, 3f + tier * 0.8f);
                         CombatFxDirector.SpellBurst(by, targetPos, tier);
+                        RhythmExtra(move, () => CombatFxDirector.SpellBurst(by, targetPos, tier), pos, targetPos, by, tier);
                     }
                     break;
                 case MoveKind.Beam:
                     // 光束后坐：投射系拉开（施法者保持远程身位）
-                    CombatMovePose.Recoil(by, -dir, rangedStyle ? 0.5f : 0.3f, 0.3f);
+                    float recoilBeam = rangedStyle ? 0.5f : 0.3f;
+                    if (move.Pose == PoseVariation.Fierce) recoilBeam *= 1.25f;
+                    CombatMovePose.Recoil(by, -dir, recoilBeam, 0.3f);
                     BeamVisual(by, pos, targetPos, tier);
+                    RhythmExtra(move, () => BeamVisual(by, pos, targetPos, tier), pos, targetPos, by, tier);
                     break;
                 case MoveKind.Summon:
-                    CombatMovePose.Lift(by, 0.32f, 0.45f);          // 召唤腾身
+                    float liftS = 0.32f;
+                    if (move.Pose == PoseVariation.Aerial) liftS = 0.5f;
+                    CombatMovePose.Lift(by, liftS, 0.45f);          // 召唤腾身
                     // 召唤：目标格唤出助战灵兽（复用召唤引擎）
                     TrySummonFor(by, targetPos, tier);
                     if (visible) CombatFxDirector.DomainCircle(targetPos, 1.6f, TierColor(tier));
                     break;
                 case MoveKind.Heal:
                 case MoveKind.Buff:
-                    CombatMovePose.Lift(by, 0.18f, 0.3f);
+                    float liftH2 = 0.18f;
+                    if (move.Pose == PoseVariation.Aerial) liftH2 = 0.32f;
+                    CombatMovePose.Lift(by, liftH2, 0.3f);
                     if (visible) CombatFxDirector.SpellBurst(by, pos, tier);
                     break;
             }
@@ -230,6 +284,73 @@ namespace Code.Combat.Moves
             {
                 CombatLink.Apply(target, move.LinkOut, tier);
             }
+        }
+
+        /// <summary>v0.21.41 命中手感：Feel 档位 → 额外停帧 + 浮空抛离（Launcher）。
+        /// 停帧叠在 CinematicBeat 之上（总停帧有上限保护，见 HitStop.Request）。</summary>
+        private static void ApplyFeel(CombatMove move, Vector2 targetPos, Actor target, Actor by, bool visible)
+        {
+            if (!visible || move == null) return;
+            try
+            {
+                float stop = 0f;
+                if (move.Feel == HitFeel.Medium) stop = 0.06f;
+                else if (move.Feel == HitFeel.Hard) stop = 0.09f;
+                else if (move.Feel == HitFeel.Launcher) stop = 0.10f;
+                if (stop > 0f) CombatFxHitStop.Request(targetPos, stop);
+                if (move.Feel == HitFeel.Launcher && target != null && target.isAlive() && by != null)
+                {
+                    Vector2 d = target.current_position - by.current_position;
+                    if (d.sqrMagnitude < 0.0001f) d = new Vector2(1f, 0f);
+                    d.Normalize();
+                    CombatImpactPose.Force(target, d, ImpactLevel.Launch);
+                }
+            }
+            catch (System.Exception) { }
+        }
+
+        /// <summary>v0.21.41 打击节奏：多段重放主特效（Double/Triple 追打、Pulse 扩散、
+        /// Cascade 自施法者向目标级联推进）。延迟经 CombatFxDirector.Schedule 驱动。</summary>
+        private static void RhythmExtra(CombatMove move, System.Action mainFx, Vector2 pos, Vector2 targetPos, Actor by, int tier)
+        {
+            if (move == null || mainFx == null) return;
+            try
+            {
+                if (move.Rhythm == FxRhythm.Double)
+                {
+                    CombatFxDirector.Schedule(0.12f, mainFx);
+                }
+                else if (move.Rhythm == FxRhythm.Triple)
+                {
+                    CombatFxDirector.Schedule(0.10f, mainFx);
+                    CombatFxDirector.Schedule(0.20f, mainFx);
+                }
+                else if (move.Rhythm == FxRhythm.Pulse)
+                {
+                    // 先小后大扩散：主击后 0.18s 补一圈更大冲击波（蓄→放）
+                    CombatFxDirector.Schedule(0.18f, () =>
+                    {
+                        if (CombatFxDirector.CanFull(targetPos))
+                            CombatFxDirector.Shockwave(targetPos, 4f + tier * 0.9f);
+                    });
+                }
+                else if (move.Rhythm == FxRhythm.Cascade)
+                {
+                    // 级联：自施法者向目标 1/3、2/3 处各放一次命中爆（链式推进）
+                    for (int i = 1; i <= 2; i++)
+                    {
+                        float frac = i / 3f;
+                        Vector2 mid = Vector2.Lerp(pos, targetPos, frac);
+                        float delay = 0.08f * i;
+                        CombatFxDirector.Schedule(delay, () =>
+                        {
+                            if (CombatFxDirector.CanFull(mid))
+                                CombatFxDirector.SpellBurst(by, mid, tier);
+                        });
+                    }
+                }
+            }
+            catch (System.Exception) { }
         }
 
         /// <summary>擒拿演出：目标被拉到攻击者身前 → 短暂持有（失衡=擒拿）→ 摔投抛出。</summary>
