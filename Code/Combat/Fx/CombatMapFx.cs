@@ -46,7 +46,7 @@ namespace Code.Combat.Fx
             if (groundFx.Item1 >= 0)
                 SpawnGround(groundFx, pos, by, tier, def);
 
-            // v0.21.2 冰系命中水面：封冻域（视觉持久冰霜 + 尝试降温；不破坏水面 tile）
+            // v0.21.2 冰系命中水面：冰霜域（v0.21.45 起纯程序化视觉，不再调 tile.freeze 原版冰块贴图）
             if (IsFrost(mainTag) || IsFrost(subTag)) FreezeWater(pos, by);
 
             // L1/L2：地形响应（境界分级；凡/玄/灵以下不动大地）
@@ -75,10 +75,10 @@ namespace Code.Combat.Fx
             return tag == PrototypeTag.Frost || tag == PrototypeTag.Frostbite || tag == PrototypeTag.Slow;
         }
 
-        /// <summary>冰系命中水面 → 真冻结：复用原版地表冻结 API（反编译 0.51.x 已核实）——
-        /// WorldTile.canBeFrozen() 判断 → tile.freeze(5) 按 freeze_to_id 换顶层冰面
-        /// （frozen_low/frozen_high），温度回升由原版 WorldBehaviourTilesTemperatureUnFreeze 自动解冻。
-        /// v0.21.3 从"视觉封冻"升级为原版真冻结；视觉冰霜域保留辅助观感。</summary>
+        /// <summary>冰系命中水面 → 纯程序化冰霜视觉（零特效图）。
+        /// v0.21.45 移除 tile.freeze(5)：原版冻结瓦片会替换为冰块贴图，且对 fast_freeze 水面
+        /// 以 35% 概率递归扩散到相邻瓦片——一次命中产生大面积原版冰块特效图，违反零特效图约束。
+        /// 现仅在水面铺程序化冰霜图元（CombatFxArt 生成，零素材），不改地形、不调原版贴图。</summary>
         private static void FreezeWater(Vector2 pos, Actor by)
         {
             if (World.world == null) return;
@@ -86,27 +86,19 @@ namespace Code.Combat.Fx
             {
                 var tile = World.world.GetTileSimple((int)pos.x, (int)pos.y);
                 if (tile == null || tile.Type == null || !tile.Type.liquid) return;
-                // 原版真冻结：canBeFrozen + freeze（换 frozen 顶层 tile，温度回升自动解冻）
-                if (tile.canBeFrozen())
+                // 程序化冰霜形态（Frost 标签意象=冲击双环索引22，零素材零贴图）
+                var frames = CombatFxArt.MakePrototypeFrames((int)(by.getID() * 37 + 11), AbilityFx.TagGlyphIndex(Code.Realm.Prototype.PrototypeTag.Frost), -1, 0);
+                if (frames != null && frames.Length > 0)
                 {
-                    tile.freeze(5);
-                    // 冻结成功后铺持久亮蓝冰霜视觉（封冻观感，2.5s；v0.21.9 程序化冰晶形态）
-                    var frames = CombatFxArt.MakePrototypeFrames((int)(by.getID() * 37 + 11), AbilityFx.TagGlyphIndex(Code.Realm.Prototype.PrototypeTag.Frost), -1, 0);
-                    if (frames != null && frames.Length > 0)
+                    float frameW = frames[0].rect.width;
+                    if (frameW <= 0f) frameW = 128f;
+                    var p = CombatFxCore.Spawn(frames, pos + new Vector2(0f, 0.02f), 1f / frameW, 3.0f, FxLayer.Behind, 8);
+                    if (p != null)
                     {
-                        float frameW = frames[0].rect.width;
-                        if (frameW <= 0f) frameW = 128f;
-                        var p = CombatFxCore.Spawn(frames, pos + new Vector2(0f, 0.02f), 1f / frameW, 2.5f, FxLayer.Behind, 8);
-                        if (p != null)
-                        {
-                            p.Loop = true;   // 冰晶形态循环涌动 = 冻结面持续发光
-                        }
-                        if (p != null)
-                        {
-                            float s = 1.6f * AbilityFx.UnitScale(by);
-                            p.Sized(s, s * 0.45f);
-                            p.Color(new Color(0.62f, 0.85f, 1f, 0.6f), new Color(0.62f, 0.85f, 1f, 0f));
-                        }
+                        p.Loop = true;   // 冰霜形态循环涌动 = 冻结面持续发光
+                        float s = 2.0f * AbilityFx.UnitScale(by);
+                        p.Sized(s, s * 0.45f);
+                        p.Color(new Color(0.62f, 0.85f, 1f, 0.6f), new Color(0.62f, 0.85f, 1f, 0f));
                     }
                 }
             }
