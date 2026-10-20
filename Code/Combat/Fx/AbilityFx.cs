@@ -666,8 +666,8 @@ namespace Code.Combat.Fx
             if (string.IsNullOrEmpty(sub)) return -1;
             switch (sub)
             {
-                case "火": case "炎": case "焚":                     return 0;   // 火苗
-                case "冰": case "霜": case "寒": case "雪": case "冻": return 1;   // 冰晶
+                case "火": case "炎": case "焚":                     return 20;  // v0.21.44 禁用火苗整图(0)：效果走原版 burning 状态机制
+                case "冰": case "霜": case "寒": case "雪": case "冻": return 22;  // v0.21.44 禁用冰晶整图(1)：效果走原版 frozen 状态机制
                 case "雷": case "电": case "霆": case "电磁":          return 2;   // Z 闪电
                 case "风": case "疾": case "飓": case "气象":          return 3;   // 风刃
                 case "水": case "潮": case "海": case "洪":           return 4;   // 波纹
@@ -1022,7 +1022,11 @@ namespace Code.Combat.Fx
             // v0.21.9 弹体程序化：不再用素材图（对齐战斗之神纯程序化）。按异能形态生成
             // 形态演化帧循环飞行（生长→峰值→爆散 循环 = 弹体脉动飞行），命中处 SpawnGlyphBurst 衔接爆散。
             if (def == null || string.IsNullOrEmpty(def.Id)) return;
-            var frames = PrototypeFramesFor(def);
+            // v0.21.44 投射物走异能级规格形态（对齐攻击/防守路径）：避免小类火/冰
+            // 回退到火苗/冰晶整图（0/1）——禁用后火/冰效果走原版状态机制
+            AbilityFxSpec spec = LookupSpec(def);
+            int gIdx = spec != null ? spec.GlyphIdx : -1;
+            var frames = PrototypeFramesFor(def, gIdx);
             if (frames == null || frames.Length == 0) return;
             Vector2 dir = to - from;
             float dist = Mathf.Max(0.5f, dir.magnitude);
