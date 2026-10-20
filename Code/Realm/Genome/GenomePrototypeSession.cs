@@ -4,7 +4,8 @@
 // 职责: P0 R2 最小渲染原型——会话状态 + 测试 Nucleus 构建 + F8 切换
 // 说明: 仅用于验证"自定义染色体能否在原版 GeneEditor 渲染"。
 //       验收通过后由 P3 正式实现（GenomeEditorSession/Bridge/Host）替换。
-// 切换键: 游戏内按 F8 开启/关闭原型会话（开启后打开亚种编辑器→基因页签即可看到测试染色体）
+// 激活: 默认开启（Toggler 挂载时自动构建测试染色体）；游戏内按 F8 可关闭/再开启。
+//       开启后打开亚种编辑器→基因页签即可看到测试染色体。
 // ============================================================
 
 using System.Collections.Generic;
@@ -15,16 +16,24 @@ namespace Code.Realm.Genome
 {
     public static class GenomePrototypeSession
     {
-        public static bool Active = false;
+        public static bool Active = true;   // v0.21.48 起默认开启
         public static Nucleus TestNucleus;
+
+        /// <summary>确保会话激活且有测试染色体（默认开启入口；资产未就绪时静默跳过，下次再试）</summary>
+        public static void EnsureActive()
+        {
+            if (!Active) return;
+            if (TestNucleus != null) return;
+            if (AssetManager.gene_library == null || AssetManager.gene_library.list == null) return;
+            TestNucleus = BuildTestNucleus();
+            Debug.Log("[GeneCultivation][R2原型] 默认开启，测试染色体数=" +
+                      (TestNucleus != null ? TestNucleus.chromosomes.Count : 0));
+        }
 
         public static void Toggle()
         {
             Active = !Active;
-            if (Active && TestNucleus == null)
-            {
-                TestNucleus = BuildTestNucleus();
-            }
+            if (Active) EnsureActive();
             Debug.Log("[GeneCultivation][R2原型] 会话激活=" + Active +
                       (TestNucleus != null ? " 测试染色体数=" + TestNucleus.chromosomes.Count : ""));
         }
@@ -81,9 +90,15 @@ namespace Code.Realm.Genome
         }
     }
 
-    /// <summary>每帧检查 F8 切换原型会话（MonoBehaviour，在 ModClass.OnModLoad 中实例化）</summary>
+    /// <summary>原型切换器（MonoBehaviour，在 ModClass.OnModLoad 中实例化）
+    /// 挂载即默认开启并构建测试染色体；F8 用于手动关闭/再开启。</summary>
     public class GenomePrototypeToggler : MonoBehaviour
     {
+        private void Awake()
+        {
+            GenomePrototypeSession.EnsureActive();   // 默认开启
+        }
+
         private void Update()
         {
             if (Input.GetKeyDown(KeyCode.F8))

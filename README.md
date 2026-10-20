@@ -3,11 +3,11 @@
 WorldBox 0.51 + NeoModLoader 原创现代异能模组。**13阶阶位 + 56基因序列 + 398异能 + 9档品质 + 神名系统 + 圣所跨存档 + 维度空间 + 大场面战斗体系**，异能能量/失控指数/基因图谱驱动沙盒自主演化，至高者可跨存档互通。
 
 - 仓库：https://github.com/Ninefish-yj/GeneCultivation
-- 当前版本：**v0.21.47**
+- 当前版本：**v0.21.48**
 
 ---
 
-## 一、特性总览（v0.21.47）
+## 一、特性总览（v0.21.48）
 
 ### 阶位与修炼
 - **13阶阶位**：F级 → E级 → D级 → C级 → B级 → A级 → S级 → 称号级 → 天灾级 → 使徒级 → 登神级 → 真神级 → 超神级
@@ -83,6 +83,11 @@ WorldBox 0.51 + NeoModLoader 原创现代异能模组。**13阶阶位 + 56基因
 ---
 
 ## 四、版本记录
+
+### v0.21.48 — R2 原型默认开启
+- 基因渲染原型改为默认开启：Toggler 挂载即自动构建测试染色体并接管基因编辑器渲染，无需按 F8
+- F8 保留为手动关闭/再开启；GenomePrototypeSession.EnsureActive 资产未就绪时静默跳过（下帧再试）
+- 打开亚种编辑器→基因页签即可看到测试染色体（P0 R2 验收路径不变）
 
 ### v0.21.47 — FieldAccessException 修复（反射访问 internal 字段）
 - 根因：NML 运行时不做 publicizer，`Actor.data`/`Actor.stats`/`MapBox.era_manager`/`MapBox.map_stats` 为 internal，直接访问抛 `FieldAccessException` 导致模组加载失败

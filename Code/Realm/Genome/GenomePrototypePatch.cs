@@ -2,7 +2,7 @@
 // 文件: GenomePrototypePatch.cs
 // 模组: 基因修炼 (GeneCultivation)
 // 职责: P0 R2 最小渲染原型——Harmony 接管原版 GeneEditor
-// 说明: 仅在 GenomePrototypeSession.Active=true 时生效，否则零开销走原版。
+// 说明: 会话默认开启（GenomePrototypeSession.Active=true）；F8 可手动关闭后走原版。
 //       验收通过后由 P3 正式实现（六方法门禁 + 持久化）替换。
 // ============================================================
 
