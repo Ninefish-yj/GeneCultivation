@@ -232,35 +232,52 @@ namespace Code.Disaster
             _barrierDecayRate = decay;
         }
 
-        /// <summary>生成虚空裂隙</summary>
-        /// <summary>播放原版粒子特效（使用spawnAtTile方法，正确的参数顺序）</summary>
-        private static void PlayOriginalEffect(string effectName, Vector2 position, float scale = 1f)
+        /// <summary>v0.21.46 全程序化虚空能量爆发：替代原版 fx_cast_ground_purple / fx_cast_top_purple。
+        /// 地面暗紫涟漪环 + 上升虚空旋涡，零素材零原版 fx_*。</summary>
+        private static void PlayVoidBurst(Vector2 position, float scale = 1f)
         {
             try
             {
                 if (World.world == null) return;
+                float worldW = scale * 0.5f;   // 目标世界宽（原 scale×0.25，程序化放大2倍更醒目）
+                int seed = (int)(position.x * 17 + position.y * 31);
 
-                // 获取目标瓦片
-                WorldTile tile = World.world.GetTileSimple((int)position.x, (int)position.y);
-                if (tile == null) return;
-
-                // spawn 后按传入 scale 缩放（v0.18.67 修复：原实现忽略 scale 参数，特效恒为原版默认尺寸）
-                BaseEffect effect = EffectsLibrary.spawn(effectName, tile, null, null, 0f, -1f, -1f, null);
-                if (effect == null)
+                // 地面涟漪环（暗紫，贴地扩散）
+                var ringFrames = Code.Combat.Fx.CombatFxArt.MakePrototypeFrames(seed, 22, -1, 4);
+                if (ringFrames != null && ringFrames.Length > 0)
                 {
-                    DSDebug.Verbose($"[灾变特效] EffectsLibrary.spawnAtTile返回null（可能达到同屏上限），特效: {effectName}");
+                    float fw = ringFrames[0].rect.width; if (fw <= 0f) fw = 64f;
+                    var ring = Code.Combat.Fx.CombatFxCore.Spawn(ringFrames,
+                        position + new Vector2(0f, 0.02f), 1f / fw, 2.5f,
+                        Code.Combat.Fx.FxLayer.Behind, 4);
+                    if (ring != null)
+                    {
+                        ring.Sized(worldW * 1.5f, worldW * 0.6f);
+                        ring.Color(new Color(0.45f, 0.2f, 0.7f, 0.7f), new Color(0.3f, 0.1f, 0.5f, 0f));
+                        ring.Fps = 8f;
+                    }
                 }
-                else
+
+                // 上升虚空旋涡（深紫，自转升腾）
+                var vortexFrames = Code.Combat.Fx.CombatFxArt.MakePrototypeFrames(seed + 7, 15, 8, 5);
+                if (vortexFrames != null && vortexFrames.Length > 0)
                 {
-                    effect.prepare(position, 1f);
-                    // v0.18.91：帧宽归一化——scale 语义=「人类单位宽倍数」，目标世界宽 = scale×0.25
-                    // （人类 actor_scale≈0.25，1 倍单位宽≈0.25 世界单位；原 0.55 基准仍达 2.2 倍）
-                    Code.Combat.Fx.CombatFxCore.ScaleFxToWorldWidth(effect, scale * 0.25f);
+                    float fw = vortexFrames[0].rect.width; if (fw <= 0f) fw = 64f;
+                    var vortex = Code.Combat.Fx.CombatFxCore.Spawn(vortexFrames,
+                        position + new Vector2(0f, 0.17f), 1f / fw, 2.0f,
+                        Code.Combat.Fx.FxLayer.Over, 6);
+                    if (vortex != null)
+                    {
+                        vortex.Sized(worldW, worldW * 1.8f);
+                        vortex.Spin = 150f;
+                        vortex.Color(new Color(0.55f, 0.25f, 0.8f, 0.8f), new Color(0.4f, 0.15f, 0.6f, 0f));
+                        vortex.Fps = 10f;
+                    }
                 }
             }
             catch (System.Exception e)
             {
-                DSDebug.Warning($"[灾变特效] 播放特效失败 {effectName}: {e.Message}");
+                DSDebug.Warning($"[灾变特效] 虚空爆发失败: {e.Message}");
             }
         }
 
@@ -507,8 +524,7 @@ namespace Code.Disaster
                             UnityEngine.Random.Range(5f, MapBox.height - 5f)
                         );
                         float scale = UnityEngine.Random.Range(0.6f, 1.5f);
-                        PlayOriginalEffect("fx_cast_ground_purple", randomPos, scale);
-                        PlayOriginalEffect("fx_cast_top_purple", randomPos, scale * 0.7f);
+                        PlayVoidBurst(randomPos, scale);
                     }
                     DSDebug.Verbose($"[GeneCultivation] 天地屏障破碎：全图{eruptionCount}处虚空能量爆发！");
                 }
@@ -631,8 +647,7 @@ namespace Code.Disaster
                 {
                     if (!rift.IsActive) continue;
                     Vector2 pos = new Vector2(rift.X, rift.Y);
-                    PlayOriginalEffect("fx_cast_ground_purple", pos, 0.5f);
-                    PlayOriginalEffect("fx_cast_top_purple", pos, 0.5f);
+                    PlayVoidBurst(pos, 0.5f);
                 }
 
                 // 2. 裂隙地块湮灭强化：重置视觉标记后重新应用（半径翻倍，虚空地块向外扩散）
@@ -650,8 +665,7 @@ namespace Code.Disaster
                 if (_rifts.Count == 0 && MapBox.width > 0 && MapBox.height > 0)
                 {
                     Vector2 center = new Vector2(MapBox.width / 2f, MapBox.height / 2f);
-                    PlayOriginalEffect("fx_cast_ground_purple", center, 0.8f);
-                    PlayOriginalEffect("fx_cast_top_purple", center, 0.8f);
+                    PlayVoidBurst(center, 0.8f);
                 }
 
                 DSDebug.Verbose($"[GeneCultivation] 天地屏障破碎：虚空裂隙爆发（{_rifts.Count}道裂隙喷涌）");

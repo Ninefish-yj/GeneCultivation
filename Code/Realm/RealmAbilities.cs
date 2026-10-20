@@ -393,7 +393,7 @@ namespace Code.Realm
                     
                     if (ability.Id == "ds_ability_energy_storm")
                     {
-                        // 能量风暴：找到最近的敌人作为目标，播放龙卷风特效 + 范围伤害
+                        // 能量风暴：找到最近的敌人作为目标，程序化风暴旋涡 + 范围伤害
                         Actor stormTarget = null;
                         float stormNearestDist = float.MaxValue;
                         foreach (var enemy in World.world.units.units_only_alive)
@@ -408,58 +408,44 @@ namespace Code.Realm
                             }
                         }
                         
-                        Vector3 stormPos = stormTarget != null ? stormTarget.current_position : actor.current_position;
+                        Vector2 stormPos = stormTarget != null ? stormTarget.current_position : actor.current_position;
                         
-                        // 播放龙卷风特效（用反射调用EffectsLibrary.spawn 8参数版本）
+                        // v0.21.46 全程序化：目标点风暴旋涡（月环形态+高速自转），替代原版 fx_storm/tornado 灾难
                         try
                         {
-                            WorldTile stormTile = World.world.GetTileSimple((int)stormPos.x, (int)stormPos.y);
-                            if (stormTile != null)
+                            int seed = (int)(stormPos.x * 13 + stormPos.y * 29);
+                            var stormFrames = Code.Combat.Fx.CombatFxArt.MakePrototypeFrames(seed, 15, 2, 6);
+                            if (stormFrames != null && stormFrames.Length > 0)
                             {
-                                var spawnMethods = typeof(EffectsLibrary).GetMethods(
-                                    System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static);
-                                foreach (var method in spawnMethods)
+                                float fw = stormFrames[0].rect.width; if (fw <= 0f) fw = 64f;
+                                var sp = Code.Combat.Fx.CombatFxCore.Spawn(stormFrames,
+                                    stormPos + new Vector2(0f, 0.17f), 1f / fw, 3.0f,
+                                    Code.Combat.Fx.FxLayer.Behind, 6);
+                                if (sp != null)
                                 {
-                                    if (method.Name == "spawn" && method.GetParameters().Length == 8)
-                                    {
-                                        // 播放多个风/风暴相关特效（v0.18.67: spawn后按0.5压尺寸）
-                                        string[] stormEffects = { "fx_storm", "fx_wind_trail_t", "fx_cast_top_purple", "fx_explosion" };
-                                        foreach (var fx in stormEffects)
-                                        {
-                                            try {
-                                                var r = method.Invoke(null, new object[] { fx, stormTile, null, null, 2.0f, -1f, -1f, null });
-                                                if (r is BaseEffect be && be != null)
-                                                {
-                                                    // v0.18.91：风暴中心对准身体高度（目标脚底+0.17）
-                                                    be.prepare(new Vector2(stormPos.x, stormPos.y + 0.17f), 1f);
-                                                    // v0.18.91：帧宽归一化——目标世界宽 = 0.25（1 倍单位宽）
-                                                    Code.Combat.Fx.CombatFxCore.ScaleFxToWorldWidth(be, 0.25f);
-                                                }
-                                            } catch (System.Exception dsEx) { Code.Core.DSDebug.Warning("[GeneCultivation] ExecuteAbilityEffect 异常: " + dsEx.Message); }
-                                        }
-                                        break;
-                                    }
+                                    sp.Sized(2.0f, 2.0f);
+                                    sp.Spin = 200f;
+                                    sp.Loop = true;
+                                    sp.Color(new Color(0.55f, 0.6f, 1f, 0.6f), new Color(0.55f, 0.6f, 1f, 0f));
+                                    sp.Fps = 10f;
                                 }
                             }
                         }
                         catch (Exception e)
                         {
-                            Code.Core.DSDebug.Verbose($"[GeneCultivation] 能量风暴特效播放失败: {e.Message}");
+                            Code.Core.DSDebug.Verbose($"[GeneCultivation] 能量风暴程序化演出失败: {e.Message}");
                         }
                         
-                        // ★ 调用原版龙卷风灾难
-                        try { Realm.VanillaIntegration.SpawnTornado(World.world.GetTileSimple((int)stormPos.x, (int)stormPos.y)); } catch { }
-
-                        // ★ 使用统一AOE伤害管理器（修复：只伤害敌人 + 性能优化）
+                        // 使用统一AOE伤害管理器
                         int stormDamaged = Code.Combat.DSAoEDamageManager.ApplyAreaDamage(
                             attacker: actor,
                             centerPosition: stormPos,
                             radius: 8f,
                             baseDamage: damage * 1.2f,
-                            damageType: 1,  // 魔法伤害
+                            damageType: 1,
                             distanceDecay: true,
                             hitAllies: false);
-                        Code.Core.DSDebug.Verbose($"[GeneCultivation] {ability.Name} 龙卷风风暴，命中{stormDamaged}个敌人，基础伤害{damage:F0}");
+                        Code.Core.DSDebug.Verbose($"[GeneCultivation] {ability.Name} 风暴，命中{stormDamaged}个敌人，基础伤害{damage:F0}");
                     }
                     else if (ability.Id == "ds_ability_energy_bolt")
                     {
@@ -479,30 +465,8 @@ namespace Code.Realm
                     }
                     else if (ability.Id == "ds_ability_divine_punishment")
                     {
-                        // 神罚：原版陨石灾难 + 闪电特效
-                        try { Realm.VanillaIntegration.SpawnMeteorite(World.world.GetTileSimple((int)actor.current_position.x, (int)actor.current_position.y)); } catch { }
-                        // 额外播放闪电特效
-                        try
-                        {
-                            WorldTile punishTile = World.world.GetTileSimple((int)actor.current_position.x, (int)actor.current_position.y);
-                            if (punishTile != null)
-                            {
-                                var spawnMethods = typeof(EffectsLibrary).GetMethods(
-                                    System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static);
-                                foreach (var method in spawnMethods)
-                                {
-                                    if (method.Name == "spawn" && method.GetParameters().Length == 8)
-                                    {
-                                        string[] lightningEffects = { "fx_lightning_big", "fx_lightning_medium" };
-                                        foreach (var fx in lightningEffects)
-                                        {
-                                            try { method.Invoke(null, new object[] { fx, punishTile, null, null, 2.0f, -1f, -1f, null }); } catch { }
-                                        }
-                                        break;
-                                    }
-                                }
-                            }
-                        } catch { }
+                        // 神罚：DSSkillEffectManager 已播程序化天雷圣光特效，此处仅大范围AOE伤害
+                        // v0.21.46 移除原版陨石灾难(Meteorite.spawnMeteoriteDisaster) + 原版闪电 fx_lightning_*
 
                         // 大范围AOE伤害
                         int punished = Code.Combat.DSAoEDamageManager.ApplyAreaDamage(
@@ -513,12 +477,12 @@ namespace Code.Realm
                             damageType: 1,
                             distanceDecay: true,
                             hitAllies: false);
-                        Code.Core.DSDebug.Verbose($"[GeneCultivation] {ability.Name} 神罚陨石，命中{punished}个敌人");
+                        Code.Core.DSDebug.Verbose($"[GeneCultivation] {ability.Name} 神罚，命中{punished}个敌人");
                     }
                     else if (ability.Id == "ds_ability_dimensional_strike")
                     {
-                        // 维度打击：调用原版地震灾难
-                        try { Realm.VanillaIntegration.SpawnEarthquake(World.world.GetTileSimple((int)actor.current_position.x, (int)actor.current_position.y)); } catch { }
+                        // 维度打击：DSSkillEffectManager 已播程序化棱晶雷光特效，此处仅中范围AOE伤害
+                        // v0.21.46 移除原版地震灾难(spawnSmallEarthquake)
 
                         // 中范围AOE伤害
                         int stricken = Code.Combat.DSAoEDamageManager.ApplyAreaDamage(
@@ -529,7 +493,7 @@ namespace Code.Realm
                             damageType: 1,
                             distanceDecay: true,
                             hitAllies: false);
-                        Code.Core.DSDebug.Verbose($"[GeneCultivation] {ability.Name} 维度打击地震，命中{stricken}个敌人");
+                        Code.Core.DSDebug.Verbose($"[GeneCultivation] {ability.Name} 维度打击，命中{stricken}个敌人");
                     }
                     else
                     {
@@ -873,60 +837,73 @@ namespace Code.Realm
         }
 
         /// <summary>
-        /// v0.19.7 原版天灾演出：复用 EffectsLibrary 原生灾难特效（fx_meteorite 陨石 / fx_tornado 龙卷风 /
-        /// fx_lightning_medium 雷暴），对齐"高境界大招=天灾级"的大众认知。
+        /// v0.21.46 天灾演出全程序化：陨石=火形态下落爆散、龙卷风=月环旋涡自转、
+        /// 雷暴=雷形态快闪。零原版 fx_* 贴图，全部 CombatFxArt + CombatFxCore。
         /// 登神 11+：陨石雨；真神 12+：追加龙卷风；超神 13+：追加雷暴群。
         /// </summary>
         private static void TriggerCataclysmFx(Actor actor, int tier)
         {
             if (World.world == null || actor == null || !actor.isAlive()) return;
-            var center = World.world.GetTileSimple((int)actor.current_position.x, (int)actor.current_position.y);
-            if (center == null) return;
+            var center = actor.current_position;
             var r = new System.Random((int)(actor.data.id % int.MaxValue) + tier * 131);
             try
             {
-                // 陨石雨（登神起）：数量随境界上升
-                // v0.21.37 尺寸门禁：原版 spawnAtTile 的 scale 是纯精灵缩放倍数
-                // （世界宽=scale×帧宽/PPU，0.9×256/100≈2.3 世界宽≈9 倍人类单位，即"大特效"根因）。
-                // 改为 spawn + prepare + 帧宽归一化：陨石目标世界宽 0.75（3 倍人类单位宽），天灾感但非巨物。
+                // 陨石雨（登神起）：火形态下落爆散
                 int meteors = 4 + (tier - 10) * 2;
                 for (int i = 0; i < meteors; i++)
                 {
-                    var t = World.world.GetTileSimple(center.x + r.Next(-9, 10), center.y + r.Next(-9, 10));
-                    if (t == null) continue;
-                    var fx = EffectsLibrary.spawn("fx_meteorite", t, null, null, 0f, -1f, -1f, null);
-                    if (fx != null)
+                    Vector2 pos = center + new Vector2(r.Next(-9, 10), r.Next(-9, 10));
+                    int seed = (int)(pos.x * 17 + pos.y * 31 + i * 7);
+                    var frames = Code.Combat.Fx.CombatFxArt.MakePrototypeFrames(seed, 0, -1, 5);
+                    if (frames == null || frames.Length == 0) continue;
+                    float fw = frames[0].rect.width; if (fw <= 0f) fw = 64f;
+                    var p = Code.Combat.Fx.CombatFxCore.Spawn(frames, pos, 1f / fw, 1.5f,
+                        Code.Combat.Fx.FxLayer.Behind, 6);
+                    if (p != null)
                     {
-                        fx.prepare(new Vector2(t.pos.x + 0.5f, t.pos.y), 1f);
-                        Code.Combat.Fx.CombatFxCore.ScaleFxToWorldWidth(fx, 0.75f);
+                        p.Sized(0.75f, 0.75f);
+                        p.Color(new Color(1f, 0.55f, 0.2f, 0.85f), new Color(1f, 0.3f, 0.1f, 0f));
+                        p.Fps = 12f;
                     }
                 }
-                // 龙卷风（真神起）
+                // 龙卷风（真神起）：月环旋涡高速自转
                 if (tier >= 12)
                 {
-                    var t = World.world.GetTileSimple(center.x + r.Next(-3, 4), center.y + r.Next(-3, 4));
-                    if (t != null)
+                    Vector2 pos = center + new Vector2(r.Next(-3, 4), r.Next(-3, 4));
+                    int seed = (int)(pos.x * 13 + pos.y * 29);
+                    var frames = Code.Combat.Fx.CombatFxArt.MakePrototypeFrames(seed, 15, -1, 6);
+                    if (frames != null && frames.Length > 0)
                     {
-                        var fx = EffectsLibrary.spawn("fx_tornado", t, null, null, 0f, -1f, -1f, null);
-                        if (fx != null)
+                        float fw = frames[0].rect.width; if (fw <= 0f) fw = 64f;
+                        var p = Code.Combat.Fx.CombatFxCore.Spawn(frames, pos, 1f / fw, 3.0f,
+                            Code.Combat.Fx.FxLayer.Behind, 6);
+                        if (p != null)
                         {
-                            fx.prepare(new Vector2(t.pos.x + 0.5f, t.pos.y), 1f);
-                            Code.Combat.Fx.CombatFxCore.ScaleFxToWorldWidth(fx, 0.7f);
+                            p.Sized(0.7f, 1.4f);
+                            p.Spin = 180f;
+                            p.Color(new Color(0.6f, 0.85f, 1f, 0.7f), new Color(0.6f, 0.85f, 1f, 0f));
+                            p.Fps = 10f;
+                            p.Loop = true;
                         }
                     }
                 }
-                // 雷暴群（超神）
+                // 雷暴群（超神）：雷形态快闪
                 if (tier >= 13)
                 {
                     for (int i = 0; i < 4; i++)
                     {
-                        var t = World.world.GetTileSimple(center.x + r.Next(-12, 13), center.y + r.Next(-12, 13));
-                        if (t == null) continue;
-                        var fx = EffectsLibrary.spawn("fx_lightning_medium", t, null, null, 0f, -1f, -1f, null);
-                        if (fx != null)
+                        Vector2 pos = center + new Vector2(r.Next(-12, 13), r.Next(-12, 13));
+                        int seed = (int)(pos.x * 19 + pos.y * 23 + i * 11);
+                        var frames = Code.Combat.Fx.CombatFxArt.MakePrototypeFrames(seed, 2, -1, 7);
+                        if (frames == null || frames.Length == 0) continue;
+                        float fw = frames[0].rect.width; if (fw <= 0f) fw = 64f;
+                        var p = Code.Combat.Fx.CombatFxCore.Spawn(frames, pos, 1f / fw, 0.8f,
+                            Code.Combat.Fx.FxLayer.Over, 10);
+                        if (p != null)
                         {
-                            fx.prepare(new Vector2(t.pos.x + 0.5f, t.pos.y), 1f);
-                            Code.Combat.Fx.CombatFxCore.ScaleFxToWorldWidth(fx, 0.6f);
+                            p.Sized(0.6f, 1.2f);
+                            p.Color(new Color(1f, 0.95f, 0.4f, 0.95f), new Color(1f, 0.9f, 0.2f, 0f));
+                            p.Fps = 20f;
                         }
                     }
                 }

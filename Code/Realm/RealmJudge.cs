@@ -783,8 +783,8 @@ namespace Code.Realm
             }
         }
 
-        /// <summary>超神纪元粒子特效：随机在地图上生成神圣光芒/附魔闪光粒子</summary>
-        /// <remarks>参考Avb虚无纪元的trySpawnThunder实现，使用EffectsLibrary.spawn生成原版粒子特效</remarks>
+        /// <summary>超神纪元粒子特效：随机在地图上生成程序化神圣星光粒子
+        /// v0.21.46 全程序化：替代原版 fx_enchanted_sparkle / fx_cast_top_blue / fx_building_sparkle</summary>
         private static void TrySpawnDivineParticles()
         {
             try
@@ -793,50 +793,34 @@ namespace Code.Realm
                 // 30%概率生成粒子特效
                 if (UnityEngine.Random.value >= 0.3f) return;
 
-                // 在地图随机位置生成粒子特效
+                // 在地图随机位置生成
                 int x = UnityEngine.Random.Range(0, Mathf.Max(1, MapBox.width - 1));
                 int y = UnityEngine.Random.Range(0, Mathf.Max(1, MapBox.height - 1));
+                Vector2 pos = new Vector2(x + 0.5f, y + 0.5f);
 
-                // 用反射获取tile
-                object tile = null;
-                try
+                // 随机神圣星光形态：星(20) / 光(7) / 符印(21)
+                int[] glyphs = { 20, 7, 21 };
+                int glyph = glyphs[UnityEngine.Random.Range(0, glyphs.Length)];
+                int seed = x * 131 + y * 17 + glyph * 7;
+                var frames = Code.Combat.Fx.CombatFxArt.MakePrototypeFrames(seed, glyph, -1, 3);
+                if (frames == null || frames.Length == 0) return;
+
+                float fw = frames[0].rect.width; if (fw <= 0f) fw = 64f;
+                float life = UnityEngine.Random.Range(0.8f, 1.8f);
+                var p = Code.Combat.Fx.CombatFxCore.Spawn(frames, pos, 1f / fw, life,
+                    Code.Combat.Fx.FxLayer.Over, 4);
+                if (p != null)
                 {
-                    var getTileMethod = World.world.GetType().GetMethod("GetTile",
-                        System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
-                    if (getTileMethod != null)
-                    {
-                        tile = getTileMethod.Invoke(World.world, new object[] { x, y });
-                    }
+                    float sz = UnityEngine.Random.Range(0.15f, 0.35f);
+                    p.Sized(sz, sz);
+                    p.Spin = UnityEngine.Random.Range(-60f, 60f);
+                    // 神圣金白 / 天蓝 / 暖金 三色随机
+                    Color c = UnityEngine.Random.value < 0.5f
+                        ? new Color(1f, 0.9f, 0.5f, 0.85f)
+                        : new Color(0.6f, 0.8f, 1f, 0.8f);
+                    p.Color(c, new Color(c.r, c.g, c.b, 0f));
+                    p.Fps = 8f;
                 }
-                catch (System.Exception dsEx) { Code.Core.DSDebug.Warning("[GeneCultivation] TrySpawnDivineParticles 异常: " + dsEx.Message); }
-
-                if (tile == null) return;
-
-                // 随机选择粒子特效类型
-                int effectType = UnityEngine.Random.Range(0, 3);
-                string effectName = "fx_enchanted_sparkle";
-                switch (effectType)
-                {
-                    case 0: effectName = "fx_enchanted_sparkle"; break;
-                    case 1: effectName = "fx_cast_top_blue"; break;
-                    case 2: effectName = "fx_building_sparkle"; break;
-                }
-
-                // 用反射调用EffectsLibrary.spawn（避免dynamic类型编译问题）
-                try
-                {
-                    var spawnMethods = typeof(EffectsLibrary).GetMethods(
-                        System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static);
-                    foreach (var m in spawnMethods)
-                    {
-                        if (m.Name == "spawn" && m.GetParameters().Length == 8)
-                        {
-                            m.Invoke(null, new object[] { effectName, tile, null, null, 0f, -1f, -1f, null });
-                            break;
-                        }
-                    }
-                }
-                catch (System.Exception dsEx) { Code.Core.DSDebug.Warning("[GeneCultivation] TrySpawnDivineParticles 异常: " + dsEx.Message); }
             }
             catch (Exception e)
             {

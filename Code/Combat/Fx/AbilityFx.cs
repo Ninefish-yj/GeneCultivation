@@ -148,52 +148,8 @@ namespace Code.Combat.Fx
             _family["强化系/防御"] = "art_arcaneshield"; _family["强化系/变形"] = "soul_wind";   // v0.19.5 防御氛围=奥术光膜
         }
 
-        // ============================================================
-        // 资源加载（带缓存）
-        // ============================================================
-        public static Sprite[] Load(string effectId)
-        {
-            if (string.IsNullOrEmpty(effectId)) return null;
-            if (_cache.TryGetValue(effectId, out var cached)) return cached;
-            try
-            {
-                // art_ 前缀：程序化图元（v0.18.74 中式重生成，零素材文件依赖）
-                if (effectId.StartsWith("art_"))
-                {
-                    CombatFxArt.EnsureInit();
-                    var art = CombatFxArt.Get(effectId);
-                    if (art != null)
-                    {
-                        _cache[effectId] = new[] { art };
-                        return _cache[effectId];
-                    }
-                    // 素材缺失兜底（v0.19.13 起主池全素材，仅异常路径触发）
-                    var glyph = CombatFxGlyphs.Get(effectId);
-                    if (glyph != null)
-                    {
-                        _cache[effectId] = new[] { glyph };
-                        return _cache[effectId];
-                    }
-                    _cache[effectId] = new Sprite[0];
-                    return null;
-                }
-                var sprites = Resources.LoadAll<Sprite>("effects/" + effectId);
-                if (sprites == null || sprites.Length == 0)
-                {
-                    _cache[effectId] = new Sprite[0];
-                    return null;
-                }
-                Array.Sort(sprites, (a, b) => string.Compare(a.name, b.name, StringComparison.Ordinal));
-                _cache[effectId] = sprites;
-                return sprites;
-            }
-            catch (Exception dsEx)
-            {
-                Code.Core.DSDebug.Verbose("[AbilityFx] 加载失败 effects/" + effectId + ": " + dsEx.Message);
-                _cache[effectId] = new Sprite[0];
-                return null;
-            }
-        }
+        // v0.21.46 移除 Load()：含 Resources.LoadAll<Sprite>("effects/"+id) 原版特效图加载，
+        // 且已无调用方（PickTagFx/PickFamilyFx 同步移除）。全模组特效统一走 CombatFxArt 程序化。
 
         // ============================================================
         // 特效样式（按 id 前缀分组：大/中/小/护盾/气泡）
@@ -264,24 +220,7 @@ namespace Code.Combat.Fx
             size = 0.25f; life = 0.6f;
         }
 
-        // ============================================================
-        // 主标签特效（按副标签哈希从池内取变体 → 组合唯一）
-        // ============================================================
-        private static string PickTagFx(PrototypeTag main, PrototypeTag sub)
-        {
-            if (!_tagPool.TryGetValue(main, out var pool) || pool == null || pool.Length == 0) return null;
-            if (pool.Length == 1) return pool[0];
-            int idx = Math.Abs((int)sub) % pool.Length;
-            return pool[idx];
-        }
-
-        private static string PickFamilyFx(string category, string sub)
-        {
-            if (string.IsNullOrEmpty(category)) return null;
-            string key = category + "/" + (string.IsNullOrEmpty(sub) ? "通用" : sub);
-            _family.TryGetValue(key, out var fx);
-            return fx;
-        }
+        // v0.21.46 移除 PickTagFx/PickFamilyFx：调用已删除的 Load()，且无调用方。
 
         // ============================================================
         // v0.18.92 异能专属视觉：44 标签基准色 × 异能 id 稳定哈希派生
@@ -406,7 +345,6 @@ namespace Code.Combat.Fx
             if (!force && UnityEngine.Random.value > 0.5f) return;   // 50% 出镜率
 
             float scale = UnitScale(anchor);
-            string mainFx = PickTagFx(def.MainTag, def.SubTag);
             Color tint = DeriveTint(def);   // v0.18.92 异能专属派生色（基准标签色×异能id哈希）
 
             if (attack)
@@ -638,23 +576,7 @@ namespace Code.Combat.Fx
             }
         }
 
-        /// <summary>收集本模组引用的全部原版素材 id（供 VanillaFxAudit 存在性自检）。</summary>
-        internal static List<string> ReferencedFxIds()
-        {
-            var set = new System.Collections.Generic.HashSet<string>(StringComparer.OrdinalIgnoreCase);
-            foreach (var pool in _tagPool.Values)
-                if (pool != null)
-                    foreach (var id in pool)
-                        if (!string.IsNullOrEmpty(id)) set.Add(id);
-            foreach (var id in _family.Values)
-                if (!string.IsNullOrEmpty(id)) set.Add(id);
-            set.Add("fx_status_burning_t");   // 状态附着（CombatStatusFx）
-            set.Add("fx_status_frozen_t");
-            set.Add("fx_status_poisoned");
-            var list = new List<string>(set);
-            list.Sort(StringComparer.Ordinal);
-            return list;
-        }
+        // v0.21.46 移除 ReferencedFxIds()：原版素材审计已无意义（全模组零特效图）。
 
         /// <summary>小类 → 形态库索引（v0.21.24 语义优先）。
         /// 修复系统性根因：原形态跟主标签走——火衣(主=Regeneration)命中爆出心形、
@@ -1052,85 +974,7 @@ namespace Code.Combat.Fx
         }
 
         /// <summary>
-        /// 单层特效播放（px 0.01 基准；尺寸=样式组×单位缩放；alpha 渐隐；可延迟、可绑定单位）。
-        /// fx_* 前缀走原版 EffectsLibrary（原版内置图，自动回池）。
-        /// v0.18.92：tint 为异能专属派生色（null=原白色），应用于特效主体着色。
-        /// </summary>
-        private static void SpawnFx(string id, Vector2 pos, FxLayer layer, int order, bool strong,
-            float scale = 1f, float delay = 0f, Actor follow = null, Color? tint = null)
-        {
-            // 原版特效（fx_* 前缀）：走 EffectsLibrary（原版内置图，自动回池）。
-            // v0.18.67：spawn 后按单位缩放 prepare（原版资产默认 1.0 偏大，压到 0.5×单位缩放）。
-            if (id.StartsWith("fx_"))
-            {
-                try
-                {
-                    WorldTile tile = World.world.GetTileSimple((int)pos.x, (int)pos.y);
-                    if (tile != null)
-                    {
-                        var fx = EffectsLibrary.spawn(id, tile, null, null, 0f, -1f, -1f, null);
-                        if (fx != null)
-                        {
-                            // v0.18.99：特效中心按定位贴地/贴体（原固定 0.17 悬在头顶）
-                            fx.prepare(pos + new Vector2(0f, CenterOffset(id, scale)), 1f);
-                            // v0.18.91：帧宽归一化——目标世界宽 = 0.25×体型（人类 actor_scale≈0.25，
-                            // 1 倍单位宽≈0.25 世界单位，与西幻奥术护盾 0.24 对齐）
-                            CombatFxCore.ScaleFxToWorldWidth(fx, 0.25f * scale);
-                            // v0.18.92：原版特效同样跟随异能专属派生色
-                            if (tint.HasValue && fx.sprite_renderer != null)
-                            {
-                                Color fc = fx.sprite_renderer.color;
-                                fx.sprite_renderer.color = new Color(tint.Value.r, tint.Value.g, tint.Value.b, fc.a);
-                            }
-                        }
-                    }
-                }
-                catch (System.Exception dsEx) { Code.Core.DSDebug.Verbose("[AbilityFx] 原版特效 " + id + ": " + dsEx.Message); }
-                return;
-            }
-            // v0.21.26 素材层退役：Load("effects/"+id) 的资源不在模组包内（素材包不随包分发，
-            // 约定全程序化）→ 通常 frames 为空直接 return。此路径仅作为"资源恰好存在"时的兜底，
-            // 不再是特效主力。主力=程序化图元爆/投射物/护盾环 + fx_* 原版状态。
-            var frames = Load(id);
-            if (frames == null || frames.Length == 0) return;
-            Style(id, out float size, out float life);
-            // v0.18.69：尺寸按帧宽归一化——世界宽 = px×帧宽×s，素材帧宽 55~140px 差异巨大，
-            // 固定 px 会导致同 size 的特效世界尺寸漂移近一倍（"好多大小不对"根因）。
-            // px = 1/帧宽 → 世界宽恒等于 s（s 即期望世界宽，≈人类单位 0.55）。
-            float frameW = frames[0].rect.width;
-            if (frameW <= 0f) frameW = 128f;
-            float px = 1f / frameW;
-            // 特效中心对准单位身体中心（单位 current_position 是脚底；v0.18.91 由 0.3×scale 修正——
-            // v0.18.99 再校准：地面类贴地、普通命中贴躯干，不再悬在头顶）
-            Vector2 center = pos + new Vector2(0f, CenterOffset(id, scale));
-            var p = CombatFxCore.Spawn(frames, center, px, life, layer, order);
-            if (p == null) return;
-            p.Delay = delay;
-            p.FollowActor = follow;
-            p.FollowOffset = new Vector2(0f, 0.17f * scale);   // 跟随单位时同样对准身体中心，护盾/光环套在身上
-            float s = (strong ? size : size * 0.55f) * scale;
-            p.Sized(s, s * 0.72f);
-            // v0.18.72：竖素材（96x128 护盾）默认高=1.33×宽会显大——护盾压扁到 0.75（高≈0.32，只罩躯干）
-            // v0.18.75：对齐西幻奥术护盾 alpha≈0.03 的"淡罩"观感——护盾透明度压到 0.2（淡可见不遮人）
-            // v0.18.92：着色跟随异能专属派生色
-            Color tc = tint ?? Color.white;
-            if (id.StartsWith("shield_") || id == "art_arcaneshield")
-            {
-                // v0.19.5 奥术光膜护盾：圆形光膜 YRatio=1.0；alpha 0.2 淡罩（西幻奥术护盾观感）
-                p.YRatio = 1f;
-                p.Color(new Color(tc.r, tc.g, tc.b, 0.2f), new Color(tc.r, tc.g, tc.b, 0.05f));
-                return;
-            }
-            if (strong)
-            {
-                // v0.18.69：非半透明命中特效不透明度从 0.92 压到 0.55——
-                // 大块不透明会遮住地图和人物，半透明既能看清特效又不挡视野
-                p.Color(new Color(tc.r, tc.g, tc.b, 0.55f), new Color(tc.r, tc.g, tc.b, 0f));
-            }
-            else
-            {
-                p.Color(new Color(tc.r, tc.g, tc.b, 0.34f), new Color(tc.r, tc.g, tc.b, 0f));
-            }
-        }
+        // v0.21.46 移除 SpawnFx()：含 EffectsLibrary.spawn("fx_*") 原版特效图调用，
+        // 且无任何调用方（死代码）。全模组特效统一走 CombatFxCore.Spawn 程序化图元。
     }
 }

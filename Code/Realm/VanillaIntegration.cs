@@ -46,58 +46,8 @@ namespace Code.Realm
             }
         }
 
-        // === 灾难联动：9阶天灾级技能调用原版灾难 ===
-        public static void SpawnTornado(WorldTile tile)
-        {
-            try
-            {
-                var dl = AssetManager.disasters;
-                if (dl == null) return;
-                var tornadoAsset = AssetManager.disasters.get("tornado");
-                if (tornadoAsset != null)
-                {
-                    dl.spawnTornado(tornadoAsset);
-                    DSDebug.Verbose($"[VanillaIntegration] 龙卷风已生成");
-                }
-            }
-            catch (Exception e)
-            {
-                DSDebug.Verbose($"[VanillaIntegration] 生成龙卷风失败: {e.Message}");
-            }
-        }
-
-        public static void SpawnMeteorite(WorldTile tile)
-        {
-            try
-            {
-                if (tile == null) return;
-                Meteorite.spawnMeteoriteDisaster(tile, null);
-                DSDebug.Verbose($"[VanillaIntegration] 陨石已生成");
-            }
-            catch (Exception e)
-            {
-                DSDebug.Verbose($"[VanillaIntegration] 生成陨石失败: {e.Message}");
-            }
-        }
-
-        public static void SpawnEarthquake(WorldTile tile)
-        {
-            try
-            {
-                var dl = AssetManager.disasters;
-                if (dl == null) return;
-                var quakeAsset = AssetManager.disasters.get("small_earthquake");
-                if (quakeAsset != null)
-                {
-                    dl.spawnSmallEarthquake(quakeAsset);
-                    DSDebug.Verbose($"[VanillaIntegration] 地震已生成");
-                }
-            }
-            catch (Exception e)
-            {
-                DSDebug.Verbose($"[VanillaIntegration] 生成地震失败: {e.Message}");
-            }
-        }
+        // v0.21.46 移除 SpawnTornado/SpawnMeteorite/SpawnEarthquake：原版灾难机制含原版特效贴图，
+        // 且已无调用方（RealmAbilities 改走全程序化演出 + DSAoEDamageManager 伤害）。
 
         // === 年度信仰结算：登神者收集信徒贡献的信仰能量 ===
         public static void AnnualFaithSettlement()

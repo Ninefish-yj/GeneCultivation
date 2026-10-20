@@ -91,12 +91,14 @@ namespace Code.Combat
                 asset.scale_target = 0.12f;
                 asset.draw_light_area = true;
                 asset.draw_light_size = 0.12f;
-                asset.trail_effect_enabled = true;
-                asset.trail_effect_id = "fx_sparkle";
-                asset.trail_effect_scale = 0.08f;
-                asset.trail_effect_timer = 0.05f;
-                asset.end_effect = "fx_explosion";
-                asset.end_effect_scale = 0.15f;
+                // v0.21.46 关闭原版拖尾/命中特效（fx_sparkle/fx_explosion），零特效图约束。
+                // 投射物仍有自身纹理 + draw_light 发光，视觉不缺失。
+                asset.trail_effect_enabled = false;
+                asset.trail_effect_id = "";
+                asset.trail_effect_scale = 0f;
+                asset.trail_effect_timer = 0f;
+                asset.end_effect = "";
+                asset.end_effect_scale = 0f;
                 asset.trigger_on_collision = true;
                 asset.look_at_target = true;
                 AssetManager.projectiles.add(asset);
