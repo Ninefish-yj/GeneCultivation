@@ -1,35 +1,56 @@
 
+using System.Reflection;
 using UnityEngine;
 
 namespace Code.Core
 {
     /// <summary>
-    /// 工具类（publicized环境下直接访问internal字段，不用反射）
+    /// 反射工具类（v0.21.47 反射版）
+    /// MapBox.era_manager / map_stats 为 internal，直接访问抛 FieldAccessException。
+    /// 改用反射 + FieldInfo 缓存。
     /// </summary>
     public static class DSReflectionHelper
     {
-        /// <summary>
-        /// 获取 MapBox.map_stats 字段（publicized直连，不用反射）
-        /// </summary>
+        private static FieldInfo _eraManagerField;
+        private static FieldInfo _mapStatsField;
+        private static bool _resolved = false;
+
+        private static void EnsureResolved()
+        {
+            if (_resolved) return;
+            _resolved = true;
+            try
+            {
+                _eraManagerField = typeof(MapBox).GetField("era_manager",
+                    BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+                _mapStatsField = typeof(MapBox).GetField("map_stats",
+                    BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+            }
+            catch (System.Exception e) { DSDebug.Warning("[DSReflectionHelper] 字段解析失败: " + e.Message); }
+        }
+
+        /// <summary>获取 MapBox.map_stats 字段（反射）</summary>
         public static MapStats GetMapStats()
         {
             try
             {
                 if (World.world == null) return null;
-                return World.world.map_stats;
+                EnsureResolved();
+                if (_mapStatsField == null) return null;
+                return _mapStatsField.GetValue(World.world) as MapStats;
             }
             catch { return null; }
         }
 
-        /// <summary>
-        /// 获取 MapBox.era_manager 字段（publicized直连，不用反射）
-        /// </summary>
+        /// <summary>获取 MapBox.era_manager 字段（反射）</summary>
         public static WorldAgeManager GetEraManager()
         {
             try
             {
                 if (World.world == null) return null;
-                return World.world.era_manager;
+                EnsureResolved();
+                if (_eraManagerField == null) return null;
+                return _eraManagerField.GetValue(World.world) as WorldAgeManager;
             }
             catch { return null; }
         }

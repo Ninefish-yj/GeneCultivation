@@ -73,10 +73,11 @@ namespace Code.Realm.Prototype
                 if (summoned == null) return;
 
                 // 标记 + 登记生命周期（原版自定义数据容器为 float）
-                if (summoned.data == null) summoned.data = new ActorData();
-                if (summoned.data.custom_data_float == null)
-                    summoned.data.custom_data_float = new CustomDataContainer<float>();
-                summoned.data.custom_data_float["ds_summoned"] = 1f;
+                var sumData = Code.Data.ActorDataAccessor.GetData(summoned);
+                if (sumData == null) { sumData = new ActorData(); Code.Data.ActorDataAccessor.SetData(summoned, sumData); }
+                if (sumData.custom_data_float == null)
+                    sumData.custom_data_float = new CustomDataContainer<float>();
+                sumData.custom_data_float["ds_summoned"] = 1f;
                 _active.Add(new SummonedUnit { Actor = summoned, Remaining = LIFETIME });
 
                 // 专注攻击当前目标（野生生物会与周围卷入战斗，短寿命限幅影响）

@@ -802,37 +802,38 @@ namespace Code.Realm
 				if (data == null) return null;
 
 				// 关联数据重建（沿用原版 loadObject 载入；id 全部换新，避免与目标存档冲突）
+				var ms = Code.Core.DSReflectionHelper.GetMapStats();
 				if (subspeciesData != null)
 				{
-					subspeciesData.id = World.world.map_stats.getNextId("subspecies");
-					subspeciesData.created_time = World.world.map_stats.world_time;
+					subspeciesData.id = ms.getNextId("subspecies");
+					subspeciesData.created_time = ms.world_time;
 					data.subspecies = subspeciesData.id;
 					World.world.subspecies.loadObject(subspeciesData);
 				}
 				if (languageData != null)
 				{
-					languageData.id = World.world.map_stats.getNextId("language");
-					languageData.created_time = World.world.map_stats.world_time;
+					languageData.id = ms.getNextId("language");
+					languageData.created_time = ms.world_time;
 					data.language = languageData.id;
 					World.world.languages.loadObject(languageData);
 				}
 				if (cultureData != null)
 				{
-					cultureData.id = World.world.map_stats.getNextId("culture");
-					cultureData.created_time = World.world.map_stats.world_time;
+					cultureData.id = ms.getNextId("culture");
+					cultureData.created_time = ms.world_time;
 					data.culture = cultureData.id;
 					World.world.cultures.loadObject(cultureData);
 				}
 				if (clanData != null)
 				{
-					clanData.id = World.world.map_stats.getNextId("clan");
-					clanData.created_time = World.world.map_stats.world_time;
+					clanData.id = ms.getNextId("clan");
+					clanData.created_time = ms.world_time;
 					data.clan = clanData.id;
 					World.world.clans.loadObject(clanData);
 				}
 
 				// 单位本体：换新id、落到生成点、注入世界
-				data.id = World.world.map_stats.getNextId("unit");
+				data.id = ms.getNextId("unit");
 				WorldTile tile = FindSpawnTile();
 				if (tile == null) return null;
 				if (World.world.cities.get(data.cityID) == null) data.cityID = -1;

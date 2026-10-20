@@ -83,6 +83,11 @@ namespace Code
             UnityEngine.Object.DontDestroyOnLoad(tickObj);
             _tickDriver = tickObj.AddComponent<AnnualTickDriver>();
 
+            // 4.0.2 启动 R2 原型切换器（F8 切换基因编辑器渲染原型会话，P0 验收后由 P3 正式实现替换）
+            GameObject protoObj = new GameObject("[GeneCultivation] R2PrototypeToggler");
+            UnityEngine.Object.DontDestroyOnLoad(protoObj);
+            protoObj.AddComponent<Code.Realm.Genome.GenomePrototypeToggler>();
+
             // 4.1 先初始化境界专属内容（建筑要先注册，神力栏才能找到建筑按钮）
             Realm.RealmAbilities.Init();
             Realm.DSSkillEffectManager.Init();

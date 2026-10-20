@@ -100,16 +100,17 @@ namespace Code.Realm.Prototype
         /// <summary>觉醒定相成功时记录来源（RollPrototype 内调用）</summary>
         public static void RecordAwakened(Actor actor)
         {
-            if (actor == null || actor.data == null) return;
-            if (actor.data.custom_data_string == null) actor.data.custom_data_string = new CustomDataContainer<string>();
-            actor.data.custom_data_string[KEY_ORIGIN] = "awakened";
-            actor.data.custom_data_string[KEY_AWAKEN_YEAR] = GetWorldYear().ToString();
+            var data = Code.Data.ActorDataAccessor.GetData(actor);
+            if (data == null) return;
+            if (data.custom_data_string == null) data.custom_data_string = new CustomDataContainer<string>();
+            data.custom_data_string[KEY_ORIGIN] = "awakened";
+            data.custom_data_string[KEY_AWAKEN_YEAR] = GetWorldYear().ToString();
         }
 
         // ---- 年度进阶判定（难度非常高）----
         public static bool TryEvolve(Actor actor)
         {
-            if (actor == null || actor.data == null) return false;
+            if (Code.Data.ActorDataAccessor.GetData(actor) == null) return false;
             var proto = PrototypeRegistry.GetForActor(actor);
             if (proto == null) return false;
             var target = GetEvolveTarget(proto);
@@ -168,7 +169,8 @@ namespace Code.Realm.Prototype
             if (UnityEngine.Random.value > chance) return false;
 
             // 成功：写新异能 + 来源=进阶 + 次数
-            var data = actor.data;
+            var data = Code.Data.ActorDataAccessor.GetData(actor);
+            if (data == null) return false;
             if (data.custom_data_string == null) data.custom_data_string = new CustomDataContainer<string>();
             data.custom_data_string[GeneAffinityBridge.KEY_PROTOTYPE] = target.Id;
             data.custom_data_string[KEY_ORIGIN] = "evolved";

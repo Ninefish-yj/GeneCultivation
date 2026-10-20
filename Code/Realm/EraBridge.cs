@@ -5,7 +5,7 @@ namespace Code.Realm
 {
     /// <summary>
     /// 纪元桥接：把我们模组的纪元系统和原版WorldAge系统对接
-    /// （NML publicized 环境下直接访问 internal 成员，无需反射）
+    /// （v0.21.47 起用 DSReflectionHelper 反射访问 era_manager，兼容非 publicized 环境）
     /// </summary>
     public static class EraBridge
     {
@@ -17,8 +17,7 @@ namespace Code.Realm
             _initialized = true;
             try
             {
-                // publicized 环境下 World.world.era_manager 可直接访问（MapBox.era_manager 是 internal）
-                if (World.world.era_manager == null)
+                if (DSReflectionHelper.GetEraManager() == null)
                 {
                     DSDebug.Warning("[EraBridge] era_manager 为空，纪元桥接不可用");
                     return;
@@ -36,7 +35,7 @@ namespace Code.Realm
         {
             try
             {
-                var mgr = World.world.era_manager;
+                var mgr = DSReflectionHelper.GetEraManager();
                 if (mgr == null) return false;
 
                 var trueGodAge = AssetManager.era_library.get("age_ds_transcendent");

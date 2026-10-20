@@ -3,11 +3,11 @@
 WorldBox 0.51 + NeoModLoader 原创现代异能模组。**13阶阶位 + 56基因序列 + 398异能 + 9档品质 + 神名系统 + 圣所跨存档 + 维度空间 + 大场面战斗体系**，异能能量/失控指数/基因图谱驱动沙盒自主演化，至高者可跨存档互通。
 
 - 仓库：https://github.com/Ninefish-yj/GeneCultivation
-- 当前版本：**v0.21.46**
+- 当前版本：**v0.21.47**
 
 ---
 
-## 一、特性总览（v0.21.46）
+## 一、特性总览（v0.21.47）
 
 ### 阶位与修炼
 - **13阶阶位**：F级 → E级 → D级 → C级 → B级 → A级 → S级 → 称号级 → 天灾级 → 使徒级 → 登神级 → 真神级 → 超神级
@@ -83,6 +83,18 @@ WorldBox 0.51 + NeoModLoader 原创现代异能模组。**13阶阶位 + 56基因
 ---
 
 ## 四、版本记录
+
+### v0.21.47 — FieldAccessException 修复（反射访问 internal 字段）
+- 根因：NML 运行时不做 publicizer，`Actor.data`/`Actor.stats`/`MapBox.era_manager`/`MapBox.map_stats` 为 internal，直接访问抛 `FieldAccessException` 导致模组加载失败
+- 修复：`ActorDataAccessor` 重写为反射版（GetData/GetStats/SetData + FieldInfo 缓存）；`DSReflectionHelper.GetEraManager/GetMapStats` 改反射；`EraBridge`/`CombatPowerCalculator`/`DSDomainSystem`/`PrototypeEvolution`/`SummonEngine`/`TrueGodManager` 全部调用点切换到反射访问器
+- 编译 0 error，兼容 publicized / 非 publicized 环境
+
+### v0.21.46 — 全模组零特效图（彻底清除原版 fx_* 调用）
+- DSSkillEffectManager 重写（删除 14 种原版 fx 配置表，全程序化）；RealmAbilities 天灾/维度打击移除原版灾难调用；DisasterManager 虚空爆发程序化；RealmJudge 神圣星光程序化；CombatStatusFx 状态附着全程序化；VirtualWeaponSystem 关闭投射物原版拖尾/命中特效
+- 删除死代码 AbilityFx/PrototypeFx/VanillaIntegration 共 885 行；最终审计 EffectsLibrary.spawn=0、Resources.Load(effects/)=0、tile.freeze=0、"fx_" 非注释=0
+
+### v0.21.45 — 冰块特效图修复
+- 移除 `CombatMapFx.tile.freeze(5)`（原版 freeze 会换冰块贴图并递归扩散），保留纯程序化冰霜视觉（尺寸 2.0×、持续 3.0s）
 
 ### v0.21.0 — 战斗演出扩展（特效层已生效；战斗动作机制开发中）
 - **地形破坏分级（已生效）**：DSTerrainDestruction 新增 Blast（圆形坑）/Furrow（直线裂缝）/Quake（相机震动）/脚下保护；高境界触发（4阶焦痕/6阶炸坑/9阶地裂/登神岩浆），破坏半径随力度分级

@@ -38,7 +38,7 @@ namespace Code.Combat
         /// </summary>
         public static float Calculate(Actor actor)
         {
-            if (actor == null || actor.stats == null) return 0f;
+            if (actor == null || Code.Data.ActorDataAccessor.GetStats(actor) == null) return 0f;
 
             try
             {
@@ -103,12 +103,13 @@ namespace Code.Combat
             return (float)Math.Sqrt(raw / SCALE);
         }
 
-        /// <summary>安全取 stats（不存在返回 0）</summary>
+        /// <summary>安全取 stats（不存在返回 0，反射访问）</summary>
         private static float GetStat(Actor actor, string id)
         {
             try
             {
-                if (actor.stats.hasStat(id)) return actor.stats[id];
+                var stats = Code.Data.ActorDataAccessor.GetStats(actor);
+                if (stats != null && stats.hasStat(id)) return stats[id];
             }
             catch { }
             return 0f;

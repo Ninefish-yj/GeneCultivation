@@ -115,7 +115,7 @@ namespace Code.Realm
 
             foreach (Actor u in list)
             {
-                if (u == null || !u.isAlive() || u.data == null) continue;
+                if (u == null || !u.isAlive() || Code.Data.ActorDataAccessor.GetData(u) == null) continue;
                 long uid = u.getID();
                 if (uid == casterId) continue;
                 if (!s_seen.Add(uid)) continue;
@@ -144,7 +144,7 @@ namespace Code.Realm
 
             int tier = CultivationData.GetRealmTier(caster);
             float atk = 0f;
-            try { atk = caster.stats["damage"]; } catch { }
+            try { var cs = Code.Data.ActorDataAccessor.GetStats(caster); if (cs != null) atk = cs["damage"]; } catch { }
             
             if (atk <= 0f) return;
             float damage = atk * 0.1f * s_pulseDamageMul; // 每秒造成10%攻击力的伤害
@@ -158,13 +158,12 @@ namespace Code.Realm
             if (tier >= 11)
             {
                 // 圣域：额外降低敌人属性
-                try { u.stats["damage"] = Mathf.Max(0f, u.stats["damage"] * 0.95f); } catch { }
+                try { var us = Code.Data.ActorDataAccessor.GetStats(u); if (us != null) us["damage"] = Mathf.Max(0f, us["damage"] * 0.95f); } catch { }
             }
             if (tier >= 12)
             {
                 // 神域：全属性降低
-                try { u.stats["strength"] = Mathf.Max(0f, u.stats["strength"] * 0.95f); } catch { }
-                try { u.stats["intelligence"] = Mathf.Max(0f, u.stats["intelligence"] * 0.95f); } catch { }
+                try { var us = Code.Data.ActorDataAccessor.GetStats(u); if (us != null) { us["strength"] = Mathf.Max(0f, us["strength"] * 0.95f); us["intelligence"] = Mathf.Max(0f, us["intelligence"] * 0.95f); } } catch { }
             }
             if (tier >= 13)
             {
