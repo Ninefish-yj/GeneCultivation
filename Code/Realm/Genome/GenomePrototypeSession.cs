@@ -50,15 +50,17 @@ namespace Code.Realm.Genome
         /// <summary>
         /// 构建 1 条混合位点测试染色体（chromosome_medium=12 位点，2 行×6 列）。
         /// 布局：标准位点(填代理基因) / 虚空位点(empty+void) / 放大器位点(empty+amplifier) 混合。
+        /// v0.21.50 修复：pNew 必须传 true——false 时构造函数不初始化 genes（空列表），
+        /// showGenes 遍历 genes.Count=0 → 位点栏空。
         /// </summary>
         private static Nucleus BuildTestNucleus()
         {
             var nucleus = new Nucleus();
 
-            // chromosome_medium: amount_loci=12（天人武道已验），pNew=false 不随机生成放大器
-            var chrom = new Chromosome("chromosome_medium", false);
+            // pNew=true：初始化 12 个 empty 基因位点（chromosome_medium=12，天人武道已验）
+            var chrom = new Chromosome("chromosome_medium", true);
 
-            // 反射写放大器/虚空位点布局（天人武道 CreateChromosomeFromNormalizedData 已验路径）
+            // 覆盖为固定布局（readonly 字段反射可设；失败不打致命，仅警告）
             SetPrivateField(chrom, "_loci_amplifiers", new List<int> { 4, 9 });
             SetPrivateField(chrom, "_loci_empty", new List<int> { 3, 7 });
 
@@ -73,16 +75,21 @@ namespace Code.Realm.Genome
                 }
             }
             Debug.Log("[GeneCultivation][R2原型] 代理基因数=" + proxies.Count +
-                      (proxies.Count > 0 ? " 首个=" + proxies[0].id : ""));
+                      (proxies.Count > 0 ? " 首个=" + proxies[0].id : "") +
+                      " 位点数=" + chrom.genes.Count);
 
             // 标准位点填代理基因（索引 0,1,2,5,6,8,10,11）；虚空/放大器保持 empty
+            // v0.21.50：基因库全 empty 时跳过填充（染色体仍是 12 空位点，可渲染）
             int[] standardLoci = { 0, 1, 2, 5, 6, 8, 10, 11 };
-            for (int i = 0; i < standardLoci.Length; i++)
+            if (proxies.Count > 0)
             {
-                int idx = standardLoci[i];
-                if (idx < chrom.genes.Count && proxies.Count > 0)
+                for (int i = 0; i < standardLoci.Length; i++)
                 {
-                    chrom.genes[idx] = proxies[i % proxies.Count];
+                    int idx = standardLoci[i];
+                    if (idx < chrom.genes.Count)
+                    {
+                        chrom.genes[idx] = proxies[i % proxies.Count];
+                    }
                 }
             }
 
@@ -94,8 +101,19 @@ namespace Code.Realm.Genome
         {
             var f = obj.GetType().GetField(fieldName,
                 BindingFlags.NonPublic | BindingFlags.Instance);
-            if (f != null) f.SetValue(obj, value);
-            else Debug.LogWarning("[GeneCultivation][R2原型] 未找到字段: " + fieldName);
+            if (f == null)
+            {
+                Debug.LogWarning("[GeneCultivation][R2原型] 未找到字段: " + fieldName);
+                return;
+            }
+            try
+            {
+                f.SetValue(obj, value);
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogWarning("[GeneCultivation][R2原型] 设置字段失败 " + fieldName + ": " + e.Message);
+            }
         }
     }
 

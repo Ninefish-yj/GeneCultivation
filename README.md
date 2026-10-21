@@ -3,11 +3,11 @@
 WorldBox 0.51 + NeoModLoader 原创现代异能模组。**13阶阶位 + 56基因序列 + 398异能 + 9档品质 + 神名系统 + 圣所跨存档 + 维度空间 + 大场面战斗体系**，异能能量/失控指数/基因图谱驱动沙盒自主演化，至高者可跨存档互通。
 
 - 仓库：https://github.com/Ninefish-yj/GeneCultivation
-- 当前版本：**v0.21.49**
+- 当前版本：**v0.21.50**
 
 ---
 
-## 一、特性总览（v0.21.49）
+## 一、特性总览（v0.21.50）
 
 ### 阶位与修炼
 - **13阶阶位**：F级 → E级 → D级 → C级 → B级 → A级 → S级 → 称号级 → 天灾级 → 使徒级 → 登神级 → 真神级 → 超神级
@@ -85,6 +85,10 @@ WorldBox 0.51 + NeoModLoader 原创现代异能模组。**13阶阶位 + 56基因
 ---
 
 ## 四、版本记录
+
+### v0.21.50 — 修复 R2 原型位点栏空（真根因：pNew=false 不初始化 genes）
+- 原版 `Chromosome(string pType, bool pNew)` 构造函数：仅 `pNew=true` 才把 `genes` 填满（amount_loci 个 empty 基因）；`false` 时 `genes` 为空列表 → `showGenes` 遍历 0 个位点 → 位点栏完全空
+- 修复：`new Chromosome("chromosome_medium", true)` 初始化 12 个位点后再覆盖固定虚空/放大器布局；`SetPrivateField` 加 try/catch（readonly 字段反射失败仅警告不致命）；基因库全 empty 时跳过代理填充（仍是 12 空位点可渲染）
 
 ### v0.21.49 — 修复 R2 原型位点栏空（测试染色体未构建）
 - 根因：`EnsureActive()` 仅在 Toggler `Awake` 调用一次，若当时 `AssetManager.gene_library` 未就绪则静默跳过，`TestNucleus` 永远为 null，patch 放行原版 → 基因位点栏空
