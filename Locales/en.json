@@ -2414,5 +2414,9 @@
   "proto_nodes": "Nodes",
   "proto_category_line": "Category: ",
   "event_apotheosis_descend": "Apotheosis Descends",
-  "event_apotheosis_descend_desc": "An apotheosis is born; heaven and earth bestow it, and all ability users are bathed in energy."
+  "event_apotheosis_descend_desc": "An apotheosis is born; heaven and earth bestow it, and all ability users are bathed in energy.",
+  "config_EnableGeneEditorDebug": "Gene Editor Debug",
+  "config_EnableGeneEditorDebug_desc": "When enabled, the subspecies editor gene tab renders a sample genome to preview the render pipeline (read-only). The unit window gene tab is unaffected.",
+  "EnableGeneEditorDebug": "Gene Editor Debug",
+  "EnableGeneEditorDebug_desc": "When enabled, the subspecies editor gene tab renders a sample genome to preview the render pipeline (read-only)."
 }
