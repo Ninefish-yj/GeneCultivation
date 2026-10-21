@@ -83,10 +83,10 @@ namespace Code
             UnityEngine.Object.DontDestroyOnLoad(tickObj);
             _tickDriver = tickObj.AddComponent<AnnualTickDriver>();
 
-            // 4.0.2 启动 R2 原型（默认开启：挂载即构建测试染色体接管基因编辑器渲染，P0 验收后由 P3 正式实现替换；F8 可关闭/再开启）
-            GameObject protoObj = new GameObject("[GeneCultivation] R2PrototypeToggler");
+            // 4.0.2 启动 P3 渲染会话调试切换器（F8 调试模式；正常游玩由单位窗基因页签宿主自动激活会话，无需按键）
+            GameObject protoObj = new GameObject("[GeneCultivation] GenomeEditorToggler");
             UnityEngine.Object.DontDestroyOnLoad(protoObj);
-            protoObj.AddComponent<Code.Realm.Genome.GenomePrototypeToggler>();
+            protoObj.AddComponent<Code.Realm.Genome.GenomeEditorToggler>();
 
             // 4.1 先初始化境界专属内容（建筑要先注册，神力栏才能找到建筑按钮）
             Realm.RealmAbilities.Init();
