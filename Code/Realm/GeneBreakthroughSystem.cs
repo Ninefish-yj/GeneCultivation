@@ -103,14 +103,14 @@ namespace Code.Realm
 		}
 
 		/// <summary>
-		/// 获取有至少指定数量基因激活的染色体数量
+		/// 获取有至少指定数量基因激活的染色体数量（P2 桥接：Genome 读源，逻辑染色体 Group 0-7，阈值语义不变）
 		/// </summary>
 		private static int GetChromosomeCountWithMinGenes(Actor actor, int minGeneCount)
 		{
 			int count = 0;
 			for (int i = 0; i < 8; i++)
 			{
-				if (GeneExpressionSystem.GetActivatedGeneCountInChromosome(actor, i) >= minGeneCount)
+				if (Code.Realm.Genome.GenomeEffects.GetGroupGeneCount(actor, i, 0) >= minGeneCount)
 				{
 					count++;
 				}
@@ -119,14 +119,14 @@ namespace Code.Realm
 		}
 
 		/// <summary>
-		/// 获取有至少指定表达层级基因的染色体数量
+		/// 获取有至少指定表达层级基因的染色体数量（P2 桥接：Genome 读源）
 		/// </summary>
 		private static int GetChromosomeCountWithMinLevel(Actor actor, GeneExpressionSystem.ExpressionLevel minLevel)
 		{
 			int count = 0;
 			for (int i = 0; i < 8; i++)
 			{
-				if (GeneExpressionSystem.GetGeneCountAtLevelInChromosome(actor, i, minLevel) >= 1)
+				if (Code.Realm.Genome.GenomeEffects.GetGroupGeneCount(actor, i, (int)minLevel) >= 1)
 				{
 					count++;
 				}

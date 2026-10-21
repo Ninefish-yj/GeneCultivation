@@ -607,6 +607,10 @@ namespace Code.Core
 
                 CultivationData.AddMastery(actor, finalGain);
 
+                // P2 桥接：修炼产出同时喂入基因填点进度（§4.3，复用同一次产出，不另造数值）
+                try { Code.Realm.Genome.GenomeCultivationProgress.AddProgress(actor, finalGain); }
+                catch (Exception ge) { DSDebug.Warning($"基因填点异常: {ge.Message}"); }
+
                 DSDebug.Verbose($"[GeneCultivation] {actor.getName()} 能力掌控度提升 {finalGain:F1}  {CultivationData.GetMastery(actor):F1}/100");
             }
             catch (Exception e)
@@ -733,6 +737,8 @@ namespace Code.Core
 
                 //  基因突变机制：完成基因任务后按概率获得，未获得可重复尝试（下一年度）
                 try { GeneMutationSystem.AnnualMutationCheck(actor); } catch (Exception e) { DSDebug.Warning($"基因突变异常: {e.Message}"); }
+                //  P2 桥接：突变激活的新基因位点有空立即挂载（位点满则留待填点队列）
+                try { Code.Realm.Genome.GenomeMutation.SyncAfterMutation(actor); } catch (Exception e) { DSDebug.Warning($"基因挂载异常: {e.Message}"); }
                 // 修炼时缓慢提升基因表达层级
                 try { Code.Realm.GeneExpressionSystem.CultivationExpressionUpgrade(actor); } catch (Exception e) { DSDebug.Warning($"基因表达提升异常: {e.Message}"); }
             }

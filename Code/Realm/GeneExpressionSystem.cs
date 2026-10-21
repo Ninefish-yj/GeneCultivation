@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Code.Data;
 using Code.Core;
+using Code.Realm.Genome;
 
 namespace Code.Realm
 {
@@ -59,29 +60,30 @@ namespace Code.Realm
 		};
 
 		/// <summary>
-		/// 获取基因的表达层级
+		/// 获取基因的表达层级（P2 桥接：GenomeEffects 读源——基因组位点优先，回退旧键）
 		/// </summary>
 		public static ExpressionLevel GetExpressionLevel(Actor actor, string geneId)
 		{
 			if (actor == null || string.IsNullOrEmpty(geneId)) return ExpressionLevel.Silent;
 			
-			// 如果基因未解锁，返回沉默
-			if (!CultivationData.IsElementUnlocked(actor, geneId)) return ExpressionLevel.Silent;
+			// 如果基因未激活，返回沉默
+			if (!CultivationData.IsElementUnlocked(actor, geneId) &&
+			    !GenomeEffects.IsGeneMounted(actor, geneId)) return ExpressionLevel.Silent;
 			
-			// 获取存储的表达层级（使用CultivationData的公共方法）
-			int level = CultivationData.GetGeneExpressionLevel(actor, geneId);
+			// GenomeEffects：位点优先（迁移搬入的 LocusSlot.ExprLevel），待挂基因回退旧键
+			int level = GenomeEffects.GetExpressionLevel(actor, geneId);
 			
 			return (ExpressionLevel)Mathf.Clamp(level, 0, 5);
 		}
 
 		/// <summary>
-		/// 设置基因的表达层级
+		/// 设置基因的表达层级（P2 桥接：GenomeEffects 双写——位点 + 旧键兼容垫片）
 		/// </summary>
 		public static void SetExpressionLevel(Actor actor, string geneId, ExpressionLevel level)
 		{
 			if (actor == null || string.IsNullOrEmpty(geneId)) return;
 			
-			CultivationData.SetGeneExpressionLevel(actor, geneId, (int)level);
+			GenomeEffects.SetExpressionLevel(actor, geneId, (int)level);
 		}
 
 		/// <summary>
@@ -106,75 +108,34 @@ namespace Code.Realm
 		}
 
 		/// <summary>
-		/// 获取某条染色体上已激活基因的数量
+		/// 获取某条染色体（逻辑染色体 Group 0-7）上已激活基因的数量（P2 桥接：Genome 读源）
 		/// </summary>
 		public static int GetActivatedGeneCountInChromosome(Actor actor, int chromosome)
 		{
-			if (actor == null) return 0;
-			
-			var unlockedGenes = CultivationData.GetUnlockedElements(actor);
-			if (unlockedGenes == null || unlockedGenes.Count == 0) return 0;
-			
-			int count = 0;
-			foreach (var geneId in unlockedGenes)
-			{
-				var gene = Code.ElementDef.GetById(geneId);
-				if (gene != null && gene.Group == chromosome)
-				{
-					count++;
-				}
-			}
-			
-			return count;
+			if (actor == null || chromosome < 0 || chromosome > 7) return 0;
+			return GenomeEffects.GetGroupGeneCount(actor, chromosome, 0);
 		}
 
 		/// <summary>
-		/// 获取某条染色体上达到指定表达层级的基因数量
+		/// 获取某条染色体（逻辑染色体 Group 0-7）上达到指定表达层级的基因数量（P2 桥接：Genome 读源）
 		/// </summary>
 		public static int GetGeneCountAtLevelInChromosome(Actor actor, int chromosome, ExpressionLevel minLevel)
 		{
-			if (actor == null) return 0;
-			
-			var unlockedGenes = CultivationData.GetUnlockedElements(actor);
-			if (unlockedGenes == null || unlockedGenes.Count == 0) return 0;
-			
-			int count = 0;
-			foreach (var geneId in unlockedGenes)
-			{
-				var gene = Code.ElementDef.GetById(geneId);
-				if (gene != null && gene.Group == chromosome)
-				{
-					ExpressionLevel level = GetExpressionLevel(actor, geneId);
-					if (level >= minLevel)
-					{
-						count++;
-					}
-				}
-			}
-			
-			return count;
+			if (actor == null || chromosome < 0 || chromosome > 7) return 0;
+			return GenomeEffects.GetGroupGeneCount(actor, chromosome, (int)minLevel);
 		}
 
 		/// <summary>
-		/// 获取达到指定表达层级的基因总数
+		/// 获取达到指定表达层级的基因总数（P2 桥接：Genome 读源）
 		/// </summary>
 		public static int GetTotalGeneCountAtLevel(Actor actor, ExpressionLevel minLevel)
 		{
 			if (actor == null) return 0;
-			
-			var unlockedGenes = CultivationData.GetUnlockedElements(actor);
-			if (unlockedGenes == null || unlockedGenes.Count == 0) return 0;
-			
 			int count = 0;
-			foreach (var geneId in unlockedGenes)
+			foreach (var geneId in GenomeEffects.GetEffectiveGeneIds(actor))
 			{
-				ExpressionLevel level = GetExpressionLevel(actor, geneId);
-				if (level >= minLevel)
-				{
-					count++;
-				}
+				if (GetExpressionLevel(actor, geneId) >= minLevel) count++;
 			}
-			
 			return count;
 		}
 
@@ -186,7 +147,7 @@ namespace Code.Realm
 			if (actor == null || !actor.isAlive()) return;
 			if (!CultivationData.IsAscended(actor)) return;
 			
-			var unlockedGenes = CultivationData.GetUnlockedElements(actor);
+			var unlockedGenes = GenomeEffects.GetEffectiveGeneIds(actor);
 			if (unlockedGenes == null || unlockedGenes.Count == 0) return;
 			
 			// 修炼时有1%概率随机提升一个基因的表达层级
@@ -215,13 +176,13 @@ namespace Code.Realm
 			
 			try
 			{
-				var unlockedGenes = CultivationData.GetUnlockedElements(actor);
+				var unlockedGenes = GenomeEffects.GetEffectiveGeneIds(actor);
 				if (unlockedGenes == null || unlockedGenes.Count == 0) return 0f;
 				
 				float totalBonus = 0f;
 				foreach (var geneId in unlockedGenes)
 				{
-					int exprLevel = CultivationData.GetGeneExpressionLevel(actor, geneId);
+					int exprLevel = GenomeEffects.GetExpressionLevel(actor, geneId);
 					// 表达层级越高，技能伤害加成越多
 					// 低表达+1%，中表达+2%，高表达+4%，过表达+6%，突变+10%
 					float[] levelBonus = { 0f, 0.01f, 0.02f, 0.04f, 0.06f, 0.10f };
@@ -249,7 +210,7 @@ namespace Code.Realm
 			
 			try
 			{
-				var unlockedGenes = CultivationData.GetUnlockedElements(actor);
+				var unlockedGenes = GenomeEffects.GetEffectiveGeneIds(actor);
 				if (unlockedGenes == null || unlockedGenes.Count == 0) return 0f;
 				
 				float totalBonus = 0f;
@@ -260,7 +221,7 @@ namespace Code.Realm
 					if (gene == null) continue;
 					if (gene.Group != 2 && gene.Group != 6) continue; // 2=体质，6=异能
 					
-					int exprLevel = CultivationData.GetGeneExpressionLevel(actor, geneId);
+					int exprLevel = GenomeEffects.GetExpressionLevel(actor, geneId);
 					float[] levelBonus = { 0f, 0.01f, 0.02f, 0.04f, 0.06f, 0.10f };
 					if (exprLevel >= 0 && exprLevel < levelBonus.Length)
 					{
@@ -287,7 +248,7 @@ namespace Code.Realm
 			if (actor == null || !CultivationData.IsAscended(actor)) return 0f;
 			try
 			{
-				var unlockedGenes = CultivationData.GetUnlockedElements(actor);
+				var unlockedGenes = GenomeEffects.GetEffectiveGeneIds(actor);
 				if (unlockedGenes == null || unlockedGenes.Count == 0) return 0f;
 
 				float total = 0f;
@@ -295,7 +256,7 @@ namespace Code.Realm
 				{
 					var info = ElementDef.GetById(geneId);
 					if (info == null || info.EffectType != type) continue;
-					int exprLevel = CultivationData.GetGeneExpressionLevel(actor, geneId);
+					int exprLevel = GenomeEffects.GetExpressionLevel(actor, geneId);
 					if (exprLevel < 0 || exprLevel >= EffectMultipliers.Length) exprLevel = 1;
 					total += info.EffectValue * EffectMultipliers[exprLevel];
 				}
@@ -313,7 +274,7 @@ namespace Code.Realm
 			if (actor == null || !CultivationData.IsAscended(actor)) return 0;
 			try
 			{
-				var unlockedGenes = CultivationData.GetUnlockedElements(actor);
+				var unlockedGenes = GenomeEffects.GetEffectiveGeneIds(actor);
 				if (unlockedGenes == null || unlockedGenes.Count == 0) return 0;
 
 				int count = 0;
@@ -321,7 +282,7 @@ namespace Code.Realm
 				{
 					var info = ElementDef.GetById(geneId);
 					if (info == null || info.EffectType != type) continue;
-					if (CultivationData.GetGeneExpressionLevel(actor, geneId) >= minExprLevel) count++;
+					if (GenomeEffects.GetExpressionLevel(actor, geneId) >= minExprLevel) count++;
 				}
 				return count;
 			}
