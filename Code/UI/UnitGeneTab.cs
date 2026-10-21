@@ -41,7 +41,27 @@ namespace Code.UI
         private static readonly FieldInfo WorldTipField =
             AccessTools.Field(typeof(WindowMetaTab), "_worldtip_text");
         private static readonly FieldInfo ScrollWindowField =
-            AccessTools.Field(typeof(UnitWindow), "scroll_window");
+            FindScrollWindowField();
+
+        /// <summary>
+        /// scroll_window 声明在基类 TabbedWindow（protected）。typeof(UnitWindow).GetField
+        /// 不沿继承链返回非 public 字段（会得 null），必须沿继承链逐级找（天人武道直接
+        /// 访问 window.scroll_window 依赖同程序集可见性，模组必须反射基类字段）。
+        /// </summary>
+        private static FieldInfo FindScrollWindowField()
+        {
+            System.Type t = typeof(UnitWindow);
+            while (t != null)
+            {
+                var f = t.GetField("scroll_window",
+                    System.Reflection.BindingFlags.NonPublic |
+                    System.Reflection.BindingFlags.Instance |
+                    System.Reflection.BindingFlags.DeclaredOnly);
+                if (f != null) return f;
+                t = t.BaseType;
+            }
+            return null;
+        }
 
         /// <summary>每次单位窗刷新时调用——纯编排：判定→建页签→挂内容→按激活态懒渲染</summary>
         public static void Refresh(UnitWindow window)

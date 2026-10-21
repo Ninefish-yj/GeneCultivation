@@ -22,6 +22,7 @@ namespace Code.UI
         [HarmonyPatch(typeof(UnitWindow), "OnEnable")]
         public static void OnEnable_Postfix(UnitWindow __instance)
         {
+            try { UnitGeneTab.ShowDiagnosticForPatch(__instance, "补丁触发:OnEnable"); } catch { }
             try { TryRefresh(__instance); } catch { }
         }
 
@@ -29,6 +30,7 @@ namespace Code.UI
         [HarmonyPatch(typeof(UnitWindow), "showInfo")]
         public static void ShowInfo_Postfix(UnitWindow __instance)
         {
+            try { UnitGeneTab.ShowDiagnosticForPatch(__instance, "补丁触发:showInfo"); } catch { }
             try { TryRefresh(__instance); } catch { }
         }
 
@@ -36,6 +38,7 @@ namespace Code.UI
         [HarmonyPatch(typeof(UnitWindow), "showStatsRows")]
         public static void ShowStatsRows_Postfix(UnitWindow __instance)
         {
+            try { UnitGeneTab.ShowDiagnosticForPatch(__instance, "补丁触发:showStatsRows"); } catch { }
             try { TryRefresh(__instance); } catch { }
         }
 
