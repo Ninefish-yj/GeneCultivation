@@ -50,12 +50,14 @@ namespace Code.UI
                 if (scroll == null || scroll.tabs == null)
                 {
                     // 预期分支：窗口未完成页签初始化——静默
+                    Code.Core.DSDebug.Verbose("[GeneCultivation][UnitGeneTab] scroll 或 tabs 未就绪，隐藏页签");
                     UnitGeneTabPanel.Hide();
                     return;
                 }
 
                 if (!ShouldShowEntry(window))
                 {
+                    Code.Core.DSDebug.Verbose("[GeneCultivation][UnitGeneTab] 无存活单位（ShouldShowEntry=false），隐藏页签");
                     HideTab(scroll);
                     return;
                 }
@@ -64,8 +66,12 @@ namespace Code.UI
                 if (tab == null)
                 {
                     // 预期分支：无可克隆页签源（原版 UI 结构异常）——静默
+                    Code.Core.DSDebug.Verbose("[GeneCultivation][UnitGeneTab] EnsureTab 返回 null（无可克隆页签源），静默");
                     return;
                 }
+                Code.Core.DSDebug.Verbose("[GeneCultivation][UnitGeneTab] 页签就绪: " + tab.name +
+                    " actor=" + (UnitWindowIntegration.GetUnitActor(window)?.getName() ?? "null") +
+                    " onTab=" + scroll.tabs.isActiveTab(tab));
 
                 tab.gameObject.SetActive(true);
                 SetTabVisible(tab, true);
@@ -126,7 +132,12 @@ namespace Code.UI
             }
 
             WindowMetaTab source = FindCloneSource(scroll.tabs);
-            if (source == null) return null;
+            if (source == null)
+            {
+                Code.Core.DSDebug.Verbose("[GeneCultivation][UnitGeneTab] 无克隆源页签（FindCloneSource=null）");
+                return null;
+            }
+            Code.Core.DSDebug.Verbose("[GeneCultivation][UnitGeneTab] 克隆源页签: " + source.name);
 
             GameObject tabObj = UnityEngine.Object.Instantiate(source.gameObject, source.transform.parent);
             tabObj.name = TabName;
@@ -164,7 +175,11 @@ namespace Code.UI
                 if (ScrollWindowField != null)
                 {
                     var scroll = ScrollWindowField.GetValue(window) as ScrollWindow;
-                    if (scroll != null) return scroll;
+                    if (scroll != null)
+                    {
+                        Code.Core.DSDebug.Verbose("[GeneCultivation][UnitGeneTab] scroll_window 经字段反射取得");
+                        return scroll;
+                    }
                 }
             }
             catch { }
@@ -177,16 +192,27 @@ namespace Code.UI
                 if (prop != null)
                 {
                     var scroll = prop.GetValue(window, null) as ScrollWindow;
-                    if (scroll != null) return scroll;
+                    if (scroll != null)
+                    {
+                        Code.Core.DSDebug.Verbose("[GeneCultivation][UnitGeneTab] scroll_window 经属性反射取得");
+                        return scroll;
+                    }
                 }
             }
             catch { }
             try
             {
                 Component host = (Component)(object)window;
-                return host.GetComponent<ScrollWindow>() ?? host.GetComponentInParent<ScrollWindow>();
+                var scroll = host.GetComponent<ScrollWindow>() ?? host.GetComponentInParent<ScrollWindow>();
+                if (scroll != null)
+                {
+                    Code.Core.DSDebug.Verbose("[GeneCultivation][UnitGeneTab] scroll_window 经组件查找取得");
+                    return scroll;
+                }
             }
-            catch { return null; }
+            catch { }
+            Code.Core.DSDebug.Verbose("[GeneCultivation][UnitGeneTab] scroll_window 三种方式均未取得");
+            return null;
         }
 
         private static WindowMetaTab FindExistingTab(ScrollWindow scroll)
