@@ -56,10 +56,12 @@ WorldBox 0.51 + NeoModLoader 原创现代异能模组。**13阶阶位 + 56基因
 
 ## 二、安装
 
-1. 下载最新 `GeneCultivation_vX.Y.Z.zip`
+> **本模组为 NML 源码模组**（`ModClass : BasicMod<ModClass>`，NML 运行时编译 `.cs` 源码），交付包为源码包（含 `ModClass.cs` + `Code/` 全源码，**不含 DLL**）。请勿使用 DLL 结构包（DLL 模组与源码模组加载路径不同，会导致加载失败）。
+
+1. 下载最新源码包 `GeneCultivation_vX.Y.Z_src.zip`
 2. 解压到 WorldBox 模组目录：`<游戏目录>/Mods/`（zip 顶层文件夹 `GeneCultivation` 与 mod.json GUID 一致）
-3. 从 Steam 启动 WorldBox 0.51（0.51.2+），NeoModLoader 自动加载
-4. 手机端更新需**先删除旧模组文件夹**再解压新包
+3. 从 Steam 启动 WorldBox 0.51（0.51.2+），NeoModLoader 自动编译加载
+4. 手机端更新需**先删除旧模组文件夹**再解压新包（避免新旧源码混存）
 
 ## 三、配置（游戏内 设置 → 模组配置）
 
