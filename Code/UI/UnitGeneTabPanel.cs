@@ -126,6 +126,7 @@ namespace Code.UI
         internal static void Hide()
         {
             _boundActor = null;
+            GenomeEditorHost.HideHost();   // P3 渲染批2：结束会话并隐藏宿主（门禁回归）
             if (_container != null) _container.gameObject.SetActive(false);
         }
 
@@ -167,6 +168,14 @@ namespace Code.UI
         {
             Actor actor = _boundActor;
             if (actor == null) return;
+
+            // P3 渲染批2：优先挂载原版 GeneEditor 宿主（真实基因组渲染，A 路）；
+            // 克隆失败/结构异常时回退自绘视图（保底不空屏）
+            if (_container != null && GenomeEditorHost.EnsureHost(actor, _container))
+            {
+                return;
+            }
+
             ClearChildren();
             bool en = UILocalization.CurrentLanguage == "en";
 

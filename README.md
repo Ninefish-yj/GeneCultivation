@@ -3,11 +3,11 @@
 WorldBox 0.51 + NeoModLoader 原创现代异能模组。**13阶阶位 + 56基因序列 + 398异能 + 9档品质 + 神名系统 + 圣所跨存档 + 维度空间 + 大场面战斗体系**，异能能量/失控指数/基因图谱驱动沙盒自主演化，至高者可跨存档互通。
 
 - 仓库：https://github.com/Ninefish-yj/GeneCultivation
-- 当前版本：**v0.23.0**
+- 当前版本：**v0.24.0**
 
 ---
 
-## 一、特性总览（v0.23.0）
+## 一、特性总览（v0.24.0）
 
 ### 阶位与修炼
 - **13阶阶位**：F级 → E级 → D级 → C级 → B级 → A级 → S级 → 称号级 → 天灾级 → 使徒级 → 登神级 → 真神级 → 超神级
@@ -85,6 +85,15 @@ WorldBox 0.51 + NeoModLoader 原创现代异能模组。**13阶阶位 + 56基因
 ---
 
 ## 四、版本记录
+
+### v0.24.0 — P3 渲染接管（基因系统重实现第四阶段）
+- `GenomeEditorSession`：渲染会话（Active 门禁 + 目标单位 + 真实基因组数据源；替换 R2 测试染色体原型）
+- `GenomeEditorBridge`：接管原版 GeneEditor 六方法（loadChromosomes/chromosomeUpdatedEvent/showGenes/reloadButtons/clickGeneAssetAction/Update）+ 调试按钮门禁——A 路代理基因资产渲染（P0 定稿），全部 `IsActive` 门禁，**亚种编辑器零污染**
+- `GenomeEditorHost`：单位窗基因页签宿主——克隆原版 GeneEditor（WindowPreloader subspecies 预制体 → Genetics 页签元素根）→ 剥离亚种窗组件 → 挂载页签容器 → 渲染真实基因组；克隆失败回退自绘视图
+- 单位窗基因页签 = 原版观感自定义染色体（位点网络显示真实基因排布）
+- F8 调试模式：无单位绑定时预览渲染管线
+- 注：点击基因按钮写入位点 P4 启用（基因挂载由修炼填点驱动）
+
 
 ### v0.23.0 — P2 业务层 + 桥接（基因系统重实现第三阶段）
 - 新增 `GenomeEffects`：聚合读源（位点 ∪ 待挂基因 = 全部激活基因，突破/效果语义与迁移前一致）；表达双写（位点+旧键兼容垫片）；软分桶挂载（按基因 Group 分桶、位点自由排布）

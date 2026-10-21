@@ -169,6 +169,20 @@ namespace Code.Realm.Genome
         }
     }
 
+    // ---------- 5b. 调试按钮门禁（克隆体上的 randomize/shuffle 按钮不得写回亚种） ----------
+
+    [HarmonyPatch(typeof(GeneEditor), "debugRandomizeGenes")]
+    public static class GenomeBridge_DebugRandomize
+    {
+        static bool Prefix() => !GenomeEditorSession.IsActive;
+    }
+
+    [HarmonyPatch(typeof(GeneEditor), "debugShuffleGenes")]
+    public static class GenomeBridge_DebugShuffle
+    {
+        static bool Prefix() => !GenomeEditorSession.IsActive;
+    }
+
     // ---------- 6. Update ----------
 
     [HarmonyPatch(typeof(GeneEditor), "Update")]
