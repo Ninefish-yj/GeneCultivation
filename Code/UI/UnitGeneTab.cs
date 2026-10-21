@@ -120,6 +120,7 @@ namespace Code.UI
         {
             try
             {
+                HideDiagnostic();
                 if (window == null) return;
                 ScrollWindow scroll = GetScrollWindow(window);
                 if (scroll?.tabs?.tab_default == null) return;
@@ -140,15 +141,25 @@ namespace Code.UI
             try { ShowDiagnostic(window, text); } catch { }
         }
 
-        // ---------- 临时诊断行（v0.24.3：手机无法导出日志；修复后整体删除） ----------
+        // ---------- 临时诊断行（v0.24.6：独立行对象，不经 UnitOwnStatsRows——
+        //   会被 UnitWindowIntegration.Postfix 的 ClearOwnRows() 清掉；修复后整体删除） ----------
 
         private static void ShowDiagnostic(UnitWindow window, string text)
         {
             try
             {
-                if (_diagRow != null) { try { UnityEngine.Object.Destroy(_diagRow.gameObject); } catch { } _diagRow = null; }
+                HideDiagnostic();
                 if (window == null) return;
-                var row = UnitOwnStatsRows.AddRow(window, "基因页签", text);
+                var container = UnitOwnStatsRows.GetContainer(window);
+                if (container == null) return;
+                var prefab = Resources.Load<KeyValueField>("ui/KeyValueFieldStats");
+                if (prefab == null) return;
+                var row = Object.Instantiate(prefab, container.transform, false);
+                row.gameObject.name = "[GeneCultivation-Diag]";
+                row.icon.gameObject.SetActive(false);
+                row.name_text.text = "基因页签";
+                row.value.text = text;
+                row.gameObject.SetActive(true);
                 _diagRow = row;
             }
             catch { }
