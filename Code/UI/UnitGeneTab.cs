@@ -32,6 +32,10 @@ namespace Code.UI
     {
         public const string TabName = "DS_GeneTab";
 
+        /// <summary>诊断行（v0.24.3 临时：手机无法导出日志，页签异常直接显示在单位窗；修复后删除）</summary>
+        private static KeyValueField _diagRow;
+        private static KeyValueField _diagRowPrev;
+
         private static readonly FieldInfo TabsListField =
             AccessTools.Field(typeof(WindowMetaTabButtonsContainer), "_tabs");
         private static readonly FieldInfo WorldTipField =
@@ -51,6 +55,7 @@ namespace Code.UI
                 {
                     // 预期分支：窗口未完成页签初始化——静默
                     Code.Core.DSDebug.Verbose("[GeneCultivation][UnitGeneTab] scroll 或 tabs 未就绪，隐藏页签");
+                    ShowDiagnostic(window, "scroll/tabs 未就绪");
                     UnitGeneTabPanel.Hide();
                     return;
                 }
@@ -67,11 +72,13 @@ namespace Code.UI
                 {
                     // 预期分支：无可克隆页签源（原版 UI 结构异常）——静默
                     Code.Core.DSDebug.Verbose("[GeneCultivation][UnitGeneTab] EnsureTab 返回 null（无可克隆页签源），静默");
+                    ShowDiagnostic(window, "无可克隆页签源(EnsureTab=null)");
                     return;
                 }
                 Code.Core.DSDebug.Verbose("[GeneCultivation][UnitGeneTab] 页签就绪: " + tab.name +
                     " actor=" + (UnitWindowIntegration.GetUnitActor(window)?.getName() ?? "null") +
                     " onTab=" + scroll.tabs.isActiveTab(tab));
+                ShowDiagnostic(window, "OK · 第" + (tab.transform.GetSiblingIndex() + 1) + "位 · " + tab.name);
 
                 tab.gameObject.SetActive(true);
                 SetTabVisible(tab, true);
@@ -103,6 +110,35 @@ namespace Code.UI
             catch (Exception ex)
             {
                 Code.Core.DSDebug.Warning("[GeneCultivation] UnitGeneTab.ForceDefaultTab 异常: " + ex.Message);
+            }
+        }
+
+        /// <summary>补丁层入口诊断（TryRefresh 未取得单位时调用）</summary>
+        internal static void ShowDiagnosticForPatch(UnitWindow window, string text)
+        {
+            try { ShowDiagnostic(window, text); } catch { }
+        }
+
+        // ---------- 临时诊断行（v0.24.3：手机无法导出日志；修复后整体删除） ----------
+
+        private static void ShowDiagnostic(UnitWindow window, string text)
+        {
+            try
+            {
+                if (_diagRow != null) { try { UnityEngine.Object.Destroy(_diagRow.gameObject); } catch { } _diagRow = null; }
+                if (window == null) return;
+                var row = UnitOwnStatsRows.AddRow(window, "基因页签", text);
+                _diagRow = row;
+            }
+            catch { }
+        }
+
+        private static void HideDiagnostic()
+        {
+            if (_diagRow != null)
+            {
+                try { UnityEngine.Object.Destroy(_diagRow.gameObject); } catch { }
+                _diagRow = null;
             }
         }
 

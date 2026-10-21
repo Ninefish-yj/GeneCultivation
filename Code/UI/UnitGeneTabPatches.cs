@@ -54,7 +54,11 @@ namespace Code.UI
             try
             {
                 Actor actor = UnitWindowIntegration.GetUnitActor(window);
-                if (actor == null || !actor.isAlive()) return;
+                if (actor == null || !actor.isAlive())
+                {
+                    UnitGeneTab.ShowDiagnosticForPatch(window, "未取得单位(GetUnitActor=null)");
+                    return;
+                }
 
                 int frame = UnityEngine.Time.frameCount;
                 long id = 0L;
