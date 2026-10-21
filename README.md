@@ -3,11 +3,11 @@
 WorldBox 0.51 + NeoModLoader 原创现代异能模组。**13阶阶位 + 56基因序列 + 398异能 + 9档品质 + 神名系统 + 圣所跨存档 + 维度空间 + 大场面战斗体系**，异能能量/失控指数/基因图谱驱动沙盒自主演化，至高者可跨存档互通。
 
 - 仓库：https://github.com/Ninefish-yj/GeneCultivation
-- 当前版本：**v0.21.50**
+- 当前版本：**v0.22.0**
 
 ---
 
-## 一、特性总览（v0.21.50）
+## 一、特性总览（v0.22.0）
 
 ### 阶位与修炼
 - **13阶阶位**：F级 → E级 → D级 → C级 → B级 → A级 → S级 → 称号级 → 天灾级 → 使徒级 → 登神级 → 真神级 → 超神级
@@ -85,6 +85,18 @@ WorldBox 0.51 + NeoModLoader 原创现代异能模组。**13阶阶位 + 56基因
 ---
 
 ## 四、版本记录
+
+### v0.22.0 — P1 数据层 + 迁移（基因系统重实现第二阶段）
+- 新增 `Code/Realm/Genome/` 数据层（纯数据，无 UI）：
+  - `GenomeDef`：染色体规格（b/m/s→原版资产）、解锁节奏（§4.4：1-4阶1条/5-8阶2条/9-12阶3条/13阶4条）、编码上限（位点≤64、条数≤8）
+  - `GenomeModel`：`LocusSlot`/`GenomeChromosome` 运行时模型 + 转原版 `Chromosome`（P0 定稿 A 路：代理基因资产）
+  - `GenomeCodec`：`gc_genome` 编解码（纯函数，损坏片段丢弃+上限截断，往返一致单测 21 项通过）
+  - `GenomeData`：`actor.data` 读写 + `EnsureInitialized` 惰性初始化（首访问迁移，绝不全图全量）
+  - `GenomeMigration`：旧 `ds_gene_unlocked`/`gene_expr_*` → 新格式（幂等+`gc_genome_version` 标记+旧键保留可回滚）
+- 存储键：`gc_genome`（主数据）/`gc_genome_meta`（解锁条数/填点进度/位阶种子）/`gc_genome_version`
+- 迁移时机：单位首次被访问时惰性迁移；编码注记：locus 内分隔 `:`（消除与字段分隔 `@` 的二义，文档 §4.1 已注记）
+- 影响：存档向后兼容（旧键保留只读），新档/旧档首访问自动生成基因组
+
 
 ### v0.21.50 — 修复 R2 原型位点栏空（真根因：pNew=false 不初始化 genes）
 - 原版 `Chromosome(string pType, bool pNew)` 构造函数：仅 `pNew=true` 才把 `genes` 填满（amount_loci 个 empty 基因）；`false` 时 `genes` 为空列表 → `showGenes` 遍历 0 个位点 → 位点栏完全空
