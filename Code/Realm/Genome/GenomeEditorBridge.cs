@@ -183,6 +183,22 @@ namespace Code.Realm.Genome
         static bool Prefix() => !GenomeEditorSession.IsActive;
     }
 
+    // ---------- 5c. 基因系统窗口关闭 → 结束会话（防会话残留污染亚种编辑器） ----------
+
+    [HarmonyPatch(typeof(ScrollWindow), "clickCloseButton")]
+    public static class GenomeBridge_WindowClose
+    {
+        static void Prefix(ScrollWindow __instance)
+        {
+            try
+            {
+                if (Code.UI.GeneEditorWindow.IsOwned(__instance))
+                    GenomeEditorSession.EndSession();
+            }
+            catch { }
+        }
+    }
+
     // ---------- 6. Update ----------
 
     [HarmonyPatch(typeof(GeneEditor), "Update")]

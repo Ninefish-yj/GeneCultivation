@@ -1,138 +1,73 @@
 // ============================================================
 // 文件: GeneEditorWindow.cs
 // 模组: 基因修炼 (GeneCultivation)
-// 职责: P3 渲染接管——单位基因渲染弹窗（uGUI）
-//  单位窗「基因」按钮（GeneGraphButton）点击 → 打开本窗口：
-//    内容区挂载原版 GeneEditor 克隆体（GenomeEditorHost），
-//    GenomeEditorSession 绑定当前单位，渲染真实基因组（A 路代理渲染）。
-//  背景：0.51.4 手机单位窗无可见页签栏，页签克隆方案在手机端不可用；
-//   按钮→弹窗为确定可行的挂载路径（P0 R1 克隆路径复用）。
-//  关闭/隐藏时 EndSession（门禁回归：亚种编辑器零污染）。
+// 职责: P3 渲染接管——单位基因系统窗口（原版 ScrollWindow 克隆，v0.24.8）
+//  创建方式（对照天人武道 LegacyWindowSuppressor 的原版窗口机制）：
+//    克隆原版「亚种编辑器」ScrollWindow 预制体 → 实例化到 CanvasMain.transformWindows
+//    → 剥离 SubspeciesWindow 组件（离开亚种上下文防 NRE）→ 隐藏非 Genetics 页签
+//    → 窗口只剩基因系统（原版观感、原版标题栏/关闭/拖动）。
+//  渲染：Genetics 页签内的原版 GeneEditor 由 GenomeEditorBridge 接管
+//    （Session.IsActive 时渲染单位真实基因组，A 路代理渲染）；
+//    窗口关闭（clickCloseButton）经 Bridge 清理会话 → 亚种编辑器零污染。
+//  单位窗基因按钮 → Show(actor)。
 // ============================================================
 
+using System;
 using UnityEngine;
-using UnityEngine.UI;
 using Code.Core;
 using Code.Realm.Genome;
 
 namespace Code.UI
 {
-    /// <summary>单位基因渲染弹窗（原版 GeneEditor 宿主）</summary>
+    /// <summary>单位基因系统窗口（原版亚种窗口克隆）</summary>
     public static class GeneEditorWindow
     {
-        private static GameObject _root;
-        private static RectTransform _content;
-        private static Text _titleText;
-        private static bool _inited;
+        private static ScrollWindow _window;
+        private static WindowMetaTab _geneticsTab;
+        private static bool _prepared;
 
-        /// <summary>惰性创建窗口骨架（隐藏态）</summary>
+        /// <summary>惰性克隆亚种窗口（一次性；窗口默认隐藏）</summary>
         public static void Ensure()
         {
-            if (_inited) return;
-            _inited = true;
+            if (_prepared) return;
+            _prepared = true;
             try
             {
-                var parent = CanvasMain.instance != null
-                    ? CanvasMain.instance.transformWindows
-                    : CanvasMain.instance != null ? CanvasMain.instance.transform : null;
-                if (parent == null)
+                // WindowPreloader.getWindowPrefab 是 private static → 反射（P0 定稿：必须走 WindowPreloader）
+                var m = HarmonyLib.AccessTools.Method(typeof(WindowPreloader), "getWindowPrefab");
+                if (m == null) return;
+                var prefab = m.Invoke(null, new object[] { "subspecies" }) as ScrollWindow;
+                if (prefab == null) return;
+
+                _window = UnityEngine.Object.Instantiate(prefab, CanvasMain.instance.transformWindows);
+                _window.name = "GeneCultivation_GenesWindow";
+                _window.screen_id = "GeneCultivation_Genes";
+
+                // 剥离亚种窗组件（离开亚种编辑上下文会 NRE/污染）
+                var subspecies = _window.GetComponentsInChildren<SubspeciesWindow>(true);
+                foreach (var c in subspecies) UnityEngine.Object.Destroy(c);
+
+                // 只保留 Genetics 页签：其余页签按钮透明隐藏
+                var tabs = _window.tabs.transform.FindAllRecursive<WindowMetaTab>();
+                foreach (var tab in tabs)
                 {
-                    DSDebug.Warning("[GeneCultivation][P3] CanvasMain 未就绪，基因渲染窗口延迟创建");
-                    _inited = false;
-                    return;
+                    if (tab == null) continue;
+                    if (tab.name == "Genetics")
+                    {
+                        _geneticsTab = tab;
+                    }
+                    else
+                    {
+                        try { tab.toggleActive(false); } catch { }
+                    }
                 }
 
-                _root = new GameObject("[GeneCultivation] GeneEditorWindow", typeof(RectTransform));
-                _root.transform.SetParent(parent, false);
-                _root.SetActive(false);
-
-                // 全屏遮罩（点击关闭）
-                var mask = new GameObject("Mask", typeof(RectTransform), typeof(Image));
-                mask.transform.SetParent(_root.transform, false);
-                var maskRt = mask.GetComponent<RectTransform>();
-                maskRt.anchorMin = Vector2.zero;
-                maskRt.anchorMax = Vector2.one;
-                maskRt.offsetMin = Vector2.zero;
-                maskRt.offsetMax = Vector2.zero;
-                var maskImg = mask.GetComponent<Image>();
-                maskImg.color = new Color(0f, 0f, 0f, 0.55f);
-                maskImg.raycastTarget = true;
-                mask.AddComponent<Button>().onClick.AddListener(Hide);
-
-                // 主面板
-                var panel = new GameObject("Panel", typeof(RectTransform), typeof(Image));
-                panel.transform.SetParent(_root.transform, false);
-                var panelRt = panel.GetComponent<RectTransform>();
-                panelRt.anchorMin = new Vector2(0.5f, 0.5f);
-                panelRt.anchorMax = new Vector2(0.5f, 0.5f);
-                panelRt.pivot = new Vector2(0.5f, 0.5f);
-                panelRt.sizeDelta = new Vector2(760f, 560f);
-                var panelImg = panel.GetComponent<Image>();
-                panelImg.color = new Color(0.09f, 0.10f, 0.13f, 0.98f);
-
-                // 标题栏
-                var titleBar = new GameObject("TitleBar", typeof(RectTransform), typeof(Image));
-                titleBar.transform.SetParent(panel.transform, false);
-                var tbRt = titleBar.GetComponent<RectTransform>();
-                tbRt.anchorMin = new Vector2(0f, 1f);
-                tbRt.anchorMax = new Vector2(1f, 1f);
-                tbRt.pivot = new Vector2(0.5f, 1f);
-                tbRt.offsetMin = new Vector2(0f, -34f);
-                tbRt.offsetMax = Vector2.zero;
-                titleBar.GetComponent<Image>().color = new Color(0.16f, 0.17f, 0.22f, 1f);
-
-                _titleText = new GameObject("Title", typeof(RectTransform), typeof(Text)).GetComponent<Text>();
-                _titleText.transform.SetParent(titleBar.transform, false);
-                var titleRt = _titleText.GetComponent<RectTransform>();
-                titleRt.anchorMin = new Vector2(0f, 0f);
-                titleRt.anchorMax = new Vector2(1f, 1f);
-                titleRt.offsetMin = new Vector2(12f, 0f);
-                titleRt.offsetMax = new Vector2(-50f, 0f);
-                _titleText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-                _titleText.fontSize = 16;
-                _titleText.fontStyle = FontStyle.Bold;
-                _titleText.color = new Color(0.95f, 0.85f, 0.5f);
-                _titleText.alignment = TextAnchor.MiddleLeft;
-
-                // 关闭按钮
-                var closeBtn = new GameObject("Close", typeof(RectTransform), typeof(Image), typeof(Button));
-                closeBtn.transform.SetParent(titleBar.transform, false);
-                var closeRt = closeBtn.GetComponent<RectTransform>();
-                closeRt.anchorMin = new Vector2(1f, 0.5f);
-                closeRt.anchorMax = new Vector2(1f, 0.5f);
-                closeRt.pivot = new Vector2(0.5f, 0.5f);
-                closeRt.sizeDelta = new Vector2(28f, 28f);
-                closeRt.anchoredPosition = new Vector2(-8f, 0f);
-                closeBtn.GetComponent<Image>().color = new Color(0.8f, 0.3f, 0.3f, 0.9f);
-                closeBtn.GetComponent<Button>().onClick.AddListener(Hide);
-                var closeText = new GameObject("X", typeof(RectTransform), typeof(Text)).GetComponent<Text>();
-                closeText.transform.SetParent(closeBtn.transform, false);
-                var closeTextRt = closeText.GetComponent<RectTransform>();
-                closeTextRt.anchorMin = Vector2.zero;
-                closeTextRt.anchorMax = Vector2.one;
-                closeTextRt.offsetMin = Vector2.zero;
-                closeTextRt.offsetMax = Vector2.zero;
-                closeText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-                closeText.fontSize = 14;
-                closeText.fontStyle = FontStyle.Bold;
-                closeText.color = Color.white;
-                closeText.alignment = TextAnchor.MiddleCenter;
-                closeText.text = "×";
-
-                // 内容容器（原版 GeneEditor 克隆宿主）
-                _content = new GameObject("Content", typeof(RectTransform)).GetComponent<RectTransform>();
-                _content.transform.SetParent(panel.transform, false);
-                _content.anchorMin = new Vector2(0f, 0f);
-                _content.anchorMax = new Vector2(1f, 1f);
-                _content.pivot = new Vector2(0.5f, 0.5f);
-                _content.offsetMin = new Vector2(8f, 8f);
-                _content.offsetMax = new Vector2(-8f, -42f);
-
-                _root.SetActive(false);
+                _window.gameObject.SetActive(false);
+                DSDebug.Verbose("[GeneCultivation][P3] 基因系统窗口克隆就绪 (Genetics页签: " + (_geneticsTab != null) + ")");
             }
-            catch (System.Exception e)
+            catch (Exception e)
             {
-                DSDebug.Warning("[GeneCultivation][P3] 基因渲染窗口创建失败: " + e.Message);
+                DSDebug.Warning("[GeneCultivation][P3] 基因系统窗口克隆失败: " + e.Message);
             }
         }
 
@@ -141,45 +76,40 @@ namespace Code.UI
         {
             if (actor == null) return;
             Ensure();
-            if (_root == null) return;
-
+            if (_window == null || _geneticsTab == null) return;
             try
             {
-                _root.SetActive(true);
-                string actorName = actor.getName();
-                if (_titleText != null)
+                // 先绑定会话（IsActive=true），再激活窗口触发 GeneEditor.OnEnable→load() → Bridge 接管渲染
+                if (!GenomeEditorSession.SetTarget(actor))
                 {
-                    _titleText.text = UILocalization.CurrentLanguage == "en"
-                        ? "Gene System - " + actorName
-                        : "基因系统 - " + actorName;
+                    DSDebug.Warning("[GeneCultivation][P3] 单位基因组构建失败（无染色体？）");
                 }
-
-                // 绑定会话 + 挂载原版 GeneEditor 克隆体
-                if (GenomeEditorHost.EnsureHost(actor, _content))
-                {
-                    DSDebug.Verbose("[GeneCultivation][P3] 基因渲染窗口已挂载: " + actorName);
-                }
-                else
-                {
-                    DSDebug.Warning("[GeneCultivation][P3] GeneEditor 挂载失败，显示空白容器");
-                }
+                _window.gameObject.SetActive(true);
+                _window.tabs.showTab(_geneticsTab);
+                DSDebug.Verbose("[GeneCultivation][P3] 基因系统窗口打开: " + actor.getName());
             }
-            catch (System.Exception e)
+            catch (Exception e)
             {
-                DSDebug.Warning("[GeneCultivation][P3] 基因渲染窗口打开异常: " + e.Message);
+                DSDebug.Warning("[GeneCultivation][P3] 基因系统窗口打开异常: " + e.Message);
             }
         }
 
         /// <summary>关闭并结束会话（亚种编辑器门禁回归）</summary>
         public static void Hide()
         {
-            try { GenomeEditorHost.HideHost(); } catch { }
-            if (_root != null) _root.SetActive(false);
+            GenomeEditorSession.EndSession();
+            if (_window != null) _window.gameObject.SetActive(false);
         }
 
         public static bool IsVisible()
         {
-            return _root != null && _root.activeSelf;
+            return _window != null && _window.gameObject.activeInHierarchy;
+        }
+
+        /// <summary>该窗口是否为本模组克隆实例（供关闭补丁判断）</summary>
+        internal static bool IsOwned(ScrollWindow window)
+        {
+            return _window != null && window != null && _window == window;
         }
     }
 }
