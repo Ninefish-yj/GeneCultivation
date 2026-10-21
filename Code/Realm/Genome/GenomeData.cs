@@ -80,7 +80,8 @@ namespace Code.Realm.Genome
         {
             var data = ActorDataAccessor.GetData(actor);
             if (data == null || data.custom_data_string == null) return false;
-            return !string.IsNullOrEmpty(data.custom_data_string[GC_GENOME_VERSION]);
+            string v;
+            return data.custom_data_string.TryGetValue(GC_GENOME_VERSION, out v) && !string.IsNullOrEmpty(v);
         }
     }
 }

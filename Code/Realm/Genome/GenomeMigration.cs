@@ -6,8 +6,9 @@
 //   - ds_elem_unlocked（K_ELEMENTS_UNLOCKED）：【业务真实源】已激活基因 id（觉醒/突变/登神/图谱窗口写）
 //   - ds_gene_unlocked（K_GENE_UNLOCKED）：【图谱兜底源】基因图谱节点解锁记录（年度图谱检查写，与元素源独立不同步）
 //   - gene_expr_{id}（K_GENE_EXPR_PREFIX）：每个基因的表达层级（0-5，两源共用，按 id 读写）
-// 迁移逻辑（§5.1）：
-//   1. 有旧数据：已解锁基因按序分配到第一条染色体空位点，表达层级原值搬入 LocusSlot.ExprLevel
+// 迁移逻辑（§5.1 + P2 对照表"迁移扩容修复"确认）：
+//   1. 有旧数据：激活基因按序分配位点，12 格填满 → 开下一条染色体（默认 medium）→ 继续填，
+//      最多 GenomeDef.MaxChromosomeCount（8）条——旧档高基因数单位基因全部保留
 //   2. 无旧数据：默认生成第一条染色体（chromosome_medium，12 位点）
 //   3. 迁移后写 gc_genome_version，旧键保留（只读兼容回滚，不删）
 // v0.22.1 修正：旧档基因来源由「仅 ds_gene_unlocked」改为「ds_elem_unlocked（业务）+ ds_gene_unlocked（图谱）合并去重」，
@@ -30,37 +31,47 @@ namespace Code.Realm.Genome
             if (data == null || data.custom_data_string == null) return;
 
             // 幂等：已迁移到当前版本则跳过（v0.22.1 升至版本 2，旧 version=1 档触发重迁）
-            string existing = data.custom_data_string[GenomeData.GC_GENOME_VERSION];
+            string existing = null;
+            data.custom_data_string.TryGetValue(GenomeData.GC_GENOME_VERSION, out existing);
             if (!string.IsNullOrEmpty(existing) && existing == GenomeData.CURRENT_VERSION) return;
 
-            // 默认第一条染色体（§5.1：无旧数据默认生成第一条；默认 medium，P0 已验证 12 位点）
             var chromosomes = new List<GenomeChromosome>();
-            var chrom = new GenomeChromosome("m");
-            int lociCount = 12;   // chromosome_medium 位点数（P0 实测）
 
             // v0.22.1：两源合并去重——业务激活源优先，图谱记录源兜底
             List<string> unlocked = MergeUnlockedGenes(actor);
             if (unlocked != null && unlocked.Count > 0)
             {
+                // 扩容填充（P2 对照表确认）：12 格满 → 开下一条 medium 染色体 → 继续填，最多 8 条
+                var chrom = new GenomeChromosome("m");
+                int lociCount = 12;   // chromosome_medium 位点数（P0 实测）
                 int fillIndex = 0;
-                for (int i = 0; i < lociCount && fillIndex < unlocked.Count; i++)
+                while (fillIndex < unlocked.Count && chromosomes.Count < GenomeDef.MaxChromosomeCount)
                 {
                     string geneId = unlocked[fillIndex];
-                    if (string.IsNullOrEmpty(geneId)) { fillIndex++; continue; }
-                    int level = CultivationData.GetGeneExpressionLevel(actor, geneId);
-                    chrom.Loci.Add(new LocusSlot(geneId, level));
+                    if (!string.IsNullOrEmpty(geneId))
+                    {
+                        chrom.Loci.Add(new LocusSlot(geneId, CultivationData.GetGeneExpressionLevel(actor, geneId)));
+                    }
                     fillIndex++;
+                    if (chrom.Loci.Count >= lociCount || fillIndex >= unlocked.Count)
+                    {
+                        // 补齐空位点后收尾本条
+                        while (chrom.Loci.Count < lociCount) chrom.Loci.Add(LocusSlot.Empty());
+                        chromosomes.Add(chrom);
+                        if (fillIndex < unlocked.Count)
+                        {
+                            chrom = new GenomeChromosome("m");
+                        }
+                    }
                 }
-                // 剩余空位点补齐
-                while (chrom.Loci.Count < lociCount) chrom.Loci.Add(LocusSlot.Empty());
             }
             else
             {
-                // 无旧数据：全空位点
-                for (int i = 0; i < lociCount; i++) chrom.Loci.Add(LocusSlot.Empty());
+                // 无旧数据：默认第一条染色体，全空位点
+                var chrom = new GenomeChromosome("m");
+                for (int i = 0; i < 12; i++) chrom.Loci.Add(LocusSlot.Empty());
+                chromosomes.Add(chrom);
             }
-
-            chromosomes.Add(chrom);
 
             // 写新格式 + 版本标记
             GenomeData.SaveChromosomes(actor, chromosomes);
