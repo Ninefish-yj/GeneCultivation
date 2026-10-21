@@ -154,7 +154,7 @@ namespace Code.UI
                 if (container == null) return;
                 var prefab = Resources.Load<KeyValueField>("ui/KeyValueFieldStats");
                 if (prefab == null) return;
-                var row = Object.Instantiate(prefab, container.transform, false);
+                var row = UnityEngine.Object.Instantiate(prefab, container.transform, false);
                 row.gameObject.name = "[GeneCultivation-Diag]";
                 row.icon.gameObject.SetActive(false);
                 row.name_text.text = "基因页签";
