@@ -58,6 +58,10 @@ namespace Code.Core
         // === 调试设置 ===
         public static bool EnableVerboseLog = false;
 
+        // === 基因编辑器调试模式（P3 v0.24.0：手机无 F8，改由设置开关驱动；
+        //    开启时亚种编辑器基因页签渲染示例基因组（只读预览渲染管线），默认关闭保持零污染）===
+        public static bool EnableGeneEditorDebug = false;
+
         // ============================================================
         //  回调方法（NML配置改变时调用）
         // ============================================================
@@ -176,6 +180,12 @@ namespace Code.Core
         {
             EnableVerboseLog = newValue;
             DSDebug.EnableVerboseLog = newValue;
+        }
+
+        // === 基因编辑器调试模式回调 ===
+        public static void EnableGeneEditorDebugCallBack(bool newValue)
+        {
+            EnableGeneEditorDebug = newValue;
         }
 
     }
@@ -317,6 +327,12 @@ namespace Code.Core
         {
             get => GeneCultivationConfig.EnableVerboseLog;
             set => GeneCultivationConfig.EnableVerboseLog = value;
+        }
+
+        public static bool EnableGeneEditorDebug
+        {
+            get => GeneCultivationConfig.EnableGeneEditorDebug;
+            set => GeneCultivationConfig.EnableGeneEditorDebug = value;
         }
 
         public static float CultivationRateMultiplier

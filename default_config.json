@@ -1,140 +1,145 @@
 {
-    "ConfigGeneCultivation": [
-        {
-            "Id": "EnableTitleSuffix",
-            "Type": "SWITCH",
-            "BoolVal": true,
-            "Callback": "GeneCultivationConfig:EnableTitleSuffixCallBack"
-        },
-        {
-            "Id": "AutoFavoriteTier8",
-            "Type": "SWITCH",
-            "BoolVal": false,
-            "Callback": "GeneCultivationConfig:AutoFavoriteTier8CallBack"
-        },
-        {
-            "Id": "AutoFavoriteTier9",
-            "Type": "SWITCH",
-            "BoolVal": false,
-            "Callback": "GeneCultivationConfig:AutoFavoriteTier9CallBack"
-        },
-        {
-            "Id": "AutoFavoriteTier10",
-            "Type": "SWITCH",
-            "BoolVal": true,
-            "Callback": "GeneCultivationConfig:AutoFavoriteTier10CallBack"
-        },
-        {
-            "Id": "AutoFavoriteTier11",
-            "Type": "SWITCH",
-            "BoolVal": true,
-            "Callback": "GeneCultivationConfig:AutoFavoriteTier11CallBack"
-        },
-        {
-            "Id": "AutoFavoriteTier12",
-            "Type": "SWITCH",
-            "BoolVal": true,
-            "Callback": "GeneCultivationConfig:AutoFavoriteTier12CallBack"
-        },
-        {
-            "Id": "AutoFavoriteTier13",
-            "Type": "SWITCH",
-            "BoolVal": true,
-            "Callback": "GeneCultivationConfig:AutoFavoriteTier13CallBack"
-        },
-        {
-            "Id": "EnableAutoCultivation",
-            "Type": "SWITCH",
-            "BoolVal": true,
-            "Callback": "GeneCultivationConfig:EnableAutoCultivationCallBack"
-        },
-        {
-            "Id": "EnableAutoAwakening",
-            "Type": "SWITCH",
-            "BoolVal": true,
-            "Callback": "GeneCultivationConfig:EnableAutoAwakeningCallBack"
-        },
-        {
-            "Id": "EnableAutoBreakthrough",
-            "Type": "SWITCH",
-            "BoolVal": true,
-            "Callback": "GeneCultivationConfig:EnableAutoBreakthroughCallBack"
-        },
-        {
-            "Id": "EnableAnimalAwakening",
-            "Type": "SWITCH",
-            "BoolVal": true,
-            "Callback": "GeneCultivationConfig:EnableAnimalAwakeningCallBack"
-        },
-        {
-            "Id": "EnableDisasterSystem",
-            "Type": "SWITCH",
-            "BoolVal": true,
-            "Callback": "GeneCultivationConfig:EnableDisasterSystemCallBack"
-        },
-        {
-            "Id": "EnableVoidRifts",
-            "Type": "SWITCH",
-            "BoolVal": true,
-            "Callback": "GeneCultivationConfig:EnableVoidRiftsCallBack"
-        },
-        {
-            "Id": "EnableRealmEvents",
-            "Type": "SWITCH",
-            "BoolVal": true,
-            "Callback": "GeneCultivationConfig:EnableRealmEventsCallBack"
-        },
-        {
-            "Id": "EnableGlobalHealthSuppression",
-            "Type": "SWITCH",
-            "BoolVal": true,
-            "Callback": "GeneCultivationConfig:EnableGlobalHealthSuppressionCallBack"
-        },
-        {
-            "Id": "EnableGlobalNotifications",
-            "Type": "SWITCH",
-            "BoolVal": true,
-            "Callback": "GeneCultivationConfig:EnableGlobalNotificationsCallBack"
-        },
-        {
-            "Id": "EnableMonolithEffect",
-            "Type": "SWITCH",
-            "BoolVal": true,
-            "Callback": "GeneCultivationConfig:EnableMonolithEffectCallBack"
-        },
-
-        {
-            "Id": "CultivationRateMultiplier",
-            "Type": "SLIDER",
-            "FloatVal": 3.0,
-            "MinVal": 0.5,
-            "MaxVal": 10.0,
-            "Step": 0.5,
-            "Callback": "GeneCultivationConfig:CultivationRateMultiplierCallBack"
-        },
-        {
-            "Id": "MortalAwakenChance",
-            "Type": "SLIDER",
-            "FloatVal": 0.01,
-            "MinVal": 0.001,
-            "MaxVal": 0.1,
-            "Step": 0.005,
-            "Callback": "GeneCultivationConfig:MortalAwakenChanceCallBack"
-        },
-        {
-            "Id": "TurbulenceDecayRate",
-            "Type": "SLIDER",
-            "FloatVal": 5.0,
-            "MinVal": 0.0,
-            "MaxVal": 50.0,
-            "Step": 1.0,
-            "Callback": "GeneCultivationConfig:TurbulenceDecayRateCallBack"
-        },
-        {
-            "Id": "EnableVerboseLog",
-            "Type": "SWITCH",
-            "BoolVal": false,
-            "Callback": "GeneCultivationConfig:EnableVerboseLogCallBack"
-        }
-    ]
+  "ConfigGeneCultivation": [
+    {
+      "Id": "EnableTitleSuffix",
+      "Type": "SWITCH",
+      "BoolVal": true,
+      "Callback": "GeneCultivationConfig:EnableTitleSuffixCallBack"
+    },
+    {
+      "Id": "AutoFavoriteTier8",
+      "Type": "SWITCH",
+      "BoolVal": false,
+      "Callback": "GeneCultivationConfig:AutoFavoriteTier8CallBack"
+    },
+    {
+      "Id": "AutoFavoriteTier9",
+      "Type": "SWITCH",
+      "BoolVal": false,
+      "Callback": "GeneCultivationConfig:AutoFavoriteTier9CallBack"
+    },
+    {
+      "Id": "AutoFavoriteTier10",
+      "Type": "SWITCH",
+      "BoolVal": true,
+      "Callback": "GeneCultivationConfig:AutoFavoriteTier10CallBack"
+    },
+    {
+      "Id": "AutoFavoriteTier11",
+      "Type": "SWITCH",
+      "BoolVal": true,
+      "Callback": "GeneCultivationConfig:AutoFavoriteTier11CallBack"
+    },
+    {
+      "Id": "AutoFavoriteTier12",
+      "Type": "SWITCH",
+      "BoolVal": true,
+      "Callback": "GeneCultivationConfig:AutoFavoriteTier12CallBack"
+    },
+    {
+      "Id": "AutoFavoriteTier13",
+      "Type": "SWITCH",
+      "BoolVal": true,
+      "Callback": "GeneCultivationConfig:AutoFavoriteTier13CallBack"
+    },
+    {
+      "Id": "EnableAutoCultivation",
+      "Type": "SWITCH",
+      "BoolVal": true,
+      "Callback": "GeneCultivationConfig:EnableAutoCultivationCallBack"
+    },
+    {
+      "Id": "EnableAutoAwakening",
+      "Type": "SWITCH",
+      "BoolVal": true,
+      "Callback": "GeneCultivationConfig:EnableAutoAwakeningCallBack"
+    },
+    {
+      "Id": "EnableAutoBreakthrough",
+      "Type": "SWITCH",
+      "BoolVal": true,
+      "Callback": "GeneCultivationConfig:EnableAutoBreakthroughCallBack"
+    },
+    {
+      "Id": "EnableAnimalAwakening",
+      "Type": "SWITCH",
+      "BoolVal": true,
+      "Callback": "GeneCultivationConfig:EnableAnimalAwakeningCallBack"
+    },
+    {
+      "Id": "EnableDisasterSystem",
+      "Type": "SWITCH",
+      "BoolVal": true,
+      "Callback": "GeneCultivationConfig:EnableDisasterSystemCallBack"
+    },
+    {
+      "Id": "EnableVoidRifts",
+      "Type": "SWITCH",
+      "BoolVal": true,
+      "Callback": "GeneCultivationConfig:EnableVoidRiftsCallBack"
+    },
+    {
+      "Id": "EnableRealmEvents",
+      "Type": "SWITCH",
+      "BoolVal": true,
+      "Callback": "GeneCultivationConfig:EnableRealmEventsCallBack"
+    },
+    {
+      "Id": "EnableGlobalHealthSuppression",
+      "Type": "SWITCH",
+      "BoolVal": true,
+      "Callback": "GeneCultivationConfig:EnableGlobalHealthSuppressionCallBack"
+    },
+    {
+      "Id": "EnableGlobalNotifications",
+      "Type": "SWITCH",
+      "BoolVal": true,
+      "Callback": "GeneCultivationConfig:EnableGlobalNotificationsCallBack"
+    },
+    {
+      "Id": "EnableMonolithEffect",
+      "Type": "SWITCH",
+      "BoolVal": true,
+      "Callback": "GeneCultivationConfig:EnableMonolithEffectCallBack"
+    },
+    {
+      "Id": "CultivationRateMultiplier",
+      "Type": "SLIDER",
+      "FloatVal": 3.0,
+      "MinVal": 0.5,
+      "MaxVal": 10.0,
+      "Step": 0.5,
+      "Callback": "GeneCultivationConfig:CultivationRateMultiplierCallBack"
+    },
+    {
+      "Id": "MortalAwakenChance",
+      "Type": "SLIDER",
+      "FloatVal": 0.01,
+      "MinVal": 0.001,
+      "MaxVal": 0.1,
+      "Step": 0.005,
+      "Callback": "GeneCultivationConfig:MortalAwakenChanceCallBack"
+    },
+    {
+      "Id": "TurbulenceDecayRate",
+      "Type": "SLIDER",
+      "FloatVal": 5.0,
+      "MinVal": 0.0,
+      "MaxVal": 50.0,
+      "Step": 1.0,
+      "Callback": "GeneCultivationConfig:TurbulenceDecayRateCallBack"
+    },
+    {
+      "Id": "EnableVerboseLog",
+      "Type": "SWITCH",
+      "BoolVal": false,
+      "Callback": "GeneCultivationConfig:EnableVerboseLogCallBack"
+    },
+    {
+      "Id": "EnableGeneEditorDebug",
+      "Type": "SWITCH",
+      "BoolVal": false,
+      "Callback": "GeneCultivationConfig:EnableGeneEditorDebugCallBack"
+    }
+  ]
 }
