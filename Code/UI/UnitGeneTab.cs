@@ -91,6 +91,7 @@ namespace Code.UI
             {
                 // 真异常：打 Warning 便于发现
                 Code.Core.DSDebug.Warning("[GeneCultivation] UnitGeneTab.Refresh 异常: " + ex.Message);
+                try { ShowDiagnostic(window, "异常: " + ex.Message); } catch { }
             }
         }
 

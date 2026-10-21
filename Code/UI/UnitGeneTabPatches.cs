@@ -73,6 +73,7 @@ namespace Code.UI
             catch (System.Exception ex)
             {
                 Code.Core.DSDebug.Verbose("[GeneCultivation] UnitGeneTabPatches 异常: " + ex.Message);
+                try { UnitGeneTab.ShowDiagnosticForPatch(window, "补丁异常: " + ex.Message); } catch { }
             }
         }
     }
