@@ -22,7 +22,6 @@ namespace Code.UI
         [HarmonyPatch(typeof(UnitWindow), "OnEnable")]
         public static void OnEnable_Postfix(UnitWindow __instance)
         {
-            try { UnitGeneTab.ShowDiagnosticForPatch(__instance, "补丁触发:OnEnable"); } catch { }
             try { TryRefresh(__instance); } catch { }
         }
 
@@ -30,7 +29,6 @@ namespace Code.UI
         [HarmonyPatch(typeof(UnitWindow), "showInfo")]
         public static void ShowInfo_Postfix(UnitWindow __instance)
         {
-            try { UnitGeneTab.ShowDiagnosticForPatch(__instance, "补丁触发:showInfo"); } catch { }
             try { TryRefresh(__instance); } catch { }
         }
 
@@ -38,7 +36,6 @@ namespace Code.UI
         [HarmonyPatch(typeof(UnitWindow), "showStatsRows")]
         public static void ShowStatsRows_Postfix(UnitWindow __instance)
         {
-            try { UnitGeneTab.ShowDiagnosticForPatch(__instance, "补丁触发:showStatsRows"); } catch { }
             try { TryRefresh(__instance); } catch { }
         }
 
@@ -57,11 +54,7 @@ namespace Code.UI
             try
             {
                 Actor actor = UnitWindowIntegration.GetUnitActor(window);
-                if (actor == null || !actor.isAlive())
-                {
-                    UnitGeneTab.ShowDiagnosticForPatch(window, "未取得单位(GetUnitActor=null)");
-                    return;
-                }
+                if (actor == null || !actor.isAlive()) return;
 
                 int frame = UnityEngine.Time.frameCount;
                 long id = 0L;
@@ -76,7 +69,6 @@ namespace Code.UI
             catch (System.Exception ex)
             {
                 Code.Core.DSDebug.Verbose("[GeneCultivation] UnitGeneTabPatches 异常: " + ex.Message);
-                try { UnitGeneTab.ShowDiagnosticForPatch(window, "补丁异常: " + ex.Message); } catch { }
             }
         }
     }

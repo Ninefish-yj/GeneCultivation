@@ -195,7 +195,7 @@ namespace Code.UI
                         GUILayout.Space(4);
                         if (GUILayout.Button(UILocalization.Get("unit_gene_detail"), GUILayout.Height(28)))
                         {
-                            GeneGraphWindow.Show(actor);
+                            GeneEditorWindow.Show(actor);
                         }
                     }
                 }
@@ -638,7 +638,8 @@ namespace Code.UI
                     var unitActor = UnitWindowIntegration.GetUnitActor(window);
                     if (unitActor != null && unitActor.isAlive())
                     {
-                        GeneGraphWindow.Show(unitActor);
+                        // P3 渲染接管：基因按钮 → 原版 GeneEditor 渲染窗口（真实基因组，A 路）
+                        GeneEditorWindow.Show(unitActor);
                     }
                 });
                 // 添加提示组件（只设置textOnClick一个字段，避免多行提示）

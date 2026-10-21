@@ -32,10 +32,6 @@ namespace Code.UI
     {
         public const string TabName = "DS_GeneTab";
 
-        /// <summary>诊断行（v0.24.3 临时：手机无法导出日志，页签异常直接显示在单位窗；修复后删除）</summary>
-        private static KeyValueField _diagRow;
-        private static KeyValueField _diagRowPrev;
-
         private static readonly FieldInfo TabsListField =
             AccessTools.Field(typeof(WindowMetaTabButtonsContainer), "_tabs");
         private static readonly FieldInfo WorldTipField =
@@ -75,7 +71,6 @@ namespace Code.UI
                 {
                     // 预期分支：窗口未完成页签初始化——静默
                     Code.Core.DSDebug.Verbose("[GeneCultivation][UnitGeneTab] scroll 或 tabs 未就绪，隐藏页签");
-                    ShowDiagnostic(window, "scroll/tabs 未就绪");
                     UnitGeneTabPanel.Hide();
                     return;
                 }
@@ -92,13 +87,11 @@ namespace Code.UI
                 {
                     // 预期分支：无可克隆页签源（原版 UI 结构异常）——静默
                     Code.Core.DSDebug.Verbose("[GeneCultivation][UnitGeneTab] EnsureTab 返回 null（无可克隆页签源），静默");
-                    ShowDiagnostic(window, "无可克隆页签源(EnsureTab=null)");
                     return;
                 }
                 Code.Core.DSDebug.Verbose("[GeneCultivation][UnitGeneTab] 页签就绪: " + tab.name +
                     " actor=" + (UnitWindowIntegration.GetUnitActor(window)?.getName() ?? "null") +
                     " onTab=" + scroll.tabs.isActiveTab(tab));
-                ShowDiagnostic(window, "OK · 第" + (tab.transform.GetSiblingIndex() + 1) + "位 · " + tab.name);
 
                 tab.gameObject.SetActive(true);
                 SetTabVisible(tab, true);
@@ -111,7 +104,6 @@ namespace Code.UI
             {
                 // 真异常：打 Warning 便于发现
                 Code.Core.DSDebug.Warning("[GeneCultivation] UnitGeneTab.Refresh 异常: " + ex.Message);
-                try { ShowDiagnostic(window, "异常: " + ex.Message); } catch { }
             }
         }
 
@@ -120,7 +112,6 @@ namespace Code.UI
         {
             try
             {
-                HideDiagnostic();
                 if (window == null) return;
                 ScrollWindow scroll = GetScrollWindow(window);
                 if (scroll?.tabs?.tab_default == null) return;
@@ -136,43 +127,6 @@ namespace Code.UI
         }
 
         /// <summary>补丁层入口诊断（TryRefresh 未取得单位时调用）</summary>
-        internal static void ShowDiagnosticForPatch(UnitWindow window, string text)
-        {
-            try { ShowDiagnostic(window, text); } catch { }
-        }
-
-        // ---------- 临时诊断行（v0.24.6：独立行对象，不经 UnitOwnStatsRows——
-        //   会被 UnitWindowIntegration.Postfix 的 ClearOwnRows() 清掉；修复后整体删除） ----------
-
-        private static void ShowDiagnostic(UnitWindow window, string text)
-        {
-            try
-            {
-                HideDiagnostic();
-                if (window == null) return;
-                var container = UnitOwnStatsRows.GetContainer(window);
-                if (container == null) return;
-                var prefab = Resources.Load<KeyValueField>("ui/KeyValueFieldStats");
-                if (prefab == null) return;
-                var row = UnityEngine.Object.Instantiate(prefab, container.transform, false);
-                row.gameObject.name = "[GeneCultivation-Diag]";
-                row.icon.gameObject.SetActive(false);
-                row.name_text.text = "基因页签";
-                row.value.text = text;
-                row.gameObject.SetActive(true);
-                _diagRow = row;
-            }
-            catch { }
-        }
-
-        private static void HideDiagnostic()
-        {
-            if (_diagRow != null)
-            {
-                try { UnityEngine.Object.Destroy(_diagRow.gameObject); } catch { }
-                _diagRow = null;
-            }
-        }
 
         /// <summary>显示判定：存活单位即显示（本模组全局可觉醒）</summary>
         private static bool ShouldShowEntry(UnitWindow window)
