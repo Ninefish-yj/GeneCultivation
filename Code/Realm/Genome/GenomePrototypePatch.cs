@@ -17,6 +17,11 @@ namespace Code.Realm.Genome
     {
         static bool Prefix(GeneEditor __instance)
         {
+            // v0.21.49 兜底：打开基因编辑器时若测试染色体未构建（资产就绪必然可构建），立即补齐
+            if (GenomePrototypeSession.Active && GenomePrototypeSession.TestNucleus == null)
+            {
+                GenomePrototypeSession.EnsureActive();
+            }
             if (!GenomePrototypeSession.Active) return true;
             if (GenomePrototypeSession.TestNucleus == null) return true;
 

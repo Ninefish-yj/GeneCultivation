@@ -19,15 +19,24 @@ namespace Code.Realm.Genome
         public static bool Active = true;   // v0.21.48 起默认开启
         public static Nucleus TestNucleus;
 
-        /// <summary>确保会话激活且有测试染色体（默认开启入口；资产未就绪时静默跳过，下次再试）</summary>
-        public static void EnsureActive()
+        /// <summary>确保会话激活且有测试染色体（v0.21.49 修复：资产未就绪时返回 false，调用方每帧重试，直到构建成功）</summary>
+        public static bool EnsureActive()
         {
-            if (!Active) return;
-            if (TestNucleus != null) return;
-            if (AssetManager.gene_library == null || AssetManager.gene_library.list == null) return;
-            TestNucleus = BuildTestNucleus();
-            Debug.Log("[GeneCultivation][R2原型] 默认开启，测试染色体数=" +
-                      (TestNucleus != null ? TestNucleus.chromosomes.Count : 0));
+            if (!Active) return true;
+            if (TestNucleus != null) return true;
+            if (AssetManager.gene_library == null || AssetManager.gene_library.list == null) return false;
+            try
+            {
+                TestNucleus = BuildTestNucleus();
+                Debug.Log("[GeneCultivation][R2原型] 默认开启，测试染色体数=" +
+                          (TestNucleus != null ? TestNucleus.chromosomes.Count : 0));
+                return TestNucleus != null;
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogWarning("[GeneCultivation][R2原型] 测试染色体构建失败: " + e.Message);
+                return false;
+            }
         }
 
         public static void Toggle()
@@ -91,16 +100,19 @@ namespace Code.Realm.Genome
     }
 
     /// <summary>原型切换器（MonoBehaviour，在 ModClass.OnModLoad 中实例化）
-    /// 挂载即默认开启并构建测试染色体；F8 用于手动关闭/再开启。</summary>
+    /// 挂载即默认开启并构建测试染色体；每帧重试直到构建成功（资产未就绪时静默等待）；
+    /// F8 用于手动关闭/再开启。</summary>
     public class GenomePrototypeToggler : MonoBehaviour
     {
         private void Awake()
         {
-            GenomePrototypeSession.EnsureActive();   // 默认开启
+            GenomePrototypeSession.EnsureActive();   // 默认开启（首次尝试）
         }
 
         private void Update()
         {
+            // v0.21.49：资产未就绪时每帧重试，构建成功后零开销跳过
+            GenomePrototypeSession.EnsureActive();
             if (Input.GetKeyDown(KeyCode.F8))
             {
                 GenomePrototypeSession.Toggle();
