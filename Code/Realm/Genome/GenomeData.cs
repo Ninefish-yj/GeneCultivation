@@ -20,7 +20,8 @@ namespace Code.Realm.Genome
         public const string GC_GENOME = "gc_genome";
         public const string GC_GENOME_META = "gc_genome_meta";
         public const string GC_GENOME_VERSION = "gc_genome_version";
-        public const string CURRENT_VERSION = "1";
+        /// <summary>迁移版本：1=初始（仅 ds_gene_unlocked 源，v0.22.0）；2=业务源+图谱源合并（v0.22.1，version=1 触发重迁）</summary>
+        public const string CURRENT_VERSION = "2";
 
         /// <summary>惰性初始化：无版本标记则迁移旧档；已初始化直接返回（幂等）</summary>
         public static void EnsureInitialized(Actor actor)
