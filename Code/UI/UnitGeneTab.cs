@@ -63,7 +63,8 @@ namespace Code.UI
         }
 
         /// <summary>每次单位窗刷新时调用——纯编排：判定→建页签→挂内容→按激活态懒渲染</summary>
-        public static void Refresh(UnitWindow window)
+        /// <param name="autoActivate">true=自动激活基因页签并渲染内容（常开：打开单位窗/切单位即显示基因）</param>
+        public static void Refresh(UnitWindow window, bool autoActivate)
         {
             try
             {
@@ -98,6 +99,9 @@ namespace Code.UI
 
                 tab.gameObject.SetActive(true);
                 SetTabVisible(tab, true);
+                // v0.25.9 常开：打开单位窗/切单位时自动激活基因页签（原版 showTab 只切内容容器+按钮高亮，
+                // 不隐藏状态/背包按钮，用户仍可手动切回）
+                if (autoActivate) scroll.tabs.showTab(tab);
                 bool onTab = scroll.tabs.isActiveTab(tab);
                 UnitGeneTabPanel.Ensure(window, tab, scroll);
                 // 懒渲染：仅当前激活页签是"基因"时才重建内容
