@@ -63,10 +63,15 @@ namespace Code.UI
                 try { id = actor.getID(); } catch { }
                 if (frame == _lastRefreshFrame && id != 0L && id == _lastRefreshActorId)
                     return;
-                _lastRefreshFrame = frame;
-                _lastRefreshActorId = id;
 
-                UnitGeneTab.Refresh(window, autoActivate);
+                // v0.25.10：只有 Refresh 真正执行（scroll 就绪+EnsureTab 成功）才记录去重。
+                // 否则 OnEnable 时 scroll.tabs 未就绪会提前 return 并占掉同帧去重，
+                // 导致 showInfo（scroll 已就绪）被跳过 → 常开失效。
+                if (UnitGeneTab.Refresh(window, autoActivate))
+                {
+                    _lastRefreshFrame = frame;
+                    _lastRefreshActorId = id;
+                }
             }
             catch (System.Exception ex)
             {

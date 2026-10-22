@@ -64,11 +64,12 @@ namespace Code.UI
 
         /// <summary>每次单位窗刷新时调用——纯编排：判定→建页签→挂内容→按激活态懒渲染</summary>
         /// <param name="autoActivate">true=自动激活基因页签并渲染内容（常开：打开单位窗/切单位即显示基因）</param>
-        public static void Refresh(UnitWindow window, bool autoActivate)
+        /// <returns>true=真正执行了页签创建/渲染（scroll就绪+EnsureTab成功）；false=未就绪（调用方不应记录同帧去重）</returns>
+        public static bool Refresh(UnitWindow window, bool autoActivate)
         {
             try
             {
-                if (window == null) return;
+                if (window == null) return false;
 
                 ScrollWindow scroll = GetScrollWindow(window);
                 if (scroll == null || scroll.tabs == null)
@@ -76,14 +77,14 @@ namespace Code.UI
                     // 预期分支：窗口未完成页签初始化——静默
                     Code.Core.DSDebug.Verbose("[GeneCultivation][UnitGeneTab] scroll 或 tabs 未就绪，隐藏页签");
                     UnitGeneTabPanel.Hide();
-                    return;
+                    return false;
                 }
 
                 if (!ShouldShowEntry(window))
                 {
                     Code.Core.DSDebug.Verbose("[GeneCultivation][UnitGeneTab] 无存活单位（ShouldShowEntry=false），隐藏页签");
                     HideTab(scroll);
-                    return;
+                    return false;
                 }
 
                 WindowMetaTab tab = EnsureTab(scroll, window);
@@ -91,7 +92,7 @@ namespace Code.UI
                 {
                     // 预期分支：无可克隆页签源（原版 UI 结构异常）——静默
                     Code.Core.DSDebug.Verbose("[GeneCultivation][UnitGeneTab] EnsureTab 返回 null（无可克隆页签源），静默");
-                    return;
+                    return false;
                 }
                 Code.Core.DSDebug.Verbose("[GeneCultivation][UnitGeneTab] 页签就绪: " + tab.name +
                     " actor=" + (UnitWindowIntegration.GetUnitActor(window)?.getName() ?? "null") +
@@ -106,11 +107,13 @@ namespace Code.UI
                 UnitGeneTabPanel.Ensure(window, tab, scroll);
                 // 懒渲染：仅当前激活页签是"基因"时才重建内容
                 UnitGeneTabPanel.ShowForActor(UnitWindowIntegration.GetUnitActor(window), onTab);
+                return true;
             }
             catch (Exception ex)
             {
                 // 真异常：打 Warning 便于发现
                 Code.Core.DSDebug.Warning("[GeneCultivation] UnitGeneTab.Refresh 异常: " + ex.Message);
+                return false;
             }
         }
 

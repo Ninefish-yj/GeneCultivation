@@ -46,6 +46,13 @@ namespace Code.UI
                 }
                 if (_cloneSource == null) return false;
 
+                if (_hostedEditor != null && _hostedEditor.transform.parent != container)
+                {
+                    // 容器已重建（单位窗关闭再打开）→ 旧克隆体挂在旧容器上，销毁重建
+                    try { UnityEngine.Object.Destroy(_hostedEditor.gameObject); } catch (Exception) { }
+                    _hostedEditor = null;
+                }
+
                 if (_hostedEditor == null)
                 {
                     // 关键时序：Instantiate 的瞬间克隆体内所有组件 OnEnable 连锁执行。
@@ -78,12 +85,13 @@ namespace Code.UI
             }
         }
 
-        /// <summary>隐藏宿主并结束会话</summary>
+        /// <summary>隐藏宿主并结束会话；销毁克隆体（单位窗关闭后容器重建，静态缓存的旧实例会挂在已销毁的旧容器上导致白板）</summary>
         public static void HideHost()
         {
             if (_hostedEditor != null)
             {
-                try { _hostedEditor.gameObject.SetActive(false); } catch (Exception) { }
+                try { UnityEngine.Object.Destroy(_hostedEditor.gameObject); } catch (Exception) { }
+                _hostedEditor = null;
             }
             GenomeEditorSession.EndSession();
         }
