@@ -186,14 +186,18 @@ namespace Code.UI
                     ShowStatRow(__instance, UILocalization.Get("unit_title"), titleText,
                         null, MetaType.None, -1L, false, null, null, null, false);
                 }
-                // 按钮：打开基因图谱弹窗（所有单位都显示，包括凡人）
+                // 按钮：打开基因系统窗口（v0.25.6：手机页签按钮行不渲染克隆页签，入口回按钮；
+                // 打开的是 P3 渲染窗口=原版 GeneEditor 克隆，非旧基因图谱）
                 // 包裹在try-catch中，防止在非OnGUI方法中调用GUI函数报错
                 try
                 {
                     if (Event.current != null)
                     {
-                        // v0.25.4：基因图谱按钮移除（用户要求）——入口统一走单位窗基因页签
-                        
+                        GUILayout.Space(4);
+                        if (GUILayout.Button(UILocalization.Get("unit_gene_system"), GUILayout.Height(28)))
+                        {
+                            GeneEditorWindow.Show(actor);
+                        }
                     }
                 }
                 catch (Exception guiEx)
