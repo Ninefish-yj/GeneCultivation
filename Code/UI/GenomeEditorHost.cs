@@ -33,6 +33,12 @@ namespace Code.UI
             if (actor == null || container == null) return false;
             try
             {
+                // 会话绑定必须先于克隆体激活：克隆体 Instantiate 即激活 → OnEnable → load()。
+                // 若此时 Session 未绑定（IsActive=false）会走原版 loadChromosomes/showGenes，
+                // 读全局 _meta_object（未选中亚种为 null）/ null _window_subspecies → NRE
+                // （v0.24.9 实机堆栈：GeneEditor.load ← EnsureHost ← 基因按钮，日志 NRE 先于会话绑定）
+                if (!GenomeEditorSession.SetTarget(actor)) return false;
+
                 if (!_sourcePrepared)
                 {
                     _sourcePrepared = true;
@@ -53,10 +59,7 @@ namespace Code.UI
                     }
                 }
 
-                // 会话绑定（构建真实基因组渲染数据）
-                if (!GenomeEditorSession.SetTarget(actor)) return false;
-
-                _hostedEditor.gameObject.SetActive(true);   // OnEnable → load() → 我方 Prefix 接管渲染
+                _hostedEditor.gameObject.SetActive(true);   // OnEnable → load() → 我方 Prefix 接管渲染（IsActive=true）
                 return true;
             }
             catch (Exception e)
