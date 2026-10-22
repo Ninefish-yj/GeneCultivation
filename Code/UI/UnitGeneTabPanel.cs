@@ -279,12 +279,8 @@ namespace Code.UI
 
             MakeDivider(UnitGeneTabLayout.DividerHeight + 2f);
 
-            // 入口按钮：基因图谱 / 异能树
+            // 入口按钮：异能树（v0.25.4：基因图谱按钮移除，入口统一走页签）
             Actor bound = actor;
-            MakeButton("btn_gene", en ? "Open Gene Graph" : UILocalization.Get("unit_gene_detail"), () =>
-            {
-                if (bound != null && bound.isAlive()) GeneGraphWindow.Show(bound);
-            });
             MakeButton("btn_proto", en ? "Open Ability Tree" : UILocalization.Get("unit_prototype"), () =>
             {
                 if (bound != null && bound.isAlive()) PrototypeWindow.Show(bound);
