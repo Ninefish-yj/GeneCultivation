@@ -137,7 +137,8 @@ namespace Code.UI
             foreach (var c in metaBases) UnityEngine.Object.Destroy(c);
         }
 
-        /// <summary>顶锚贴齐容器 + LayoutElement 控高（R1：克隆体顶锚贴齐 + LayoutElement 控高）</summary>
+        /// <summary>顶锚贴齐容器 + 高度自适应（v0.25.3：原固定 300 高会裁切原版 Genetics 内容；
+        /// 改为随内容撑高，外层 ScrollRect 滚动接管）</summary>
         private static void AlignToContainer(GameObject inst)
         {
             var rt = inst.GetComponent<RectTransform>();
@@ -146,13 +147,17 @@ namespace Code.UI
                 rt.anchorMin = new Vector2(0f, 1f);
                 rt.anchorMax = new Vector2(1f, 1f);
                 rt.pivot = new Vector2(0.5f, 1f);
-                rt.offsetMin = new Vector2(0f, -300f);   // 高度 300（原版 GeneEditor 内容区高度）
+                rt.offsetMin = Vector2.zero;
                 rt.offsetMax = Vector2.zero;
             }
             var le = inst.GetComponent<LayoutElement>();
             if (le == null) le = inst.AddComponent<LayoutElement>();
-            le.preferredHeight = 300f;
-            le.minHeight = 300f;
+            le.preferredHeight = 0f;
+            le.minHeight = 0f;
+            le.flexibleHeight = 1f;   // 由内容撑高
+            var fitter = inst.GetComponent<ContentSizeFitter>();
+            if (fitter == null) fitter = inst.AddComponent<ContentSizeFitter>();
+            fitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
         }
     }
 }
