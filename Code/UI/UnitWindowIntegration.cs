@@ -186,8 +186,9 @@ namespace Code.UI
                     ShowStatRow(__instance, UILocalization.Get("unit_title"), titleText,
                         null, MetaType.None, -1L, false, null, null, null, false);
                 }
-                // 按钮：打开基因系统窗口（v0.25.6：手机页签按钮行不渲染克隆页签，入口回按钮；
-                // 打开的是 P3 渲染窗口=原版 GeneEditor 克隆，非旧基因图谱）
+                // 按钮：打开基因系统（v0.25.7：手机页签按钮不可见但页签激活路径已验证工作
+                // —— ShowTab 激活 DS_GeneTab 内容（原版 GeneEditor 克隆渲染真实基因组）；
+                // 独立窗口 GeneEditorWindow 未验证，仅作 ShowTab 失败回退）
                 // 包裹在try-catch中，防止在非OnGUI方法中调用GUI函数报错
                 try
                 {
@@ -196,7 +197,7 @@ namespace Code.UI
                         GUILayout.Space(4);
                         if (GUILayout.Button(UILocalization.Get("unit_gene_system"), GUILayout.Height(28)))
                         {
-                            GeneEditorWindow.Show(actor);
+                            UnitGeneTab.ShowTab(__instance);
                         }
                     }
                 }
