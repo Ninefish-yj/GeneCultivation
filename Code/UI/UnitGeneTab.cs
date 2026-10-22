@@ -39,6 +39,9 @@ namespace Code.UI
         private static readonly FieldInfo ScrollWindowField =
             FindScrollWindowField();
 
+        /// <summary>原版 Genetics 页签按钮子图标（懒取一次；纯原版素材，不自制）</summary>
+        private static Sprite _geneTabIcon;
+
         /// <summary>
         /// scroll_window 声明在基类 TabbedWindow（protected）。typeof(UnitWindow).GetField
         /// 不沿继承链返回非 public 字段（会得 null），必须沿继承链逐级找（天人武道直接
@@ -238,6 +241,7 @@ namespace Code.UI
             }
 
             ApplyWorldTip(newTab);
+            ApplyIcon(newTab);
             RegisterTab(scroll.tabs, newTab);
             return newTab;
         }
@@ -375,7 +379,61 @@ namespace Code.UI
         {
             if (tab == null || scroll == null) return;
             ResetTabAction(tab, scroll, window);
+            ApplyIcon(tab);
             RegisterTab(scroll.tabs, tab);
+        }
+
+        /// <summary>懒取原版 Genetics 页签按钮子图标（subspecies 预制体 → Genetics 页签 → 第一个非底板子图标）</summary>
+        private static void PrepareGeneTabIcon()
+        {
+            if (_geneTabIcon != null) return;
+            try
+            {
+                var m = HarmonyLib.AccessTools.Method(typeof(WindowPreloader), "getWindowPrefab");
+                if (m == null) return;
+                var prefab = m.Invoke(null, new object[] { "subspecies" }) as ScrollWindow;
+                if (prefab == null || prefab.tabs == null) return;
+                var tabs = prefab.tabs.transform.FindAllRecursive<WindowMetaTab>();
+                foreach (var tab in tabs)
+                {
+                    if (tab == null || tab.name != "Genetics") continue;
+                    Image[] imgs = tab.GetComponentsInChildren<Image>(true);
+                    foreach (var img in imgs)
+                    {
+                        if (img == null || img.gameObject == tab.gameObject) continue;
+                        if (img.sprite != null && img.sprite.name != null
+                            && img.sprite.name.IndexOf("tab_button", StringComparison.OrdinalIgnoreCase) >= 0)
+                            continue; // 跳过页签底板，改子图标（与天人武道 ApplyIcon 同规则）
+                        _geneTabIcon = img.sprite;
+                        return;
+                    }
+                    return; // Genetics 按钮无子图标 → 保持克隆源图标
+                }
+            }
+            catch { }
+        }
+
+        /// <summary>把克隆页签的子图标换成原版 Genetics 图标（基因主题语义正确）</summary>
+        private static void ApplyIcon(WindowMetaTab tab)
+        {
+            if (tab == null) return;
+            PrepareGeneTabIcon();
+            if (_geneTabIcon == null) return;
+            try
+            {
+                Image[] images = tab.GetComponentsInChildren<Image>(true);
+                foreach (var img in images)
+                {
+                    if (img == null || img.gameObject == tab.gameObject) continue;
+                    if (img.sprite != null && img.sprite.name != null
+                        && img.sprite.name.IndexOf("tab_button", StringComparison.OrdinalIgnoreCase) >= 0)
+                        continue;
+                    img.sprite = _geneTabIcon;
+                    img.color = Color.white;
+                    return; // 只换第一个子图标
+                }
+            }
+            catch { }
         }
 
         private static void RegisterTab(WindowMetaTabButtonsContainer container, WindowMetaTab tab)
