@@ -31,9 +31,10 @@ namespace Code.Realm.Genome
             if (data == null) return;
             if (data.custom_data_string == null) return;
 
-            if (string.IsNullOrEmpty(data.custom_data_string[GC_GENOME_VERSION]))
+            if (!data.custom_data_string.TryGetValue(GC_GENOME_VERSION, out string version) ||
+                string.IsNullOrEmpty(version))
             {
-                GenomeMigration.Migrate(actor);   // 首次访问时迁移（§5.1 时机）
+                GenomeMigration.Migrate(actor);   // 首次访问时迁移（§5.1 时机；新单位无版本键不可用索引器）
             }
         }
 

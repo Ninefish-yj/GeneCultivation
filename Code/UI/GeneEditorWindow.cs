@@ -39,13 +39,22 @@ namespace Code.UI
                 var prefab = m.Invoke(null, new object[] { "subspecies" }) as ScrollWindow;
                 if (prefab == null) return;
 
-                _window = UnityEngine.Object.Instantiate(prefab, CanvasMain.instance.transformWindows);
+                // 关键：Instantiate 到「非激活」临时父 → 子对象 activeInHierarchy=false → OnEnable 不触发。
+                // 直接 Instantiate 到 Canvas 会连锁触发 StatsWindow.OnEnable→PowerTabController.showWorldTipSelected
+                // NullReferenceException（v0.24.8 实机 26 次重复 + "YOU SHOULD RESTART THE GAME"）。
+                var inactiveHost = new GameObject("[GC]WindowHost", typeof(RectTransform));
+                inactiveHost.SetActive(false);
+                _window = UnityEngine.Object.Instantiate(prefab, inactiveHost.transform, false);
+                UnityEngine.Object.Destroy(inactiveHost); // 帧末销毁后窗口脱离宿主，保持自身 inactive
                 _window.name = "GeneCultivation_GenesWindow";
                 _window.screen_id = "GeneCultivation_Genes";
 
                 // 剥离亚种窗组件（离开亚种编辑上下文会 NRE/污染）
                 var subspecies = _window.GetComponentsInChildren<SubspeciesWindow>(true);
                 foreach (var c in subspecies) UnityEngine.Object.Destroy(c);
+                // 剥离 StatsWindow（通用模板内嵌组件，OnEnable 依赖全局选中态——克隆窗口不需要）
+                var stats = _window.GetComponentsInChildren<StatsWindow>(true);
+                foreach (var c in stats) UnityEngine.Object.Destroy(c);
 
                 // 只保留 Genetics 页签：其余页签按钮透明隐藏
                 var tabs = _window.tabs.transform.FindAllRecursive<WindowMetaTab>();
@@ -62,7 +71,9 @@ namespace Code.UI
                     }
                 }
 
+                // 保持 inactive 状态下挂入窗口画布（不触发 OnEnable）
                 _window.gameObject.SetActive(false);
+                _window.transform.SetParent(CanvasMain.instance.transformWindows, false);
                 DSDebug.Verbose("[GeneCultivation][P3] 基因系统窗口克隆就绪 (Genetics页签: " + (_geneticsTab != null) + ")");
             }
             catch (Exception e)

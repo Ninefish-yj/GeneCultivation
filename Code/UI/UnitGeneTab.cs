@@ -135,6 +135,46 @@ namespace Code.UI
             return actor != null && actor.isAlive();
         }
 
+        /// <summary>
+        /// 单位窗「基因」按钮入口：直接切到基因页签（用户要求页签路径）。
+        /// 页签不可用（无克隆源等）时回退独立窗口（GeneEditorWindow）。
+        /// </summary>
+        public static void ShowTab(UnitWindow window)
+        {
+            try
+            {
+                Actor actor = UnitWindowIntegration.GetUnitActor(window);
+                if (actor == null || !actor.isAlive())
+                {
+                    GeneEditorWindow.Show(actor);
+                    return;
+                }
+                ScrollWindow scroll = GetScrollWindow(window);
+                if (scroll?.tabs == null)
+                {
+                    GeneEditorWindow.Show(actor);
+                    return;
+                }
+                WindowMetaTab tab = EnsureTab(scroll, window);
+                if (tab == null)
+                {
+                    GeneEditorWindow.Show(actor);
+                    return;
+                }
+                tab.gameObject.SetActive(true);
+                SetTabVisible(tab, true);
+                scroll.tabs.showTab(tab);
+                UnitGeneTabPanel.Ensure(window, tab, scroll);
+                UnitGeneTabPanel.ShowForActor(actor, true);
+                Code.Core.DSDebug.Verbose("[GeneCultivation][UnitGeneTab] 基因按钮 → 基因页签: " + tab.name);
+            }
+            catch (Exception ex)
+            {
+                Code.Core.DSDebug.Warning("[GeneCultivation] UnitGeneTab.ShowTab 异常: " + ex.Message);
+                try { GeneEditorWindow.Show(UnitWindowIntegration.GetUnitActor(window)); } catch { }
+            }
+        }
+
         /// <summary>隐藏路径：隐藏页签按钮并卸载内容</summary>
         private static void HideTab(ScrollWindow scroll)
         {
@@ -163,7 +203,21 @@ namespace Code.UI
 
             GameObject tabObj = UnityEngine.Object.Instantiate(source.gameObject, source.transform.parent);
             tabObj.name = TabName;
-            tabObj.transform.SetSiblingIndex(source.transform.GetSiblingIndex() + 1);
+            // 克隆按钮插到按钮行首：规避行尾被裁剪/布局不刷新导致的不可见（v0.24.2-24.6 手机"页签也没有"根因）
+            tabObj.transform.SetAsFirstSibling();
+            try
+            {
+                var btnParent = tabObj.transform.parent;
+                if (btnParent != null)
+                {
+                    var layout = btnParent.GetComponent<UnityEngine.UI.HorizontalOrVerticalLayoutGroup>();
+                    if (layout != null)
+                    {
+                        UnityEngine.UI.LayoutRebuilder.ForceRebuildLayoutImmediate(btnParent as RectTransform);
+                    }
+                }
+            }
+            catch { }
 
             WindowMetaTab newTab = tabObj.GetComponent<WindowMetaTab>();
             if (newTab == null)
