@@ -213,8 +213,8 @@ namespace Code.UI
 
             GameObject tabObj = UnityEngine.Object.Instantiate(source.gameObject, source.transform.parent);
             tabObj.name = TabName;
-            // 克隆按钮插到按钮行首：规避行尾被裁剪/布局不刷新导致的不可见（v0.24.2-24.6 手机"页签也没有"根因）
-            tabObj.transform.SetAsFirstSibling();
+            // v0.25.11：SetAsLastSibling（最上层渲染，避免被源按钮盖住）；之前 SetAsFirstSibling 会让克隆按钮在最底层被状态/背包按钮遮挡。
+            tabObj.transform.SetAsLastSibling();
             try
             {
                 var btnParent = tabObj.transform.parent;

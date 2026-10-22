@@ -22,14 +22,14 @@ namespace Code.UI
         [HarmonyPatch(typeof(UnitWindow), "OnEnable")]
         public static void OnEnable_Postfix(UnitWindow __instance)
         {
-            try { TryRefresh(__instance, true); } catch { } // 常开：打开单位窗自动激活基因页签
+            try { TryRefresh(__instance, false); } catch { } // 页签常驻：只创建/显示按钮，不自动激活内容
         }
 
         [HarmonyPostfix]
         [HarmonyPatch(typeof(UnitWindow), "showInfo")]
         public static void ShowInfo_Postfix(UnitWindow __instance)
         {
-            try { TryRefresh(__instance, true); } catch { } // 常开：切单位也自动激活基因页签
+            try { TryRefresh(__instance, false); } catch { } // 切单位也保持当前页签，不自动跳基因
         }
 
         [HarmonyPostfix]
