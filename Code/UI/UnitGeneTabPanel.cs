@@ -22,6 +22,8 @@ using UnityEngine.UI;
 using Code.Core;
 using Code.Data;
 using Code.Realm.Prototype;
+using Code.Realm.Genome;
+using HarmonyLib;
 
 namespace Code.UI
 {
@@ -100,7 +102,28 @@ namespace Code.UI
                 if (_container != null && !tab.tab_elements.Contains(_container.transform))
                 {
                     tab.tab_elements.Add(_container.transform);
+                    // v0.25.19：内容容器已挂进 tab_elements 后再触发原版 refillTabsWithContent——
+                    // 原版过滤条件 tab.tab_elements.Count != 0 此时才满足；此前 RegisterTab 触发时
+                    // tab_elements 仍为空，基因页签会被过滤出 _tabs_with_content（时序 bug）
+                    try
+                    {
+                        var mi = AccessTools.Method(typeof(WindowMetaTabButtonsContainer), "refillTabsWithContent");
+                        mi?.Invoke(scroll.tabs, null);
+                    }
+                    catch { }
                 }
+                // 屏显诊断：确认基因页签已进入原版"有效页签"列表（getContentTabs）
+                try
+                {
+                    var f = AccessTools.Field(typeof(WindowMetaTabButtonsContainer), "_tabs_with_content");
+                    if (f?.GetValue(scroll.tabs) is List<WindowMetaTab> wc)
+                    {
+                        Code.Realm.Genome.GenomeBridgeDiag.P3Diag =
+                            "[P3] tab注册 " + (wc.Contains(tab) ? "OK" : "未进_tabs_with_content") +
+                            " elems=" + tab.tab_elements.Count;
+                    }
+                }
+                catch { }
 
                 // 激活态由原版 startTabAction 接管（tab_elements 统一显隐）；
                 // 此处只对齐初始状态，避免容器残留显示在默认页签里。
