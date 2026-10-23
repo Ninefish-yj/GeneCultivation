@@ -213,18 +213,55 @@ namespace Code.UI
 
             GameObject tabObj = UnityEngine.Object.Instantiate(source.gameObject, source.transform.parent);
             tabObj.name = TabName;
-            // v0.25.11：SetAsLastSibling（最上层渲染，避免被源按钮盖住）；之前 SetAsFirstSibling 会让克隆按钮在最底层被状态/背包按钮遮挡。
+            // v0.25.11：SetAsLastSibling（最上层渲染，避免被源按钮盖住）
             tabObj.transform.SetAsLastSibling();
+            // v0.25.12：强制摆位——按钮行若无布局组件，克隆按钮不会自动排位（手机多轮不可见根因）。
+            // 用源按钮与兄弟按钮的间距推断排列方向（横/竖），把基因按钮排到按钮行末尾。
             try
             {
                 var btnParent = tabObj.transform.parent;
-                if (btnParent != null)
+                var layout = btnParent != null
+                    ? btnParent.GetComponent<UnityEngine.UI.HorizontalOrVerticalLayoutGroup>()
+                    : null;
+                if (layout == null)
                 {
-                    var layout = btnParent.GetComponent<UnityEngine.UI.HorizontalOrVerticalLayoutGroup>();
-                    if (layout != null)
+                    RectTransform srcRt = source.GetComponent<RectTransform>();
+                    RectTransform myRt = tabObj.GetComponent<RectTransform>();
+                    if (srcRt != null && myRt != null)
                     {
-                        UnityEngine.UI.LayoutRebuilder.ForceRebuildLayoutImmediate(btnParent as RectTransform);
+                        // 找源按钮的可见兄弟页签推断排列方向
+                        RectTransform sibRt = null;
+                        foreach (WindowMetaTab t in scroll.tabs.GetComponentsInChildren<WindowMetaTab>(true))
+                        {
+                            if (t == null || t == source || t.gameObject == tabObj) continue;
+                            if (!t.gameObject.activeSelf) continue;
+                            sibRt = t.GetComponent<RectTransform>();
+                            break;
+                        }
+                        Vector2 offset;
+                        if (sibRt != null)
+                        {
+                            Vector2 delta = sibRt.anchoredPosition - srcRt.anchoredPosition;
+                            if (Mathf.Abs(delta.y) > Mathf.Abs(delta.x))
+                                offset = new Vector2(0f, delta.y);          // 纵向排列 → 末尾同间距
+                            else
+                                offset = new Vector2(delta.x, 0f);          // 横向排列 → 末尾同间距
+                        }
+                        else
+                        {
+                            offset = new Vector2(srcRt.rect.width * 1.05f, 0f); // 无兄弟 → 默认右侧
+                        }
+                        myRt.anchorMin = srcRt.anchorMin;
+                        myRt.anchorMax = srcRt.anchorMax;
+                        myRt.pivot = srcRt.pivot;
+                        myRt.sizeDelta = srcRt.sizeDelta;
+                        myRt.anchoredPosition = srcRt.anchoredPosition + offset;
                     }
+                }
+                else
+                {
+                    // 有布局组件 → 布局接管排序
+                    UnityEngine.UI.LayoutRebuilder.ForceRebuildLayoutImmediate(btnParent as RectTransform);
                 }
             }
             catch { }
