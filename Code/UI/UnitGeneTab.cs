@@ -105,6 +105,16 @@ namespace Code.UI
                 if (autoActivate) scroll.tabs.showTab(tab);
                 bool onTab = scroll.tabs.isActiveTab(tab);
                 UnitGeneTabPanel.Ensure(window, tab, scroll);
+                // v0.25.13：注册后补触发原版 refillTabsWithContent——该列表只在窗口 Awake/OnEnable 构建，
+                // 我们按钮注册较晚，_tabs_with_content 不含它，按钮行按 getContentTabs 渲染时不认该按钮。
+                // tab_elements 已在 Ensure 里挂上容器（Count!=0），满足 refill 条件。
+                try
+                {
+                    var refillMethod = HarmonyLib.AccessTools.Method(
+                        typeof(WindowMetaTabButtonsContainer), "refillTabsWithContent");
+                    refillMethod?.Invoke(scroll.tabs, null);
+                }
+                catch { }
                 // 懒渲染：仅当前激活页签是"基因"时才重建内容
                 UnitGeneTabPanel.ShowForActor(UnitWindowIntegration.GetUnitActor(window), onTab);
                 return true;
