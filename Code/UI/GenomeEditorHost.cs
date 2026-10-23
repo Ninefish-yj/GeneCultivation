@@ -85,7 +85,7 @@ namespace Code.UI
                     hostRoot = hostRoot.parent;
                 }
                 hostRoot.gameObject.SetActive(true);   // OnEnable → load() → 我方 Prefix 接管渲染（IsActive=true）
-                GenomeEditorBridge.P3Diag = "[P3] host OK root=" + hostRoot.name +
+                GenomeBridgeDiag.P3Diag = "[P3] host OK root=" + hostRoot.name +
                     " rootActive=" + hostRoot.gameObject.activeInHierarchy +
                     " editor=" + _hostedEditor.name +
                     " actor=" + actor.getName();

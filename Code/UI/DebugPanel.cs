@@ -71,7 +71,7 @@ namespace Code.UI
             // v0.25.14：P3 渲染诊断常驻小字（屏幕左下角；手机无日志，开窗即见定位白板）
             try
             {
-                string p3 = Code.Realm.Genome.GenomeEditorBridge.P3Diag;
+                string p3 = Code.Realm.Genome.GenomeBridgeDiag.P3Diag;
                 if (!string.IsNullOrEmpty(p3))
                 {
                     var oldColor = GUI.color;

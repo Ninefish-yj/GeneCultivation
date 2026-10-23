@@ -23,7 +23,10 @@ using Code.UI;
 namespace Code.Realm.Genome
 {
     /// <summary>P3 渲染诊断（屏幕常驻小字，手机无日志时的定位手段）</summary>
-    public static string P3Diag = "[P3] 未初始化";
+    public static class GenomeBridgeDiag
+    {
+        public static string P3Diag = "[P3] 未初始化";
+    }
 
     // ---------- 1. loadChromosomes ----------
 
@@ -50,7 +53,7 @@ namespace Code.Realm.Genome
                 {
                     __instance.clickChromosome(chromosomes[0]);
                 }
-                P3Diag = "[P3] chromPool OK C=" + chromosomes.Count + " sel=" +
+                GenomeBridgeDiag.P3Diag = "[P3] chromPool OK C=" + chromosomes.Count + " sel=" +
                     (AccessTools.Field(typeof(GeneEditor), "_selected_chromosome")?.GetValue(__instance) ?? "null");
                 return false;
             }
@@ -108,7 +111,7 @@ namespace Code.Realm.Genome
                            as ObjectPoolGenericMono<LocusElement>;
                 if (pool == null || pChromosome == null || pChromosome.genes == null)
                 {
-                    P3Diag = "[P3] showGenes 失败 pool=" + (pool != null) +
+                    GenomeBridgeDiag.P3Diag = "[P3] showGenes 失败 pool=" + (pool != null) +
                         " chrom=" + (pChromosome != null) +
                         " genes=" + (pChromosome != null ? pChromosome.genes : null);
                     return true; // 走原版（可能 NRE，诊断上屏）
@@ -123,7 +126,7 @@ namespace Code.Realm.Genome
                         .CreateDelegate(typeof(LocusClickEvent), __instance) as LocusClickEvent;
                     next.show(i, pChromosome, pGene, pChromosome.getLocusType(i), clickDelegate);
                 }
-                P3Diag = "[P3] showGenes OK loci=" + pChromosome.genes.Count +
+                GenomeBridgeDiag.P3Diag = "[P3] showGenes OK loci=" + pChromosome.genes.Count +
                     " chrom=" + (AccessTools.Field(typeof(GeneEditor), "_selected_chromosome")?.GetValue(__instance)?.ToString() ?? "null");
                 // 跳过 _window_subspecies.updateStats()——防亚种窗污染/空引用（§4.2）
                 return false;
