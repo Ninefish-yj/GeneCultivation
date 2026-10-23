@@ -26,6 +26,21 @@ namespace Code.Realm.Genome
     public static class GenomeBridgeDiag
     {
         public static string P3Diag = "[P3] 未初始化";
+
+        /// <summary>位点容器布局诊断：是否在激活链 + 本地位置 + 尺寸</summary>
+        internal static string LociTransformDiag(GeneEditor __instance)
+        {
+            try
+            {
+                var lociTf = AccessTools.Field(typeof(GeneEditor), "_transform_loci").GetValue(__instance) as Transform;
+                if (lociTf == null) return "null";
+                var rt = lociTf as RectTransform;
+                return "a=" + lociTf.gameObject.activeInHierarchy +
+                       " pos=" + (rt != null ? rt.anchoredPosition.ToString() : lociTf.localPosition.ToString()) +
+                       " sz=" + (rt != null ? rt.sizeDelta.ToString() : "?");
+            }
+            catch { return "err"; }
+        }
     }
 
     // ---------- 1. loadChromosomes ----------

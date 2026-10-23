@@ -85,10 +85,7 @@ namespace Code.UI
                     hostRoot = hostRoot.parent;
                 }
                 hostRoot.gameObject.SetActive(true);   // OnEnable → load() → 我方 Prefix 接管渲染（IsActive=true）
-                GenomeBridgeDiag.P3Diag = "[P3] host OK root=" + hostRoot.name +
-                    " rootActive=" + hostRoot.gameObject.activeInHierarchy +
-                    " editor=" + _hostedEditor.name +
-                    " actor=" + actor.getName();
+                // v0.25.15：不覆盖渲染 Prefix 的诊断（showGenes/loadChromosomes 写入的 P3Diag 保留，供截图定位）
                 return true;
             }
             catch (Exception e)
