@@ -186,7 +186,24 @@ namespace Code.UI
                     ShowStatRow(__instance, UILocalization.Get("unit_title"), titleText,
                         null, MetaType.None, -1L, false, null, null, null, false);
                 }
-                // v0.25.16：基因入口按钮移除——觉醒单位打开单位窗自动激活基因页签，无需按钮
+                // 按钮：打开基因图谱弹窗（所有单位都显示，包括凡人）
+                // 包裹在try-catch中，防止在非OnGUI方法中调用GUI函数报错
+                try
+                {
+                    if (Event.current != null)
+                    {
+                        GUILayout.Space(4);
+                        if (GUILayout.Button(UILocalization.Get("unit_gene_detail"), GUILayout.Height(28)))
+                        {
+                            // 用户要求页签路径：基因按钮 → 单位窗基因页签（不可用时回退独立窗口）
+                            UnitGeneTab.ShowTab(__instance);
+                        }
+                    }
+                }
+                catch (Exception guiEx)
+                {
+                    DSDebug.Verbose("[单位窗口] GUI按钮渲染跳过: " + guiEx.Message);
+                }
                 // === H-2修复：境界技能释放入口 ===
                 // 仅异能者（tier>0）显示技能释放按钮
                 // 包裹在try-catch中，防止在非OnGUI方法中调用GUI函数报错
@@ -476,6 +493,7 @@ namespace Code.UI
     [HarmonyPatch(typeof(UnitWindow), "OnEnable")]
     public static class UnitWindowGeneButtonPatch
     {
+        private static GameObject _geneButton;
         private static GameObject _prototypeButton;
         [HarmonyPrefix]
         public static void Prefix(UnitWindow __instance)
@@ -484,6 +502,10 @@ namespace Code.UI
             {
                 if (UnitWindowIntegration.GetUnitActor(__instance) == null) return;
                 // 每次OnEnable都检查按钮是否存在，如果不存在就重新创建
+                if (_geneButton == null)
+                {
+                    CreateGeneButton(__instance);
+                }
                 if (_prototypeButton == null)
                 {
                     CreatePrototypeButton(__instance);
@@ -561,6 +583,97 @@ namespace Code.UI
                 DSDebug.Warning("[GeneCultivation] 创建异能按钮失败: " + e.Message);
             }
         }
+        private static void CreateGeneButton(UnitWindow window)
+        {
+            try
+            {
+                // 查找按钮父对象（Background）
+                Transform background = window.transform.Find("Background");
+                if (background == null)
+                {
+                    DSDebug.Warning("[GeneCultivation] 未找到UnitWindow.Background");
+                    return;
+                }
+                // 按钮位置（x=156, y从84开始，每次减40）
+                float buttonX = 156f;
+                float buttonY = 84f;
+                float buttonSize = 32f;
+                // 尝试加载基因图谱图标
+                Sprite iconSprite = null;
+                try
+                {
+                    iconSprite = SpriteTextureLoader.getSprite("ui/iconGeneGraph");
+                }
+                catch { }
+                // 如果没有自定义图标，使用默认图标
+                if (iconSprite == null)
+                {
+                    try
+                    {
+                        iconSprite = SpriteTextureLoader.getSprite("ui/iconBook");
+                    }
+                    catch { }
+                }
+                // 用Unity原生API创建按钮
+                GameObject buttonObj = new GameObject("GeneGraphButton", typeof(RectTransform), typeof(Image), typeof(Button));
+                buttonObj.transform.SetParent(background, false);
+                // 设置位置和大小
+                RectTransform rectTransform = buttonObj.GetComponent<RectTransform>();
+                rectTransform.anchoredPosition = new Vector2(buttonX, -buttonY);
+                rectTransform.sizeDelta = new Vector2(buttonSize, buttonSize);
+                rectTransform.localScale = Vector3.one;
+                // 设置图标
+                Image image = buttonObj.GetComponent<Image>();
+                if (iconSprite != null)
+                {
+                    image.sprite = iconSprite;
+                }
+                else
+                {
+                    image.color = new Color(0.5f, 0.5f, 0.5f, 0.8f);
+                }
+                // 设置点击事件
+                Button button = buttonObj.GetComponent<Button>();
+                button.onClick.AddListener(() =>
+                {
+                    var unitActor = UnitWindowIntegration.GetUnitActor(window);
+                    if (unitActor != null && unitActor.isAlive())
+                    {
+                        // P3 渲染接管：基因按钮 → 单位窗基因页签（用户要求页签路径；不可用回退窗口）
+                        UnitGeneTab.ShowTab(window);
+                    }
+                });
+                // 添加提示组件（只设置textOnClick一个字段，避免多行提示）
+                try
+                {
+                    var tipButton = buttonObj.AddComponent<TipButton>();
+                    if (tipButton != null)
+                    {
+                        string tipText = UILocalization.CurrentLanguage == "en" ? "Gene Graph" : UILocalization.Get("unit_gene_graph");
+                        tipButton.textOnClick = tipText;
+                    }
+                }
+                catch (System.Exception e)
+                {
+                    DSDebug.Warning("[GeneCultivation] 添加TipButton失败: " + e.Message);
+                }
+                // 添加拖动脚本（让按钮可以被鼠标拖动，位置保存到PlayerPrefs）
+                try
+                {
+                    buttonObj.AddComponent<GeneButtonDragHandler>();
+                }
+                catch (System.Exception e)
+                {
+                    DSDebug.Warning("[GeneCultivation] 添加基因按钮拖动脚本失败: " + e.Message);
+                }
+                _geneButton = buttonObj;
+                DSDebug.Verbose("[GeneCultivation] 单位窗口基因图谱按钮已创建（支持拖动）");
+            }
+            catch (Exception e)
+            {
+                DSDebug.Warning("[GeneCultivation] 创建基因按钮失败: " + e.Message);
+            }
+        }
         private static void UpdateButtonVisibility(UnitWindow window)
         {
             try
@@ -570,6 +683,7 @@ namespace Code.UI
                 {
                     shouldShow = true;
                 }
+                if (_geneButton != null) _geneButton.SetActive(shouldShow);
                 if (_prototypeButton != null) _prototypeButton.SetActive(shouldShow);
             }
             catch (Exception e)

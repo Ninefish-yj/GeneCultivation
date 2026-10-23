@@ -62,18 +62,8 @@ namespace Code.UI
             return null;
         }
 
-        /// <summary>觉醒判定：有境界（tier>0）视为已觉醒——觉醒单位打开单位窗自动激活基因页签（v0.25.16）</summary>
-        public static bool IsAwakened(UnitWindow window)
-        {
-            Actor actor = UnitWindowIntegration.GetUnitActor(window);
-            if (actor == null || !actor.isAlive()) return false;
-            try { return Code.Data.CultivationData.GetRealmTier(actor) > 0; }
-            catch { return false; }
-        }
-
         /// <summary>每次单位窗刷新时调用——纯编排：判定→建页签→挂内容→按激活态懒渲染</summary>
-        /// <param name="autoActivate">true=觉醒单位自动激活基因页签（无需按钮）；false=保持当前页签</param>
-        public static void Refresh(UnitWindow window, bool autoActivate)
+        public static void Refresh(UnitWindow window)
         {
             try
             {
@@ -108,9 +98,6 @@ namespace Code.UI
 
                 tab.gameObject.SetActive(true);
                 SetTabVisible(tab, true);
-                // v0.25.16：觉醒自动激活——觉醒单位打开单位窗/切单位时自动切到基因页签（原版 showTab
-                // 只切内容容器+按钮高亮，不隐藏状态/背包按钮，可手动切回）
-                if (autoActivate) scroll.tabs.showTab(tab);
                 bool onTab = scroll.tabs.isActiveTab(tab);
                 UnitGeneTabPanel.Ensure(window, tab, scroll);
                 // 懒渲染：仅当前激活页签是"基因"时才重建内容
@@ -460,16 +447,6 @@ namespace Code.UI
             {
                 FieldInfo containerField = AccessTools.Field(typeof(WindowMetaTab), "container");
                 containerField?.SetValue(tab, container);
-            }
-            catch { }
-
-            // v0.25.18：注册进 _tabs_with_content（原版"有效页签"列表）——refillTabsWithContent 仅
-            // Awake/OnEnable 构建，克隆页签注册晚于窗口初始化，必须补触发；否则 getContentTabs()
-            // 不含基因页签（热键切换/原版行为不认，v0.25.13 曾修、回滚丢失后在此恢复）
-            try
-            {
-                var mi = AccessTools.Method(typeof(WindowMetaTabButtonsContainer), "refillTabsWithContent");
-                mi?.Invoke(container, null);
             }
             catch { }
         }
