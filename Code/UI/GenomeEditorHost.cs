@@ -48,18 +48,9 @@ namespace Code.UI
 
                 if (_hostedEditor == null)
                 {
-                    // 关键时序：Instantiate 的瞬间克隆体内所有组件 OnEnable 连锁执行。
-                    // 若直接实例化到容器，WindowMetaElement`2 等组件未剥离即触发
-                    // OnEnable → 读亚种全局态 NRE（v0.25.1 实机堆栈）。
-                    // 因此：实例化到「非激活」临时父（OnEnable 不触发）→ 剥离 → 挂容器（保持 inactive）→ 由调用方 SetActive(true) 触发。
-                    var tmp = new GameObject("[GC]HostTmp", typeof(RectTransform));
-                    tmp.SetActive(false);
-                    GameObject inst = UnityEngine.Object.Instantiate(_cloneSource.gameObject, tmp.transform, false);
-                    inst.SetActive(false);
-                    UnityEngine.Object.Destroy(tmp);   // 帧末销毁；inst 已显式 inactive，脱离后不会激活
+                    GameObject inst = UnityEngine.Object.Instantiate(_cloneSource.gameObject, container, false);
                     StripWindowComponents(inst);
                     AlignToContainer(inst);
-                    inst.transform.SetParent(container, false);
                     _hostedEditor = inst.GetComponentInChildren<GeneEditor>(true);
                     if (_hostedEditor == null)
                     {
