@@ -462,6 +462,16 @@ namespace Code.UI
                 containerField?.SetValue(tab, container);
             }
             catch { }
+
+            // v0.25.18：注册进 _tabs_with_content（原版"有效页签"列表）——refillTabsWithContent 仅
+            // Awake/OnEnable 构建，克隆页签注册晚于窗口初始化，必须补触发；否则 getContentTabs()
+            // 不含基因页签（热键切换/原版行为不认，v0.25.13 曾修、回滚丢失后在此恢复）
+            try
+            {
+                var mi = AccessTools.Method(typeof(WindowMetaTabButtonsContainer), "refillTabsWithContent");
+                mi?.Invoke(container, null);
+            }
+            catch { }
         }
     }
 }
