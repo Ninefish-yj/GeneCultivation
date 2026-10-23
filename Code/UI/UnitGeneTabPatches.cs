@@ -22,22 +22,21 @@ namespace Code.UI
         [HarmonyPatch(typeof(UnitWindow), "OnEnable")]
         public static void OnEnable_Postfix(UnitWindow __instance)
         {
-            try { TryRefresh(__instance, false); } catch { } // 页签常驻：只创建/显示按钮，不自动激活内容
+            try { TryRefresh(__instance); } catch { }
         }
 
         [HarmonyPostfix]
         [HarmonyPatch(typeof(UnitWindow), "showInfo")]
         public static void ShowInfo_Postfix(UnitWindow __instance)
         {
-            try { TryRefresh(__instance, false); } catch { } // 切单位也保持当前页签，不自动跳基因
+            try { TryRefresh(__instance); } catch { }
         }
 
         [HarmonyPostfix]
         [HarmonyPatch(typeof(UnitWindow), "showStatsRows")]
         public static void ShowStatsRows_Postfix(UnitWindow __instance)
         {
-            // 每帧刷新不抢页签：用户手动切到状态/背包后保持（常开只作用于开窗/切单位）
-            try { TryRefresh(__instance, false); } catch { }
+            try { TryRefresh(__instance); } catch { }
         }
 
         [HarmonyPostfix]
@@ -50,8 +49,7 @@ namespace Code.UI
         }
 
         /// <summary>同帧同单位去重刷新（与天人武道同款防抖）</summary>
-        /// <param name="autoActivate">true=自动激活基因页签（常开：开窗/切单位）；false=不抢当前页签</param>
-        private static void TryRefresh(UnitWindow window, bool autoActivate)
+        private static void TryRefresh(UnitWindow window)
         {
             try
             {
@@ -63,15 +61,10 @@ namespace Code.UI
                 try { id = actor.getID(); } catch { }
                 if (frame == _lastRefreshFrame && id != 0L && id == _lastRefreshActorId)
                     return;
+                _lastRefreshFrame = frame;
+                _lastRefreshActorId = id;
 
-                // v0.25.10：只有 Refresh 真正执行（scroll 就绪+EnsureTab 成功）才记录去重。
-                // 否则 OnEnable 时 scroll.tabs 未就绪会提前 return 并占掉同帧去重，
-                // 导致 showInfo（scroll 已就绪）被跳过 → 常开失效。
-                if (UnitGeneTab.Refresh(window, autoActivate))
-                {
-                    _lastRefreshFrame = frame;
-                    _lastRefreshActorId = id;
-                }
+                UnitGeneTab.Refresh(window);
             }
             catch (System.Exception ex)
             {

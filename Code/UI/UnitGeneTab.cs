@@ -63,13 +63,11 @@ namespace Code.UI
         }
 
         /// <summary>每次单位窗刷新时调用——纯编排：判定→建页签→挂内容→按激活态懒渲染</summary>
-        /// <param name="autoActivate">true=自动激活基因页签并渲染内容（常开：打开单位窗/切单位即显示基因）</param>
-        /// <returns>true=真正执行了页签创建/渲染（scroll就绪+EnsureTab成功）；false=未就绪（调用方不应记录同帧去重）</returns>
-        public static bool Refresh(UnitWindow window, bool autoActivate)
+        public static void Refresh(UnitWindow window)
         {
             try
             {
-                if (window == null) return false;
+                if (window == null) return;
 
                 ScrollWindow scroll = GetScrollWindow(window);
                 if (scroll == null || scroll.tabs == null)
@@ -77,14 +75,14 @@ namespace Code.UI
                     // 预期分支：窗口未完成页签初始化——静默
                     Code.Core.DSDebug.Verbose("[GeneCultivation][UnitGeneTab] scroll 或 tabs 未就绪，隐藏页签");
                     UnitGeneTabPanel.Hide();
-                    return false;
+                    return;
                 }
 
                 if (!ShouldShowEntry(window))
                 {
                     Code.Core.DSDebug.Verbose("[GeneCultivation][UnitGeneTab] 无存活单位（ShouldShowEntry=false），隐藏页签");
                     HideTab(scroll);
-                    return false;
+                    return;
                 }
 
                 WindowMetaTab tab = EnsureTab(scroll, window);
@@ -92,7 +90,7 @@ namespace Code.UI
                 {
                     // 预期分支：无可克隆页签源（原版 UI 结构异常）——静默
                     Code.Core.DSDebug.Verbose("[GeneCultivation][UnitGeneTab] EnsureTab 返回 null（无可克隆页签源），静默");
-                    return false;
+                    return;
                 }
                 Code.Core.DSDebug.Verbose("[GeneCultivation][UnitGeneTab] 页签就绪: " + tab.name +
                     " actor=" + (UnitWindowIntegration.GetUnitActor(window)?.getName() ?? "null") +
@@ -100,30 +98,15 @@ namespace Code.UI
 
                 tab.gameObject.SetActive(true);
                 SetTabVisible(tab, true);
-                // v0.25.9 常开：打开单位窗/切单位时自动激活基因页签（原版 showTab 只切内容容器+按钮高亮，
-                // 不隐藏状态/背包按钮，用户仍可手动切回）
-                if (autoActivate) scroll.tabs.showTab(tab);
                 bool onTab = scroll.tabs.isActiveTab(tab);
                 UnitGeneTabPanel.Ensure(window, tab, scroll);
-                // v0.25.13：注册后补触发原版 refillTabsWithContent——该列表只在窗口 Awake/OnEnable 构建，
-                // 我们按钮注册较晚，_tabs_with_content 不含它，按钮行按 getContentTabs 渲染时不认该按钮。
-                // tab_elements 已在 Ensure 里挂上容器（Count!=0），满足 refill 条件。
-                try
-                {
-                    var refillMethod = HarmonyLib.AccessTools.Method(
-                        typeof(WindowMetaTabButtonsContainer), "refillTabsWithContent");
-                    refillMethod?.Invoke(scroll.tabs, null);
-                }
-                catch { }
                 // 懒渲染：仅当前激活页签是"基因"时才重建内容
                 UnitGeneTabPanel.ShowForActor(UnitWindowIntegration.GetUnitActor(window), onTab);
-                return true;
             }
             catch (Exception ex)
             {
                 // 真异常：打 Warning 便于发现
                 Code.Core.DSDebug.Warning("[GeneCultivation] UnitGeneTab.Refresh 异常: " + ex.Message);
-                return false;
             }
         }
 
@@ -223,55 +206,18 @@ namespace Code.UI
 
             GameObject tabObj = UnityEngine.Object.Instantiate(source.gameObject, source.transform.parent);
             tabObj.name = TabName;
-            // v0.25.11：SetAsLastSibling（最上层渲染，避免被源按钮盖住）
-            tabObj.transform.SetAsLastSibling();
-            // v0.25.12：强制摆位——按钮行若无布局组件，克隆按钮不会自动排位（手机多轮不可见根因）。
-            // 用源按钮与兄弟按钮的间距推断排列方向（横/竖），把基因按钮排到按钮行末尾。
+            // 克隆按钮插到按钮行首：规避行尾被裁剪/布局不刷新导致的不可见（v0.24.2-24.6 手机"页签也没有"根因）
+            tabObj.transform.SetAsFirstSibling();
             try
             {
                 var btnParent = tabObj.transform.parent;
-                var layout = btnParent != null
-                    ? btnParent.GetComponent<UnityEngine.UI.HorizontalOrVerticalLayoutGroup>()
-                    : null;
-                if (layout == null)
+                if (btnParent != null)
                 {
-                    RectTransform srcRt = source.GetComponent<RectTransform>();
-                    RectTransform myRt = tabObj.GetComponent<RectTransform>();
-                    if (srcRt != null && myRt != null)
+                    var layout = btnParent.GetComponent<UnityEngine.UI.HorizontalOrVerticalLayoutGroup>();
+                    if (layout != null)
                     {
-                        // 找源按钮的可见兄弟页签推断排列方向
-                        RectTransform sibRt = null;
-                        foreach (WindowMetaTab t in scroll.tabs.GetComponentsInChildren<WindowMetaTab>(true))
-                        {
-                            if (t == null || t == source || t.gameObject == tabObj) continue;
-                            if (!t.gameObject.activeSelf) continue;
-                            sibRt = t.GetComponent<RectTransform>();
-                            break;
-                        }
-                        Vector2 offset;
-                        if (sibRt != null)
-                        {
-                            Vector2 delta = sibRt.anchoredPosition - srcRt.anchoredPosition;
-                            if (Mathf.Abs(delta.y) > Mathf.Abs(delta.x))
-                                offset = new Vector2(0f, delta.y);          // 纵向排列 → 末尾同间距
-                            else
-                                offset = new Vector2(delta.x, 0f);          // 横向排列 → 末尾同间距
-                        }
-                        else
-                        {
-                            offset = new Vector2(srcRt.rect.width * 1.05f, 0f); // 无兄弟 → 默认右侧
-                        }
-                        myRt.anchorMin = srcRt.anchorMin;
-                        myRt.anchorMax = srcRt.anchorMax;
-                        myRt.pivot = srcRt.pivot;
-                        myRt.sizeDelta = srcRt.sizeDelta;
-                        myRt.anchoredPosition = srcRt.anchoredPosition + offset;
+                        UnityEngine.UI.LayoutRebuilder.ForceRebuildLayoutImmediate(btnParent as RectTransform);
                     }
-                }
-                else
-                {
-                    // 有布局组件 → 布局接管排序
-                    UnityEngine.UI.LayoutRebuilder.ForceRebuildLayoutImmediate(btnParent as RectTransform);
                 }
             }
             catch { }

@@ -87,16 +87,6 @@ namespace Code.UI
                 RectTransform scrollContent = scroll.transform_content;
                 if (scrollContent == null) return;
 
-                // v0.25.5：原版窗口内容根高度固定，基因页签内容（300+）溢出部分被裁剪而非滚动。
-                // 给内容根加 ContentSizeFitter（verticalFit=PreferredSize）→ 内容高度随激活页签撑高，
-                // ScrollRect 滚动范围加长，可滚动查看完整基因内容。切回其他页签时高度自然回落。
-                var contentFitter = scrollContent.GetComponent<ContentSizeFitter>();
-                if (contentFitter == null)
-                {
-                    contentFitter = scrollContent.gameObject.AddComponent<ContentSizeFitter>();
-                    contentFitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
-                }
-
                 Transform existing = scrollContent.Find(ContainerName);
                 if (existing != null)
                 {
@@ -289,8 +279,12 @@ namespace Code.UI
 
             MakeDivider(UnitGeneTabLayout.DividerHeight + 2f);
 
-            // 入口按钮：异能树（v0.25.4：基因图谱按钮移除，入口统一走页签）
+            // 入口按钮：基因图谱 / 异能树
             Actor bound = actor;
+            MakeButton("btn_gene", en ? "Open Gene Graph" : UILocalization.Get("unit_gene_detail"), () =>
+            {
+                if (bound != null && bound.isAlive()) GeneGraphWindow.Show(bound);
+            });
             MakeButton("btn_proto", en ? "Open Ability Tree" : UILocalization.Get("unit_prototype"), () =>
             {
                 if (bound != null && bound.isAlive()) PrototypeWindow.Show(bound);

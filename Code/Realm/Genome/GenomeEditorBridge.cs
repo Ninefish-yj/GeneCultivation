@@ -22,27 +22,6 @@ using Code.UI;
 
 namespace Code.Realm.Genome
 {
-    /// <summary>P3 渲染诊断（屏幕常驻小字，手机无日志时的定位手段）</summary>
-    public static class GenomeBridgeDiag
-    {
-        public static string P3Diag = "[P3] 未初始化";
-
-        /// <summary>位点容器布局诊断：是否在激活链 + 本地位置 + 尺寸</summary>
-        internal static string LociTransformDiag(GeneEditor __instance)
-        {
-            try
-            {
-                var lociTf = AccessTools.Field(typeof(GeneEditor), "_transform_loci").GetValue(__instance) as Transform;
-                if (lociTf == null) return "null";
-                var rt = lociTf as RectTransform;
-                return "a=" + lociTf.gameObject.activeInHierarchy +
-                       " pos=" + (rt != null ? rt.anchoredPosition.ToString() : lociTf.localPosition.ToString()) +
-                       " sz=" + (rt != null ? rt.sizeDelta.ToString() : "?");
-            }
-            catch { return "err"; }
-        }
-    }
-
     // ---------- 1. loadChromosomes ----------
 
     [HarmonyPatch(typeof(GeneEditor), "loadChromosomes")]
@@ -68,8 +47,6 @@ namespace Code.Realm.Genome
                 {
                     __instance.clickChromosome(chromosomes[0]);
                 }
-                GenomeBridgeDiag.P3Diag = "[P3] chromPool OK C=" + chromosomes.Count + " sel=" +
-                    (AccessTools.Field(typeof(GeneEditor), "_selected_chromosome")?.GetValue(__instance) ?? "null");
                 return false;
             }
             catch (Exception e)
@@ -124,13 +101,7 @@ namespace Code.Realm.Genome
             {
                 var pool = AccessTools.Field(typeof(GeneEditor), "_pool_elements_loci").GetValue(__instance)
                            as ObjectPoolGenericMono<LocusElement>;
-                if (pool == null || pChromosome == null || pChromosome.genes == null)
-                {
-                    GenomeBridgeDiag.P3Diag = "[P3] showGenes 失败 pool=" + (pool != null) +
-                        " chrom=" + (pChromosome != null) +
-                        " genes=" + (pChromosome != null ? pChromosome.genes : null);
-                    return true; // 走原版（可能 NRE，诊断上屏）
-                }
+                if (pool == null || pChromosome == null || pChromosome.genes == null) return true;
 
                 pool.clear();
                 for (int i = 0; i < pChromosome.genes.Count; i++)
@@ -141,8 +112,6 @@ namespace Code.Realm.Genome
                         .CreateDelegate(typeof(LocusClickEvent), __instance) as LocusClickEvent;
                     next.show(i, pChromosome, pGene, pChromosome.getLocusType(i), clickDelegate);
                 }
-                GenomeBridgeDiag.P3Diag = "[P3] showGenes OK loci=" + pChromosome.genes.Count +
-                    " chrom=" + (AccessTools.Field(typeof(GeneEditor), "_selected_chromosome")?.GetValue(__instance)?.ToString() ?? "null");
                 // 跳过 _window_subspecies.updateStats()——防亚种窗污染/空引用（§4.2）
                 return false;
             }

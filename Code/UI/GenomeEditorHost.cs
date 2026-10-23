@@ -46,13 +46,6 @@ namespace Code.UI
                 }
                 if (_cloneSource == null) return false;
 
-                if (_hostedEditor != null && _hostedEditor.transform.parent != container)
-                {
-                    // 容器已重建（单位窗关闭再打开）→ 旧克隆体挂在旧容器上，销毁重建
-                    try { UnityEngine.Object.Destroy(_hostedEditor.gameObject); } catch (Exception) { }
-                    _hostedEditor = null;
-                }
-
                 if (_hostedEditor == null)
                 {
                     // 关键时序：Instantiate 的瞬间克隆体内所有组件 OnEnable 连锁执行。
@@ -75,17 +68,7 @@ namespace Code.UI
                     }
                 }
 
-                // 关键：激活整个克隆根（v0.25.14）。此前只 SetActive(GeneEditor 子对象)，
-                // 克隆根一直 inactive → 位点池容器等在 GeneEditor 子树外的元素不可见（白板：
-                // 标题"遗传学"在 GeneEditor 子树内可见，位点区在子树外空白）。
-                // 从 hostedEditor 向上找到克隆根（容器直属子），再整根激活 → 触发 OnEnable→load()→我方 Prefix 渲染。
-                Transform hostRoot = _hostedEditor.transform;
-                while (hostRoot.parent != null && hostRoot.parent != container)
-                {
-                    hostRoot = hostRoot.parent;
-                }
-                hostRoot.gameObject.SetActive(true);   // OnEnable → load() → 我方 Prefix 接管渲染（IsActive=true）
-                // v0.25.15：不覆盖渲染 Prefix 的诊断（showGenes/loadChromosomes 写入的 P3Diag 保留，供截图定位）
+                _hostedEditor.gameObject.SetActive(true);   // OnEnable → load() → 我方 Prefix 接管渲染（IsActive=true）
                 return true;
             }
             catch (Exception e)
@@ -95,13 +78,12 @@ namespace Code.UI
             }
         }
 
-        /// <summary>隐藏宿主并结束会话；销毁克隆体（单位窗关闭后容器重建，静态缓存的旧实例会挂在已销毁的旧容器上导致白板）</summary>
+        /// <summary>隐藏宿主并结束会话</summary>
         public static void HideHost()
         {
             if (_hostedEditor != null)
             {
-                try { UnityEngine.Object.Destroy(_hostedEditor.gameObject); } catch (Exception) { }
-                _hostedEditor = null;
+                try { _hostedEditor.gameObject.SetActive(false); } catch (Exception) { }
             }
             GenomeEditorSession.EndSession();
         }
@@ -155,8 +137,7 @@ namespace Code.UI
             foreach (var c in metaBases) UnityEngine.Object.Destroy(c);
         }
 
-        /// <summary>顶锚贴齐容器 + 固定高度 300（R1：克隆体顶锚贴齐 + LayoutElement 控高）。
-        /// v0.25.3 曾改为 ContentSizeFitter 自适应，破坏克隆根内部布局（位点/染色体区白板），回退。</summary>
+        /// <summary>顶锚贴齐容器 + LayoutElement 控高（R1：克隆体顶锚贴齐 + LayoutElement 控高）</summary>
         private static void AlignToContainer(GameObject inst)
         {
             var rt = inst.GetComponent<RectTransform>();
