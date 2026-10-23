@@ -22,6 +22,51 @@ using Code.UI;
 
 namespace Code.Realm.Genome
 {
+    /// <summary>P3 渲染诊断（DebugPanel 屏显小字，手机无日志定位用）</summary>
+    public static class GenomeBridgeDiag
+    {
+        public static string P3Diag = "[P3] 未初始化";
+        public static string LastError = "";
+    }
+
+    // ---------- 0. OnEnable：强制走我方渲染（v0.25.17）----------
+
+    [HarmonyPatch(typeof(GeneEditor), "OnEnable")]
+    public static class GenomeBridge_OnEnable
+    {
+        static bool Prefix(GeneEditor __instance)
+        {
+            // Session 未激活但宿主已挂载（单位窗克隆）→ 尝试恢复会话（时序补偿）
+            if (!GenomeEditorSession.IsActive && GenomeEditorHost.HasHostedActor)
+            {
+                try { GenomeEditorSession.SetTarget(GenomeEditorHost.HostedActor); }
+                catch (Exception e) { GenomeBridgeDiag.LastError = "OnEnable恢复会话失败: " + e.Message; }
+            }
+            if (!GenomeEditorSession.IsActive)
+            {
+                GenomeBridgeDiag.P3Diag = "[P3] OnEnable 未接管(SessionOff)";
+                return true; // 原版（亚种编辑器）
+            }
+            try
+            {
+                // 主动走我方渲染：init 由原版 load 内部执行（pool 创建），此处接管 load 主体
+                AccessTools.Method(typeof(GeneEditor), "init")?.Invoke(__instance, null);
+                AccessTools.Method(typeof(GeneEditor), "clear")?.Invoke(__instance, null);
+                AccessTools.Method(typeof(GeneEditor), "loadChromosomes")?.Invoke(__instance, new object[] { true });
+                AccessTools.Method(typeof(GeneEditor), "reloadButtons")?.Invoke(__instance, null);
+                AccessTools.Method(typeof(GeneEditor), "recolorGenePoolButtons")?.Invoke(__instance, null);
+                GenomeBridgeDiag.P3Diag = "[P3] OnEnable 接管 OK";
+                return false;
+            }
+            catch (Exception e)
+            {
+                GenomeBridgeDiag.P3Diag = "[P3] OnEnable 接管异常: " + e.Message;
+                GenomeBridgeDiag.LastError = e.Message;
+                return true;
+            }
+        }
+    }
+
     // ---------- 1. loadChromosomes ----------
 
     [HarmonyPatch(typeof(GeneEditor), "loadChromosomes")]
@@ -29,13 +74,30 @@ namespace Code.Realm.Genome
     {
         static bool Prefix(GeneEditor __instance)
         {
-            if (!GenomeEditorSession.IsActive) return true;
+            if (!GenomeEditorSession.IsActive)
+            {
+                GenomeBridgeDiag.P3Diag = "[P3] loadChromosomes 未接管(SessionOff)";
+                return true;
+            }
             if (GenomeEditorSession.CurrentNucleus == null) return true;
             try
             {
                 var pool = AccessTools.Field(typeof(GeneEditor), "_pool_elements_chromosomes").GetValue(__instance)
                            as ObjectPoolGenericMono<ChromosomeElement>;
-                if (pool == null) return true;
+                if (pool == null)
+                {
+                    // v0.25.17：克隆体池未初始化时自建（原版 init 未执行到）
+                    var prefab = AccessTools.Field(typeof(GeneEditor), "_prefab_chromosome_element").GetValue(__instance)
+                                 as ChromosomeElement;
+                    var parent = AccessTools.Field(typeof(GeneEditor), "_transform_chromosomes").GetValue(__instance)
+                                 as Transform;
+                    if (prefab == null || parent == null)
+                    {
+                        GenomeBridgeDiag.P3Diag = "[P3] loadChromosomes 池自建失败(prefab/parent null)";
+                        return true;
+                    }
+                    pool = new ObjectPoolGenericMono<ChromosomeElement>(prefab, parent);
+                }
                 pool.clear();
 
                 var chromosomes = GenomeEditorSession.CurrentNucleus.chromosomes;
@@ -47,13 +109,23 @@ namespace Code.Realm.Genome
                 {
                     __instance.clickChromosome(chromosomes[0]);
                 }
+                GenomeBridgeDiag.P3Diag = "[P3] chrom OK C=" + chromosomes.Count +
+                    " loci=" + CountNucleusLoci();
                 return false;
             }
             catch (Exception e)
             {
-                Debug.LogWarning("[GeneCultivation][P3] loadChromosomes 接管失败: " + e.Message);
+                GenomeBridgeDiag.P3Diag = "[P3] loadChromosomes 接管异常: " + e.Message;
                 return true;
             }
+        }
+        static int CountNucleusLoci()
+        {
+            int n = 0;
+            if (GenomeEditorSession.CurrentNucleus != null)
+                foreach (var c in GenomeEditorSession.CurrentNucleus.chromosomes)
+                    n += c.genes != null ? c.genes.Count : 0;
+            return n;
         }
     }
 
@@ -96,12 +168,33 @@ namespace Code.Realm.Genome
     {
         static bool Prefix(GeneEditor __instance, Chromosome pChromosome)
         {
-            if (!GenomeEditorSession.IsActive) return true;
+            if (!GenomeEditorSession.IsActive)
+            {
+                GenomeBridgeDiag.P3Diag = "[P3] showGenes 未接管(SessionOff)";
+                return true;
+            }
             try
             {
                 var pool = AccessTools.Field(typeof(GeneEditor), "_pool_elements_loci").GetValue(__instance)
                            as ObjectPoolGenericMono<LocusElement>;
-                if (pool == null || pChromosome == null || pChromosome.genes == null) return true;
+                if (pool == null)
+                {
+                    var prefab = AccessTools.Field(typeof(GeneEditor), "_prefab_locus_element").GetValue(__instance)
+                                 as LocusElement;
+                    var parent = AccessTools.Field(typeof(GeneEditor), "_transform_loci").GetValue(__instance)
+                                 as Transform;
+                    if (prefab == null || parent == null)
+                    {
+                        GenomeBridgeDiag.P3Diag = "[P3] showGenes 池自建失败";
+                        return true;
+                    }
+                    pool = new ObjectPoolGenericMono<LocusElement>(prefab, parent);
+                }
+                if (pChromosome == null || pChromosome.genes == null)
+                {
+                    GenomeBridgeDiag.P3Diag = "[P3] showGenes chrom/genes null";
+                    return true;
+                }
 
                 pool.clear();
                 for (int i = 0; i < pChromosome.genes.Count; i++)
@@ -112,6 +205,7 @@ namespace Code.Realm.Genome
                         .CreateDelegate(typeof(LocusClickEvent), __instance) as LocusClickEvent;
                     next.show(i, pChromosome, pGene, pChromosome.getLocusType(i), clickDelegate);
                 }
+                GenomeBridgeDiag.P3Diag = "[P3] showGenes OK loci=" + pChromosome.genes.Count;
                 // 跳过 _window_subspecies.updateStats()——防亚种窗污染/空引用（§4.2）
                 return false;
             }

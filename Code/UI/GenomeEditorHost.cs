@@ -26,6 +26,10 @@ namespace Code.UI
         private static bool _sourcePrepared = false;
         private static Transform _cloneSource;      // Genetics 页签内含 GeneEditor 的元素根
         private static GeneEditor _hostedEditor;    // 当前宿主实例（克隆体）
+        private static Actor _hostedActor;          // 当前宿主绑定的单位（OnEnable 会话恢复用，v0.25.17）
+
+        public static bool HasHostedActor => _hostedActor != null;
+        public static Actor HostedActor => _hostedActor;
 
         /// <summary>挂载原版 GeneEditor 并绑定会话到目标单位（幂等；失败返回 false）</summary>
         public static bool EnsureHost(Actor actor, RectTransform container)
@@ -68,6 +72,7 @@ namespace Code.UI
                     }
                 }
 
+                _hostedActor = actor;
                 _hostedEditor.gameObject.SetActive(true);   // OnEnable → load() → 我方 Prefix 接管渲染（IsActive=true）
                 return true;
             }
