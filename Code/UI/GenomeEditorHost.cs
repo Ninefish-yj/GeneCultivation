@@ -75,7 +75,20 @@ namespace Code.UI
                     }
                 }
 
-                _hostedEditor.gameObject.SetActive(true);   // OnEnable → load() → 我方 Prefix 接管渲染（IsActive=true）
+                // 关键：激活整个克隆根（v0.25.14）。此前只 SetActive(GeneEditor 子对象)，
+                // 克隆根一直 inactive → 位点池容器等在 GeneEditor 子树外的元素不可见（白板：
+                // 标题"遗传学"在 GeneEditor 子树内可见，位点区在子树外空白）。
+                // 从 hostedEditor 向上找到克隆根（容器直属子），再整根激活 → 触发 OnEnable→load()→我方 Prefix 渲染。
+                Transform hostRoot = _hostedEditor.transform;
+                while (hostRoot.parent != null && hostRoot.parent != container)
+                {
+                    hostRoot = hostRoot.parent;
+                }
+                hostRoot.gameObject.SetActive(true);   // OnEnable → load() → 我方 Prefix 接管渲染（IsActive=true）
+                GenomeEditorBridge.P3Diag = "[P3] host OK root=" + hostRoot.name +
+                    " rootActive=" + hostRoot.gameObject.activeInHierarchy +
+                    " editor=" + _hostedEditor.name +
+                    " actor=" + actor.getName();
                 return true;
             }
             catch (Exception e)
