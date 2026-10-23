@@ -62,8 +62,18 @@ namespace Code.UI
             return null;
         }
 
+        /// <summary>觉醒判定：有境界（tier>0）视为已觉醒——觉醒单位打开单位窗自动激活基因页签（v0.25.16）</summary>
+        public static bool IsAwakened(UnitWindow window)
+        {
+            Actor actor = UnitWindowIntegration.GetUnitActor(window);
+            if (actor == null || !actor.isAlive()) return false;
+            try { return Code.Data.CultivationData.GetRealmTier(actor) > 0; }
+            catch { return false; }
+        }
+
         /// <summary>每次单位窗刷新时调用——纯编排：判定→建页签→挂内容→按激活态懒渲染</summary>
-        public static void Refresh(UnitWindow window)
+        /// <param name="autoActivate">true=觉醒单位自动激活基因页签（无需按钮）；false=保持当前页签</param>
+        public static void Refresh(UnitWindow window, bool autoActivate)
         {
             try
             {
@@ -98,6 +108,9 @@ namespace Code.UI
 
                 tab.gameObject.SetActive(true);
                 SetTabVisible(tab, true);
+                // v0.25.16：觉醒自动激活——觉醒单位打开单位窗/切单位时自动切到基因页签（原版 showTab
+                // 只切内容容器+按钮高亮，不隐藏状态/背包按钮，可手动切回）
+                if (autoActivate) scroll.tabs.showTab(tab);
                 bool onTab = scroll.tabs.isActiveTab(tab);
                 UnitGeneTabPanel.Ensure(window, tab, scroll);
                 // 懒渲染：仅当前激活页签是"基因"时才重建内容

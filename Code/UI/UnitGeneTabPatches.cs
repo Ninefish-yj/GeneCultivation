@@ -22,21 +22,23 @@ namespace Code.UI
         [HarmonyPatch(typeof(UnitWindow), "OnEnable")]
         public static void OnEnable_Postfix(UnitWindow __instance)
         {
-            try { TryRefresh(__instance); } catch { }
+            // v0.25.16：觉醒自动激活（觉醒单位打开单位窗直接显示基因页签，无需按钮）
+            try { TryRefresh(__instance, UnitGeneTab.IsAwakened(__instance)); } catch { }
         }
 
         [HarmonyPostfix]
         [HarmonyPatch(typeof(UnitWindow), "showInfo")]
         public static void ShowInfo_Postfix(UnitWindow __instance)
         {
-            try { TryRefresh(__instance); } catch { }
+            try { TryRefresh(__instance, UnitGeneTab.IsAwakened(__instance)); } catch { }
         }
 
         [HarmonyPostfix]
         [HarmonyPatch(typeof(UnitWindow), "showStatsRows")]
         public static void ShowStatsRows_Postfix(UnitWindow __instance)
         {
-            try { TryRefresh(__instance); } catch { }
+            // 每帧刷新不抢页签（用户手动切到状态/背包后保持）
+            try { TryRefresh(__instance, false); } catch { }
         }
 
         [HarmonyPostfix]
@@ -49,7 +51,7 @@ namespace Code.UI
         }
 
         /// <summary>同帧同单位去重刷新（与天人武道同款防抖）</summary>
-        private static void TryRefresh(UnitWindow window)
+        private static void TryRefresh(UnitWindow window, bool autoActivate)
         {
             try
             {
@@ -64,7 +66,7 @@ namespace Code.UI
                 _lastRefreshFrame = frame;
                 _lastRefreshActorId = id;
 
-                UnitGeneTab.Refresh(window);
+                UnitGeneTab.Refresh(window, autoActivate);
             }
             catch (System.Exception ex)
             {
