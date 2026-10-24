@@ -17,6 +17,7 @@
 // ============================================================
 
 using System.Collections.Generic;
+using HarmonyLib;
 using UnityEngine;
 using UnityEngine.UI;
 using Code.Core;
@@ -100,6 +101,15 @@ namespace Code.UI
                 if (_container != null && !tab.tab_elements.Contains(_container.transform))
                 {
                     tab.tab_elements.Add(_container.transform);
+                    // v0.25.20：内容容器挂进 tab_elements 后再触发 refillTabsWithContent——
+                    // 原版过滤条件（activeSelf && getState() && tab_elements.Count != 0）此刻才满足，
+                    // 基因页签正式进入 _tabs_with_content（"有效页签"列表）
+                    try
+                    {
+                        var mi = AccessTools.Method(typeof(WindowMetaTabButtonsContainer), "refillTabsWithContent");
+                        mi?.Invoke(scroll.tabs, null);
+                    }
+                    catch { }
                 }
 
                 // 激活态由原版 startTabAction 接管（tab_elements 统一显隐）；

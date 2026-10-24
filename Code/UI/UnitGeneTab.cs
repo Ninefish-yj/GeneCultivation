@@ -449,6 +449,18 @@ namespace Code.UI
                 containerField?.SetValue(tab, container);
             }
             catch { }
+
+            // 页签注册（v0.25.20）：触发原版 refillTabsWithContent 重建 _tabs_with_content——
+            // 原版仅 Awake/OnEnable 构建该列表，克隆页签注册晚于窗口初始化，不补则 getContentTabs()
+            // 不含基因页签（热键切换/原版行为不认）。注意：此刻 tab_elements 可能仍为空，
+            // 原版过滤条件 tab.tab_elements.Count != 0 不满足时会被过滤；真正生效在
+            // UnitGeneTabPanel.Ensure 的 tab_elements.Add 之后再次触发（见该处）。
+            try
+            {
+                var mi = AccessTools.Method(typeof(WindowMetaTabButtonsContainer), "refillTabsWithContent");
+                mi?.Invoke(container, null);
+            }
+            catch { }
         }
     }
 }
