@@ -33,7 +33,6 @@ namespace Code.Realm.Genome
     // 基因库实例化按钮，一旦异常会中断整条 load 链（位点渲染不执行，只剩克隆体静态标题）。
     // 单位基因页签只需要位点网络，基因库按钮区不渲染（与"基因图谱按钮删除"一致）。
 
-    [HarmonyPatch(typeof(GeneEditor), "loadGeneButtons")]
     public static class GenomeBridge_LoadGeneButtons
     {
         static bool Prefix()
@@ -46,7 +45,6 @@ namespace Code.Realm.Genome
 
     // ---------- 1. loadChromosomes ----------
 
-    [HarmonyPatch(typeof(GeneEditor), "loadChromosomes")]
     public static class GenomeBridge_LoadChromosomes
     {
         static bool Prefix(GeneEditor __instance)
@@ -96,7 +94,6 @@ namespace Code.Realm.Genome
 
     // ---------- 2. chromosomeUpdatedEvent ----------
 
-    [HarmonyPatch(typeof(GeneEditor), "chromosomeUpdatedEvent")]
     public static class GenomeBridge_ChromosomeUpdated
     {
         static bool Prefix(GeneEditor __instance)
@@ -128,7 +125,6 @@ namespace Code.Realm.Genome
 
     // ---------- 3. showGenes ----------
 
-    [HarmonyPatch(typeof(GeneEditor), "showGenes")]
     public static class GenomeBridge_ShowGenes
     {
         static bool Prefix(GeneEditor __instance, Chromosome pChromosome)
@@ -176,7 +172,6 @@ namespace Code.Realm.Genome
 
     // ---------- 4. reloadButtons ----------
 
-    [HarmonyPatch(typeof(GeneEditor), "reloadButtons")]
     public static class GenomeBridge_ReloadButtons
     {
         static bool Prefix(GeneEditor __instance)
@@ -209,7 +204,6 @@ namespace Code.Realm.Genome
 
     // ---------- 5. clickGeneAssetAction ----------
 
-    [HarmonyPatch(typeof(GeneEditor), "clickGeneAssetAction")]
     public static class GenomeBridge_ClickGeneAsset
     {
         static bool Prefix()
@@ -222,13 +216,11 @@ namespace Code.Realm.Genome
 
     // ---------- 5b. 调试按钮门禁（克隆体上的 randomize/shuffle 按钮不得写回亚种） ----------
 
-    [HarmonyPatch(typeof(GeneEditor), "debugRandomizeGenes")]
     public static class GenomeBridge_DebugRandomize
     {
         static bool Prefix() => !GenomeEditorSession.IsActive;
     }
 
-    [HarmonyPatch(typeof(GeneEditor), "debugShuffleGenes")]
     public static class GenomeBridge_DebugShuffle
     {
         static bool Prefix() => !GenomeEditorSession.IsActive;
@@ -236,7 +228,6 @@ namespace Code.Realm.Genome
 
     // ---------- 5c. 基因系统窗口关闭 → 结束会话（防会话残留污染亚种编辑器） ----------
 
-    [HarmonyPatch(typeof(ScrollWindow), "clickCloseButton")]
     public static class GenomeBridge_WindowClose
     {
         static void Prefix(ScrollWindow __instance)
@@ -252,7 +243,6 @@ namespace Code.Realm.Genome
 
     // ---------- 6. Update ----------
 
-    [HarmonyPatch(typeof(GeneEditor), "Update")]
     public static class GenomeBridge_Update
     {
         static bool Prefix(GeneEditor __instance)

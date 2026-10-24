@@ -92,7 +92,46 @@ namespace Code
                 ok++;
             }
             catch (System.Exception e) { Code.Realm.Genome.GenomeBridgeDiag.P3Diag = "[P3] Patch OnDisable 失败: " + e.Message; }
-            Code.Realm.Genome.GenomeBridgeDiag.P3Diag = "[P3] 显式Patch完成 ok=" + ok + "/4";
+            // v0.25.33：GenomeEditorBridge 渲染补丁同样改显式挂载（特性版 PatchAll 静默跳过 → 位点空白）
+            var bridge = new[]
+            {
+                new object[] { "loadGeneButtons", "Code.Realm.Genome.GenomeBridge_LoadGeneButtons" },
+                new object[] { "loadChromosomes", "Code.Realm.Genome.GenomeBridge_LoadChromosomes" },
+                new object[] { "chromosomeUpdatedEvent", "Code.Realm.Genome.GenomeBridge_ChromosomeUpdated" },
+                new object[] { "showGenes", "Code.Realm.Genome.GenomeBridge_ShowGenes" },
+                new object[] { "reloadButtons", "Code.Realm.Genome.GenomeBridge_ReloadButtons" },
+                new object[] { "clickGeneAssetAction", "Code.Realm.Genome.GenomeBridge_ClickGeneAsset" },
+                new object[] { "debugRandomizeGenes", "Code.Realm.Genome.GenomeBridge_DebugRandomize" },
+                new object[] { "debugShuffleGenes", "Code.Realm.Genome.GenomeBridge_DebugShuffle" },
+            };
+            foreach (var e in bridge)
+            {
+                try
+                {
+                    var targetType = typeof(GeneEditor);
+                    var patchType = System.Type.GetType((string)e[1]);
+                    if (patchType == null) { Code.Realm.Genome.GenomeBridgeDiag.P3Diag = "[P3] 缺补丁类 " + e[1]; continue; }
+                    geneHarmony.Patch(HarmonyLib.AccessTools.Method(targetType, (string)e[0]),
+                        prefix: new HarmonyLib.HarmonyMethod(patchType, "Prefix"));
+                    ok++;
+                }
+                catch (System.Exception ex) { Code.Realm.Genome.GenomeBridgeDiag.P3Diag = "[P3] Patch " + e[0] + " 失败: " + ex.Message; }
+            }
+            try
+            {
+                geneHarmony.Patch(HarmonyLib.AccessTools.Method(typeof(ScrollWindow), "clickCloseButton"),
+                    prefix: new HarmonyLib.HarmonyMethod(typeof(Code.Realm.Genome.GenomeBridge_WindowClose), "Prefix"));
+                ok++;
+            }
+            catch (System.Exception e) { Code.Realm.Genome.GenomeBridgeDiag.P3Diag = "[P3] Patch clickCloseButton 失败: " + e.Message; }
+            try
+            {
+                geneHarmony.Patch(HarmonyLib.AccessTools.Method(typeof(GeneEditor), "Update"),
+                    prefix: new HarmonyLib.HarmonyMethod(typeof(Code.Realm.Genome.GenomeBridge_Update), "Prefix"));
+                ok++;
+            }
+            catch (System.Exception e) { Code.Realm.Genome.GenomeBridgeDiag.P3Diag = "[P3] Patch Update 失败: " + e.Message; }
+            Code.Realm.Genome.GenomeBridgeDiag.P3Diag = "[P3] 显式Patch完成 ok=" + ok + "/14";
 
             // 2.2 初始化鼠标事件拦截器（Unity UI Overlay Canvas，防止面板点击穿透到游戏）
             UI.MouseOverlayBlocker.EnsureInitialized();
