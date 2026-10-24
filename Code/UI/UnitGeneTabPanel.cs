@@ -128,7 +128,9 @@ namespace Code.UI
         {
             _boundActor = actor;
             if (_container == null) return;
-            if (!render) return;
+            // v0.25.27：打开单位窗即渲染基因内容（EnsureHost 幂等，克隆一次后续复用）——
+            // 不再按激活页签懒渲染（原懒渲染导致默认页签时诊断"未初始化"，误认为故障）；
+            // 内容渲染好后由原版 tab_elements 统一控制显隐，点基因页签即见。
             try { Render(); }
             catch (System.Exception ex) { Code.Core.DSDebug.Warning("[GeneCultivation] UnitGeneTabPanel.Render 异常: " + ex.Message); }
         }
