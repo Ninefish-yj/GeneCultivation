@@ -68,6 +68,8 @@ namespace Code.UI
             try
             {
                 if (window == null) return;
+                Code.Realm.Genome.GenomeBridgeDiag.P3Diag = "[P3] Refresh触发 actor=" +
+                    (UnitWindowIntegration.GetUnitActor(window)?.getName() ?? "null");
 
                 ScrollWindow scroll = GetScrollWindow(window);
                 if (scroll == null || scroll.tabs == null)

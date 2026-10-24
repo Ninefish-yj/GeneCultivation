@@ -76,7 +76,9 @@ namespace Code.UI
                 {
                     var oldColor = GUI.color;
                     GUI.color = new Color(1f, 0.85f, 0.3f);
-                    GUI.Label(new Rect(12f, Screen.height - 34f, 700f, 24f), p3);
+                    // v0.25.29：字号加大+屏幕左上角，截图必见
+                    var st = new GUIStyle(GUI.skin.label) { fontSize = 22, fontStyle = FontStyle.Bold };
+                    GUI.Label(new Rect(16f, 60f, 900f, 40f), p3, st);
                     GUI.color = oldColor;
                 }
             }

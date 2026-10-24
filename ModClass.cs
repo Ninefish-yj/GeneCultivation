@@ -74,8 +74,7 @@ namespace Code
             UnityEngine.Object.DontDestroyOnLoad(divineObj);
             _divinePanel = divineObj.AddComponent<AbilityCodexPanel>();
 
-            // 4.0.1 启动基因图谱弹窗（点击单位窗口的基因图谱按钮打开）
-            UI.GeneGraphWindow.Ensure();
+            // 4.0.1 基因图谱弹窗已移除（v0.25.29：用户否决，页签路径取代）
 
             // 4.0 启动全局年度Tick驱动（MonoBehaviour，每帧检查时间，不遍历单位）
             //      这是主要的年度Tick触发方式，年龄驱动作为补充
