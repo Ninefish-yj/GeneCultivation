@@ -186,24 +186,7 @@ namespace Code.UI
                     ShowStatRow(__instance, UILocalization.Get("unit_title"), titleText,
                         null, MetaType.None, -1L, false, null, null, null, false);
                 }
-                // 按钮：打开基因图谱弹窗（所有单位都显示，包括凡人）
-                // 包裹在try-catch中，防止在非OnGUI方法中调用GUI函数报错
-                try
-                {
-                    if (Event.current != null)
-                    {
-                        GUILayout.Space(4);
-                        if (GUILayout.Button(UILocalization.Get("unit_gene_detail"), GUILayout.Height(28)))
-                        {
-                            // 用户要求页签路径：基因按钮 → 单位窗基因页签（不可用时回退独立窗口）
-                            UnitGeneTab.ShowTab(__instance);
-                        }
-                    }
-                }
-                catch (Exception guiEx)
-                {
-                    DSDebug.Verbose("[单位窗口] GUI按钮渲染跳过: " + guiEx.Message);
-                }
+                // v0.25.24：基因图谱按钮移除——基因页签常驻按钮行，与其他 tab 一致，无需入口按钮
                 // === H-2修复：境界技能释放入口 ===
                 // 仅异能者（tier>0）显示技能释放按钮
                 // 包裹在try-catch中，防止在非OnGUI方法中调用GUI函数报错
