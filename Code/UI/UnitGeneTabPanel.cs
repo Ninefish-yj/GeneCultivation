@@ -128,9 +128,16 @@ namespace Code.UI
         {
             _boundActor = actor;
             if (_container == null) return;
-            // v0.25.27：打开单位窗即渲染基因内容（EnsureHost 幂等，克隆一次后续复用）——
-            // 不再按激活页签懒渲染（原懒渲染导致默认页签时诊断"未初始化"，误认为故障）；
-            // 内容渲染好后由原版 tab_elements 统一控制显隐，点基因页签即见。
+            // v0.25.28：懒渲染恢复（点基因页签才渲染）——v0.25.27 实测"打开单位窗瞬间原生闪退"：
+            // OnEnable 时机（窗口初始化未完成）克隆+激活渲染在 Android 上是引擎层冲突，托管 try-catch
+            // 挡不住（游戏直接退出）。v0.25.1 成功=点页签/按钮时渲染（窗口已稳定）；v0.25.24 不闪=
+            // 懒渲染未触发。两点共同指向：渲染必须等窗口稳定后触发。打开单位窗只建页签按钮，
+            // 点基因页签（Refresh 传 render=onTab=true）才渲染。
+            if (!render)
+            {
+                Code.Realm.Genome.GenomeBridgeDiag.P3Diag = "[P3] 待激活渲染（点基因页签显示）";
+                return;
+            }
             try { Render(); }
             catch (System.Exception ex) { Code.Core.DSDebug.Warning("[GeneCultivation] UnitGeneTabPanel.Render 异常: " + ex.Message); }
         }
