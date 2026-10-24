@@ -57,6 +57,7 @@ namespace Code
             //     包括：ActorUpdateAgePatch（年度Tick驱动）、UnitWindowIntegration（单位窗口境界行）
             _harmony = new Harmony("GeneCultivation");
             _harmony.PatchAll();
+            Code.Realm.Genome.GenomeBridgeDiag.P3Diag = "[P3] PatchAll完成"; // v0.25.30 挂载探针
 
             // 2.2 初始化鼠标事件拦截器（Unity UI Overlay Canvas，防止面板点击穿透到游戏）
             UI.MouseOverlayBlocker.EnsureInitialized();

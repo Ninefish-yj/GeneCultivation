@@ -22,6 +22,7 @@ namespace Code.UI
         [HarmonyPatch(typeof(UnitWindow), "OnEnable")]
         public static void OnEnable_Postfix(UnitWindow __instance)
         {
+            Code.Realm.Genome.GenomeBridgeDiag.P3Diag = "[P3] OnEnable触发"; // v0.25.30 探针
             try { TryRefresh(__instance); } catch { }
         }
 
@@ -29,6 +30,7 @@ namespace Code.UI
         [HarmonyPatch(typeof(UnitWindow), "showInfo")]
         public static void ShowInfo_Postfix(UnitWindow __instance)
         {
+            Code.Realm.Genome.GenomeBridgeDiag.P3Diag = "[P3] showInfo触发"; // v0.25.30 探针
             try { TryRefresh(__instance); } catch { }
         }
 
@@ -36,6 +38,7 @@ namespace Code.UI
         [HarmonyPatch(typeof(UnitWindow), "showStatsRows")]
         public static void ShowStatsRows_Postfix(UnitWindow __instance)
         {
+            Code.Realm.Genome.GenomeBridgeDiag.P3Diag = "[P3] showStatsRows触发"; // v0.25.30 探针
             try { TryRefresh(__instance); } catch { }
         }
 
@@ -54,13 +57,25 @@ namespace Code.UI
             try
             {
                 Actor actor = UnitWindowIntegration.GetUnitActor(window);
-                if (actor == null || !actor.isAlive()) return;
+                if (actor == null)
+                {
+                    Code.Realm.Genome.GenomeBridgeDiag.P3Diag = "[P3] TryRefresh actor=null"; // v0.25.30 探针
+                    return;
+                }
+                if (!actor.isAlive())
+                {
+                    Code.Realm.Genome.GenomeBridgeDiag.P3Diag = "[P3] TryRefresh 单位已死";
+                    return;
+                }
 
                 int frame = UnityEngine.Time.frameCount;
                 long id = 0L;
                 try { id = actor.getID(); } catch { }
                 if (frame == _lastRefreshFrame && id != 0L && id == _lastRefreshActorId)
+                {
+                    Code.Realm.Genome.GenomeBridgeDiag.P3Diag = "[P3] TryRefresh 帧去重";
                     return;
+                }
                 _lastRefreshFrame = frame;
                 _lastRefreshActorId = id;
 
