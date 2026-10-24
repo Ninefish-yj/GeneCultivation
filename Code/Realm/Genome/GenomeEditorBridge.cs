@@ -28,6 +28,22 @@ namespace Code.Realm.Genome
         public static string P3Diag = "[P3] 未初始化";
     }
 
+    // ---------- 0. loadGeneButtons ----------
+    // v0.25.32：会话内跳过基因库按钮实例化——原版 load() 里 init() 的 loadGeneButtons 遍历
+    // 基因库实例化按钮，一旦异常会中断整条 load 链（位点渲染不执行，只剩克隆体静态标题）。
+    // 单位基因页签只需要位点网络，基因库按钮区不渲染（与"基因图谱按钮删除"一致）。
+
+    [HarmonyPatch(typeof(GeneEditor), "loadGeneButtons")]
+    public static class GenomeBridge_LoadGeneButtons
+    {
+        static bool Prefix()
+        {
+            if (!GenomeEditorSession.IsActive) return true;
+            GenomeBridgeDiag.P3Diag = "[P3] 基因库按钮跳过";
+            return false;
+        }
+    }
+
     // ---------- 1. loadChromosomes ----------
 
     [HarmonyPatch(typeof(GeneEditor), "loadChromosomes")]
@@ -59,6 +75,7 @@ namespace Code.Realm.Genome
                         Code.Core.DSDebug.Verbose("[GeneCultivation][P3] 染色体渲染跳过: " + chromEx.Message);
                     }
                 }
+                GenomeBridgeDiag.P3Diag = "[P3] chrom渲染 C=" + chromosomes.Count;
                 if (chromosomes.Count > 0)
                 {
                     try { __instance.clickChromosome(chromosomes[0]); }
