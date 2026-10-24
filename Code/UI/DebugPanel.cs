@@ -68,6 +68,20 @@ namespace Code.UI
                 _wasVisible = _visible;
             }
 
+            // v0.25.22：P3 渲染诊断常驻小字（屏幕左下角；手机无日志，开窗即见定位白板）
+            try
+            {
+                string p3 = Code.Realm.Genome.GenomeBridgeDiag.P3Diag;
+                if (!string.IsNullOrEmpty(p3))
+                {
+                    var oldColor = GUI.color;
+                    GUI.color = new Color(1f, 0.85f, 0.3f);
+                    GUI.Label(new Rect(12f, Screen.height - 34f, 700f, 24f), p3);
+                    GUI.color = oldColor;
+                }
+            }
+            catch { }
+
             if (!_visible)
                 return;
 

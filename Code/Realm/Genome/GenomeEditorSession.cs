@@ -46,14 +46,22 @@ namespace Code.Realm.Genome
             try
             {
                 var chromosomes = GenomeData.GetChromosomes(actor);
-                if (chromosomes == null || chromosomes.Count == 0) return false;
-
                 var nucleus = new Nucleus();
-                foreach (var c in chromosomes)
+                if (chromosomes != null)
                 {
-                    if (c == null) continue;
-                    var vc = c.ToVanillaChromosome();
-                    if (vc != null) nucleus.addChromosome(vc);
+                    foreach (var c in chromosomes)
+                    {
+                        if (c == null) continue;
+                        var vc = c.ToVanillaChromosome();
+                        if (vc != null) nucleus.addChromosome(vc);
+                    }
+                }
+                if (nucleus.chromosomes.Count == 0)
+                {
+                    // v0.25.22：未觉醒/无基因数据单位也渲染空基因骨架（标准染色体 12 位点全空）——
+                    // 原版渲染链对"标准染色体+empty基因"必然可画，白板不再出现；计数显示 0/0
+                    nucleus.addChromosome(new Chromosome("b", true));
+                    Code.Core.DSDebug.Verbose("[GeneCultivation][P3] 空基因骨架：单位无基因数据");
                 }
                 CurrentNucleus = nucleus;
                 TargetActor = actor;

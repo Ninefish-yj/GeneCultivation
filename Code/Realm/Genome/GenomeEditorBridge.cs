@@ -22,6 +22,12 @@ using Code.UI;
 
 namespace Code.Realm.Genome
 {
+    /// <summary>P3 渲染诊断（DebugPanel 屏显小字，手机无日志定位用）</summary>
+    public static class GenomeBridgeDiag
+    {
+        public static string P3Diag = "[P3] 未初始化";
+    }
+
     // ---------- 1. loadChromosomes ----------
 
     [HarmonyPatch(typeof(GeneEditor), "loadChromosomes")]
