@@ -47,11 +47,25 @@ namespace Code.Realm.Genome
                 var chromosomes = GenomeEditorSession.CurrentNucleus.chromosomes;
                 foreach (var chrom in chromosomes)
                 {
-                    pool.getNext().show(chrom, __instance.clickChromosome);
+                    try
+                    {
+                        if (chrom == null) continue;
+                        var ce = pool.getNext();
+                        if (ce == null) continue;
+                        ce.show(chrom, __instance.clickChromosome);
+                    }
+                    catch (Exception chromEx)
+                    {
+                        Code.Core.DSDebug.Verbose("[GeneCultivation][P3] 染色体渲染跳过: " + chromEx.Message);
+                    }
                 }
                 if (chromosomes.Count > 0)
                 {
-                    __instance.clickChromosome(chromosomes[0]);
+                    try { __instance.clickChromosome(chromosomes[0]); }
+                    catch (Exception selEx)
+                    {
+                        Code.Core.DSDebug.Verbose("[GeneCultivation][P3] 首染色体选中失败: " + selEx.Message);
+                    }
                 }
                 return false;
             }
@@ -110,14 +124,28 @@ namespace Code.Realm.Genome
                 if (pool == null || pChromosome == null || pChromosome.genes == null) return true;
 
                 pool.clear();
+                var clickDelegate = AccessTools.Method(typeof(GeneEditor), "selectLocus")
+                    .CreateDelegate(typeof(LocusClickEvent), __instance) as LocusClickEvent;
+                int shown = 0;
                 for (int i = 0; i < pChromosome.genes.Count; i++)
                 {
-                    GeneAsset pGene = pChromosome.genes[i];
-                    var next = pool.getNext();
-                    var clickDelegate = AccessTools.Method(typeof(GeneEditor), "selectLocus")
-                        .CreateDelegate(typeof(LocusClickEvent), __instance) as LocusClickEvent;
-                    next.show(i, pChromosome, pGene, pChromosome.getLocusType(i), clickDelegate);
+                    // v0.25.26：单点位渲染异常降级跳过（不中断整链→防闪退；原版对空位点/扩增位点的
+                    // 渲染链（checkSprite 等）在克隆体内有组件引用失效风险，每步隔离）
+                    try
+                    {
+                        GeneAsset pGene = pChromosome.genes[i];
+                        if (pGene == null) continue;
+                        var next = pool.getNext();
+                        if (next == null) continue;
+                        next.show(i, pChromosome, pGene, pChromosome.getLocusType(i), clickDelegate);
+                        shown++;
+                    }
+                    catch (Exception locusEx)
+                    {
+                        Code.Core.DSDebug.Verbose("[GeneCultivation][P3] 位点渲染跳过 i=" + i + ": " + locusEx.Message);
+                    }
                 }
+                GenomeBridgeDiag.P3Diag = "[P3] showGenes OK loci=" + pChromosome.genes.Count + " 画=" + shown;
                 // 跳过 _window_subspecies.updateStats()——防亚种窗污染/空引用（§4.2）
                 return false;
             }

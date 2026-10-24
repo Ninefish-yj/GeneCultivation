@@ -73,7 +73,17 @@ namespace Code.UI
                     }
                 }
 
-                _hostedEditor.gameObject.SetActive(true);   // OnEnable → load() → 我方 Prefix 接管渲染（IsActive=true）
+                try
+                {
+                    _hostedEditor.gameObject.SetActive(true);   // OnEnable → load() → 我方 Prefix 接管渲染（IsActive=true）
+                }
+                catch (Exception actEx)
+                {
+                    // v0.25.26：激活触发的渲染链异常在此兜底，不让其冒泡闪退；诊断记录位置
+                    Code.Core.DSDebug.Warning("[GeneCultivation][P3] 宿主激活渲染异常: " + actEx.Message);
+                    Code.Realm.Genome.GenomeBridgeDiag.P3Diag = "[P3] 激活异常: " + actEx.Message;
+                    return false;
+                }
                 Code.Realm.Genome.GenomeBridgeDiag.P3Diag = "[P3] 宿主激活 C=" +
                     (GenomeEditorSession.CurrentNucleus?.chromosomes.Count ?? 0);
                 return true;
