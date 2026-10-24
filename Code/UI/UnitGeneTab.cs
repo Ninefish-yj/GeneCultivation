@@ -206,18 +206,54 @@ namespace Code.UI
 
             GameObject tabObj = UnityEngine.Object.Instantiate(source.gameObject, source.transform.parent);
             tabObj.name = TabName;
-            // 克隆按钮插到按钮行首：规避行尾被裁剪/布局不刷新导致的不可见（v0.24.2-24.6 手机"页签也没有"根因）
-            tabObj.transform.SetAsFirstSibling();
+            // v0.25.24：SetAsLastSibling（最上层渲染，避免被源按钮盖住；v0.25.11 起）
+            tabObj.transform.SetAsLastSibling();
+            // v0.25.24（移植 v0.25.12）：强制摆位——按钮行若无布局组件，克隆按钮不会自动排位
+            // （手机页签按钮不可见根因）；用源按钮与兄弟按钮间距推断横/竖排列方向，排到按钮行末尾。
             try
             {
                 var btnParent = tabObj.transform.parent;
-                if (btnParent != null)
+                var layout = btnParent != null
+                    ? btnParent.GetComponent<UnityEngine.UI.HorizontalOrVerticalLayoutGroup>()
+                    : null;
+                if (layout == null)
                 {
-                    var layout = btnParent.GetComponent<UnityEngine.UI.HorizontalOrVerticalLayoutGroup>();
-                    if (layout != null)
+                    RectTransform srcRt = source.GetComponent<RectTransform>();
+                    RectTransform myRt = tabObj.GetComponent<RectTransform>();
+                    if (srcRt != null && myRt != null)
                     {
-                        UnityEngine.UI.LayoutRebuilder.ForceRebuildLayoutImmediate(btnParent as RectTransform);
+                        RectTransform sibRt = null;
+                        foreach (WindowMetaTab t in scroll.tabs.GetComponentsInChildren<WindowMetaTab>(true))
+                        {
+                            if (t == null || t == source || t.gameObject == tabObj) continue;
+                            if (!t.gameObject.activeSelf) continue;
+                            sibRt = t.GetComponent<RectTransform>();
+                            break;
+                        }
+                        Vector2 offset;
+                        if (sibRt != null)
+                        {
+                            Vector2 delta = sibRt.anchoredPosition - srcRt.anchoredPosition;
+                            if (Mathf.Abs(delta.y) > Mathf.Abs(delta.x))
+                                offset = new Vector2(0f, delta.y);
+                            else
+                                offset = new Vector2(delta.x, 0f);
+                        }
+                        else
+                        {
+                            offset = new Vector2(srcRt.rect.width * 1.05f, 0f);
+                        }
+                        myRt.anchorMin = srcRt.anchorMin;
+                        myRt.anchorMax = srcRt.anchorMax;
+                        myRt.pivot = srcRt.pivot;
+                        myRt.sizeDelta = srcRt.sizeDelta;
+                        myRt.anchoredPosition = srcRt.anchoredPosition + offset;
                     }
+                }
+                else
+                {
+                    // 有布局组件 → 布局接管排序
+                    UnityEngine.UI.LayoutRebuilder.ForceRebuildLayoutImmediate(btnParent as RectTransform);
                 }
             }
             catch { }
