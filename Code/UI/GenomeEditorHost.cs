@@ -37,7 +37,11 @@ namespace Code.UI
                 // 若此时 Session 未绑定（IsActive=false）会走原版 loadChromosomes/showGenes，
                 // 读全局 _meta_object（未选中亚种为 null）/ null _window_subspecies → NRE
                 // （v0.24.9 实机堆栈：GeneEditor.load ← EnsureHost ← 基因按钮，日志 NRE 先于会话绑定）
-                if (!GenomeEditorSession.SetTarget(actor)) return false;
+                if (!GenomeEditorSession.SetTarget(actor))
+                {
+                    Code.Realm.Genome.GenomeBridgeDiag.P3Diag = "[P3] SetTarget失败";
+                    return false;
+                }
 
                 if (!_sourcePrepared)
                 {
@@ -64,11 +68,14 @@ namespace Code.UI
                     if (_hostedEditor == null)
                     {
                         DSDebug.Warning("[GeneCultivation][P3] 克隆体未找到 GeneEditor，回退自绘");
+                        Code.Realm.Genome.GenomeBridgeDiag.P3Diag = "[P3] 克隆无GeneEditor";
                         return false;
                     }
                 }
 
                 _hostedEditor.gameObject.SetActive(true);   // OnEnable → load() → 我方 Prefix 接管渲染（IsActive=true）
+                Code.Realm.Genome.GenomeBridgeDiag.P3Diag = "[P3] 宿主激活 C=" +
+                    (GenomeEditorSession.CurrentNucleus?.chromosomes.Count ?? 0);
                 return true;
             }
             catch (Exception e)

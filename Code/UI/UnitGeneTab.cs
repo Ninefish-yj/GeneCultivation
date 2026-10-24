@@ -74,6 +74,7 @@ namespace Code.UI
                 {
                     // 预期分支：窗口未完成页签初始化——静默
                     Code.Core.DSDebug.Verbose("[GeneCultivation][UnitGeneTab] scroll 或 tabs 未就绪，隐藏页签");
+                    Code.Realm.Genome.GenomeBridgeDiag.P3Diag = "[P3] scroll/tabs未就绪";
                     UnitGeneTabPanel.Hide();
                     return;
                 }
@@ -81,6 +82,7 @@ namespace Code.UI
                 if (!ShouldShowEntry(window))
                 {
                     Code.Core.DSDebug.Verbose("[GeneCultivation][UnitGeneTab] 无存活单位（ShouldShowEntry=false），隐藏页签");
+                    Code.Realm.Genome.GenomeBridgeDiag.P3Diag = "[P3] ShouldShowEntry=false";
                     HideTab(scroll);
                     return;
                 }
@@ -90,8 +92,10 @@ namespace Code.UI
                 {
                     // 预期分支：无可克隆页签源（原版 UI 结构异常）——静默
                     Code.Core.DSDebug.Verbose("[GeneCultivation][UnitGeneTab] EnsureTab 返回 null（无可克隆页签源），静默");
+                    Code.Realm.Genome.GenomeBridgeDiag.P3Diag = "[P3] EnsureTab=null(无克隆源)";
                     return;
                 }
+                Code.Realm.Genome.GenomeBridgeDiag.P3Diag = "[P3] 页签就绪 onTab=" + (scroll.tabs.isActiveTab(tab) ? "Y" : "N");
                 Code.Core.DSDebug.Verbose("[GeneCultivation][UnitGeneTab] 页签就绪: " + tab.name +
                     " actor=" + (UnitWindowIntegration.GetUnitActor(window)?.getName() ?? "null") +
                     " onTab=" + scroll.tabs.isActiveTab(tab));
