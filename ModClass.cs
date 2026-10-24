@@ -57,7 +57,42 @@ namespace Code
             //     包括：ActorUpdateAgePatch（年度Tick驱动）、UnitWindowIntegration（单位窗口境界行）
             _harmony = new Harmony("GeneCultivation");
             _harmony.PatchAll();
-            Code.Realm.Genome.GenomeBridgeDiag.P3Diag = "[P3] PatchAll完成"; // v0.25.30 挂载探针
+            Code.Realm.Genome.GenomeBridgeDiag.P3Diag = "[P3] PatchAll完成";
+
+            // v0.25.31：显式挂载单位窗页签补丁（特性 PatchAll 曾静默跳过 → 页签 Postfix 不触发）。
+            // 逐个 try-catch，失败把原因写进 P3Diag——任何一步失败都能在屏显上看到。
+            var uiw = typeof(UnitWindow);
+            var geneHarmony = _harmony;
+            int ok = 0;
+            try
+            {
+                geneHarmony.Patch(HarmonyLib.AccessTools.Method(uiw, "OnEnable"),
+                    postfix: new HarmonyLib.HarmonyMethod(typeof(UI.UnitGeneTabPatches), "OnEnable_Postfix"));
+                ok++;
+            }
+            catch (System.Exception e) { Code.Realm.Genome.GenomeBridgeDiag.P3Diag = "[P3] Patch OnEnable 失败: " + e.Message; }
+            try
+            {
+                geneHarmony.Patch(HarmonyLib.AccessTools.Method(uiw, "showInfo"),
+                    postfix: new HarmonyLib.HarmonyMethod(typeof(UI.UnitGeneTabPatches), "ShowInfo_Postfix"));
+                ok++;
+            }
+            catch (System.Exception e) { Code.Realm.Genome.GenomeBridgeDiag.P3Diag = "[P3] Patch showInfo 失败: " + e.Message; }
+            try
+            {
+                geneHarmony.Patch(HarmonyLib.AccessTools.Method(uiw, "showStatsRows"),
+                    postfix: new HarmonyLib.HarmonyMethod(typeof(UI.UnitGeneTabPatches), "ShowStatsRows_Postfix"));
+                ok++;
+            }
+            catch (System.Exception e) { Code.Realm.Genome.GenomeBridgeDiag.P3Diag = "[P3] Patch showStatsRows 失败: " + e.Message; }
+            try
+            {
+                geneHarmony.Patch(HarmonyLib.AccessTools.Method(uiw, "OnDisable"),
+                    postfix: new HarmonyLib.HarmonyMethod(typeof(UI.UnitGeneTabPatches), "OnDisable_Postfix"));
+                ok++;
+            }
+            catch (System.Exception e) { Code.Realm.Genome.GenomeBridgeDiag.P3Diag = "[P3] Patch OnDisable 失败: " + e.Message; }
+            Code.Realm.Genome.GenomeBridgeDiag.P3Diag = "[P3] 显式Patch完成 ok=" + ok + "/4";
 
             // 2.2 初始化鼠标事件拦截器（Unity UI Overlay Canvas，防止面板点击穿透到游戏）
             UI.MouseOverlayBlocker.EnsureInitialized();

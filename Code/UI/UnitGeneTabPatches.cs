@@ -18,32 +18,24 @@ namespace Code.UI
         private static int _lastRefreshFrame = -1;
         private static long _lastRefreshActorId;
 
-        [HarmonyPostfix]
-        [HarmonyPatch(typeof(UnitWindow), "OnEnable")]
         public static void OnEnable_Postfix(UnitWindow __instance)
         {
             Code.Realm.Genome.GenomeBridgeDiag.P3Diag = "[P3] OnEnable触发"; // v0.25.30 探针
             try { TryRefresh(__instance); } catch { }
         }
 
-        [HarmonyPostfix]
-        [HarmonyPatch(typeof(UnitWindow), "showInfo")]
         public static void ShowInfo_Postfix(UnitWindow __instance)
         {
             Code.Realm.Genome.GenomeBridgeDiag.P3Diag = "[P3] showInfo触发"; // v0.25.30 探针
             try { TryRefresh(__instance); } catch { }
         }
 
-        [HarmonyPostfix]
-        [HarmonyPatch(typeof(UnitWindow), "showStatsRows")]
         public static void ShowStatsRows_Postfix(UnitWindow __instance)
         {
             Code.Realm.Genome.GenomeBridgeDiag.P3Diag = "[P3] showStatsRows触发"; // v0.25.30 探针
             try { TryRefresh(__instance); } catch { }
         }
 
-        [HarmonyPostfix]
-        [HarmonyPatch(typeof(UnitWindow), "OnDisable")]
         public static void OnDisable_Postfix(UnitWindow __instance)
         {
             try { UnitGeneTab.ForceDefaultTab(__instance); } catch { }
